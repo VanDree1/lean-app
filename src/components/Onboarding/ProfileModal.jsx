@@ -11,6 +11,14 @@ import styles from './Onboarding.module.css';
 import pm from './ProfileModal.module.css';
 
 const STEPS = [StepGoal, StepActivity, Step2Profile, Step3CurrentWeight, Step4GoalWeight, Step6Diet];
+const STEP_TITLES = [
+  'Mål',
+  'Aktivitet',
+  'Om dig',
+  'Nuvarande vikt',
+  'Målvikt',
+  'Kost',
+];
 
 const EMPTY = {
   name: '', height: '', age: '', gender: '', activity: '',
@@ -148,6 +156,7 @@ export default function ProfileModal({ onClose }) {
   const StepComponent = STEPS[currentStep - 1];
   const isLast = currentStep === STEPS.length;
   const nextEnabled = canProceed(currentStep, profileData);
+  const currentStepTitle = STEP_TITLES[currentStep - 1];
 
   return (
     <div className={pm.backdrop} onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -167,10 +176,7 @@ export default function ProfileModal({ onClose }) {
 
         <div className={pm.header}>
           <div className={pm.headerTop}>
-            <div>
-              <p className={pm.eyebrow}>Profil</p>
-              <h2 className={pm.title}>Din profil</h2>
-            </div>
+            <p className={pm.eyebrow}>Din profil</p>
             <button className={pm.close} onClick={onClose} aria-label="Stäng">✕</button>
           </div>
           <StepProgress
@@ -198,6 +204,15 @@ export default function ProfileModal({ onClose }) {
         </div>
 
         <div className={pm.footer}>
+          <div className={pm.footerMeta}>
+            <div className={pm.footerStepCopy}>
+              <span className={pm.footerEyebrow}>Steg {currentStep} av {STEPS.length}</span>
+              <span className={pm.footerTitle}>{currentStepTitle}</span>
+            </div>
+            <span className={[pm.footerStatus, nextEnabled ? pm.footerStatusReady : ''].join(' ')}>
+              {nextEnabled ? 'Redo' : 'Fyll i för att fortsätta'}
+            </span>
+          </div>
           <button
             type="button"
             className={[pm.footerButton, !nextEnabled ? pm.footerButtonDisabled : ''].join(' ')}

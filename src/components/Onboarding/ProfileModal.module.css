@@ -28,7 +28,7 @@
 
 .header {
   position: relative;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   flex-shrink: 0;
 }
 
@@ -53,11 +53,52 @@
 .footer {
   flex-shrink: 0;
   margin: 0 -2rem -2rem;
-  padding: 1rem 2rem 2rem;
+  padding: 0.9rem 2rem 2rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(17, 17, 17, 0.9);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+}
+
+.footerMeta {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.footerStepCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.footerEyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.footerTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: -0.02em;
+}
+
+.footerStatus {
+  flex-shrink: 0;
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.04em;
+}
+
+.footerStatusReady {
+  color: rgba(199, 221, 207, 0.8);
 }
 
 .footerButton {
@@ -220,10 +261,10 @@
 
 .headerTop {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-end;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
 }
 
 .eyebrow {
@@ -231,8 +272,8 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.42);
+  margin: 0;
 }
 
 .title {
@@ -248,15 +289,21 @@
   position: absolute;
   top: 0;
   right: 0;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: #a1a1aa;
   font-size: 0.95rem;
   cursor: pointer;
   padding: 0.45rem 0.55rem;
   line-height: 1;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
   border-radius: 999px;
+}
+
+.close:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .close:hover {
