@@ -27,6 +27,7 @@ export default function StepActivity({ data, onNext, onChangeData, showFooter = 
 
   return (
     <div className={[s.step, !showFooter ? s.stepFooterless : ''].join(' ')}>
+      <p className={s.kicker}>Aktivitet</p>
       <h2 className={s.title}>Hur aktiv är du?</h2>
       <p className={s.subtitle}>Din nivå hjälper oss sätta rätt ram för dagen.</p>
 

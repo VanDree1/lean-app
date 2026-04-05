@@ -39,12 +39,12 @@ export default function Step3CurrentWeight({ data, onNext, onChangeData, showFoo
 
   return (
     <div className={[s.step, !showFooter ? s.stepFooterless : ''].join(' ')}>
-      <p className={s.kicker}>Current Weight</p>
+      <p className={s.kicker}>Nuvarande vikt</p>
       <h2 className={s.title}>Nuvarande vikt</h2>
       <p className={s.subtitle}>Det här är bara din startpunkt.</p>
 
       <div className={s.wheelCard}>
-        <p className={s.wheelLabel}>Weight</p>
+        <p className={s.wheelLabel}>Vikt</p>
         <div className={s.wheelRow}>
           <WheelPicker
             items={KG_ITEMS}
