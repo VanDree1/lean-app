@@ -29,14 +29,14 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
 }
 
 .greeting {
   font-size: 0.875rem;
   font-weight: 600;
   color: #a1a1aa;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 
 .quote {
@@ -50,10 +50,11 @@
 }
 
 .subtle {
-  margin-top: 1rem;
+  margin-top: 0.85rem;
   font-size: 0.9375rem;
   color: #a1a1aa;
-  max-width: 34ch;
+  max-width: 28ch;
+  line-height: 1.65;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -4,11 +4,11 @@ import styles from './HeroCard.module.css';
 const COPY_BY_GOAL = {
   fat_loss: {
     quote: 'Lugn konsekvens slår intensiv perfektion.',
-    subtle: 'Håll det enkelt, håll det lätt, håll det jämnt.',
+    subtle: 'Håll det enkelt och jämnt.',
   },
   muscle: {
     quote: 'Bygg lugnt. Behåll rytmen.',
-    subtle: 'Tillräckligt med protein, tillräckligt med struktur, ingen stress.',
+    subtle: 'Protein, struktur, ingen stress.',
   },
   energy: {
     quote: 'Mer energi börjar med mindre brus.',
@@ -16,7 +16,7 @@ const COPY_BY_GOAL = {
   },
   target: {
     quote: 'Du bygger något hållbart nu.',
-    subtle: 'En tydlig riktning gör varje dag lättare att hålla.',
+    subtle: 'En tydlig riktning gör dagen lättare.',
   },
 };
 
@@ -47,17 +47,15 @@ export default function HeroCard() {
   const [profile] = useState(loadProfile);
   const goalCopy = COPY_BY_GOAL[profile.goal] ?? {
     quote: 'Det här behöver inte kännas högt. Bara tydligt.',
-    subtle: 'Mindre brus. Mer riktning. En sak i taget.',
+    subtle: 'Mindre brus. Mer riktning.',
   };
   const greeting = getGreeting();
 
   return (
     <section className={styles.card} aria-labelledby="overview-title">
       <div className={styles.glow} />
-      <p className={styles.eyebrow}>Overview</p>
-      <p className={styles.greeting}>
-        {greeting}{profile.name ? `, ${String(profile.name).split(' ')[0]}` : ''}
-      </p>
+      <p className={styles.eyebrow}>Översikt</p>
+      <p className={styles.greeting}>{greeting}{profile.name ? `, ${String(profile.name).split(' ')[0]}` : ''}</p>
       <h2 id="overview-title" className={styles.quote}>{goalCopy.quote}</h2>
       <p className={styles.subtle}>{goalCopy.subtle}</p>
     </section>

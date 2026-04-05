@@ -26,9 +26,9 @@ export default function StreakBanner() {
           <>
             <span className={styles.count}>{streak} {streak === 1 ? 'dag' : 'dagar'} i rad</span>
             <span className={styles.sub}>
-              {streak >= 7  ? 'Det sitter. Fortsätt bara enkelt.' :
-               streak >= 3  ? 'Du har hittat en bra rytm.' :
-                              'Bra start. Håll det lätt.'}
+              {streak >= 7  ? 'Det sitter.' :
+               streak >= 3  ? 'Bra rytm.' :
+                              'Bra start.'}
             </span>
           </>
         )}
