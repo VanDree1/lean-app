@@ -128,6 +128,13 @@ export default function ProfileModal({ onClose }) {
 
   useEffect(() => () => clearTimeout(closeTimeoutRef.current), []);
 
+  useEffect(() => {
+    if (!saved) return;
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate([18, 55, 18, 70, 28]);
+    }
+  }, [saved]);
+
   function updateProfileData(partial) {
     setProfileData((current) => ({ ...current, ...partial }));
   }
@@ -165,8 +172,9 @@ export default function ProfileModal({ onClose }) {
         {saved && (
           <div className={pm.savedState} role="status" aria-live="polite">
             <div className={pm.savedVeil} aria-hidden="true" />
+            <div className={pm.savedHalo} aria-hidden="true" />
             <div className={pm.savedBurst} aria-hidden="true">
-              {Array.from({ length: 8 }, (_, index) => (
+              {Array.from({ length: 12 }, (_, index) => (
                 <span
                   key={index}
                   className={pm.savedSpark}
