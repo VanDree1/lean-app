@@ -61,11 +61,14 @@ export default function ProfileModal({ onClose }) {
     <div className={pm.backdrop} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className={styles.card}>
         {saved && (
-          <div className={pm.savedBanner} role="status" aria-live="polite">
-            <span className={pm.savedIcon} aria-hidden="true">✓</span>
-            <div className={pm.savedText}>
-              <span className={pm.savedTitle}>Din profil är sparad.</span>
-              <span className={pm.savedBody}>Alla ändringar är uppdaterade i appen.</span>
+          <div className={pm.savedState} role="status" aria-live="polite">
+            <div className={pm.savedGlow} aria-hidden="true" />
+            <div className={pm.savedBanner}>
+              <span className={pm.savedIcon} aria-hidden="true">✓</span>
+              <div className={pm.savedText}>
+                <span className={pm.savedTitle}>Din profil är sparad.</span>
+                <span className={pm.savedBody}>Alla ändringar är uppdaterade i appen.</span>
+              </div>
             </div>
           </div>
         )}
