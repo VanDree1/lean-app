@@ -131,7 +131,7 @@ export default function ProfileModal({ onClose }) {
   useEffect(() => {
     if (!saved) return;
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      navigator.vibrate([18, 55, 18, 70, 28]);
+      navigator.vibrate([14, 36, 18]);
     }
   }, [saved]);
 
@@ -174,7 +174,7 @@ export default function ProfileModal({ onClose }) {
             <div className={pm.savedVeil} aria-hidden="true" />
             <div className={pm.savedHalo} aria-hidden="true" />
             <div className={pm.savedBurst} aria-hidden="true">
-              {Array.from({ length: 12 }, (_, index) => (
+              {Array.from({ length: 6 }, (_, index) => (
                 <span
                   key={index}
                   className={pm.savedSpark}
