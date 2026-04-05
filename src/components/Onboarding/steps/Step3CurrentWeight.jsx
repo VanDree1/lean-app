@@ -43,6 +43,7 @@ export default function Step3CurrentWeight({ data, onNext, submitLabel = 'Nästa
             value={dec}
             onChange={handleDec}
             width="3.5rem"
+            variant="decimal"
           />
           <span className={s.wheelUnit}>kg</span>
         </div>

@@ -3,7 +3,7 @@ import s from './WheelPicker.module.css';
 
 const ITEM_H = 48; // px — must match CSS
 
-export default function WheelPicker({ items, value, onChange, width }) {
+export default function WheelPicker({ items, value, onChange, width, variant = 'default' }) {
   const listRef = useRef(null);
   const isScrolling = useRef(null);
   const [visualIdx, setVisualIdx] = useState(() => Math.max(0, items.indexOf(value)));
@@ -50,7 +50,10 @@ export default function WheelPicker({ items, value, onChange, width }) {
   }
 
   return (
-    <div className={s.wheel} style={width ? { width } : undefined}>
+    <div
+      className={[s.wheel, variant === 'decimal' ? s.decimal : ''].join(' ')}
+      style={width ? { width } : undefined}
+    >
       <div className={s.highlight} />
       <div className={s.fadeTop} />
       <div className={s.fadeBottom} />

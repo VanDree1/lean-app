@@ -40,7 +40,7 @@
 
 .value {
   font-size: 1.95rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: -0.05em;
   color: #ffffff;
   font-variant-numeric: tabular-nums;
@@ -48,7 +48,7 @@
 
 .unit {
   font-size: 0.68rem;
-  color: #a1a1aa;
+  color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -80,7 +80,7 @@
 .track {
   height: 4px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
 

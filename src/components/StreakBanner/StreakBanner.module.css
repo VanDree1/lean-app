@@ -38,14 +38,14 @@
 
 .count {
   font-size: 1rem;
-  font-weight: 650;
+  font-weight: 600;
   color: #ffffff;
   letter-spacing: -0.02em;
 }
 
 .warning {
   font-size: 0.98rem;
-  font-weight: 650;
+  font-weight: 600;
   color: #ffffff;
   letter-spacing: -0.02em;
 }
@@ -66,12 +66,12 @@
   width: 0.375rem;
   height: 0.375rem;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
   transition: background 0.3s ease;
 }
 
 .dotFilled {
-  background: #cfe6d6;
+  background: #c7ddcf;
 }
 
 @media (max-width: 640px) {

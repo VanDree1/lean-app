@@ -32,12 +32,12 @@
   scroll-snap-align: center;
   font-size: 1.25rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.24);
   cursor: pointer;
   transition: color 0.18s ease, font-size 0.18s ease, opacity 0.18s ease, transform 0.18s ease;
   user-select: none;
   font-variant-numeric: tabular-nums;
-  opacity: 0.3;
+  opacity: 0.2;
 }
 
 .active {
@@ -49,18 +49,33 @@
 }
 
 .near {
-  color: rgba(255, 255, 255, 0.55);
-  opacity: 0.62;
+  color: rgba(255, 255, 255, 0.42);
+  opacity: 0.38;
 }
 
 .mid {
-  color: rgba(255, 255, 255, 0.34);
-  opacity: 0.4;
+  color: rgba(255, 255, 255, 0.24);
+  opacity: 0.2;
 }
 
 .far {
-  color: rgba(255, 255, 255, 0.22);
-  opacity: 0.22;
+  color: rgba(255, 255, 255, 0.2);
+  opacity: 0.2;
+}
+
+.decimal .item {
+  font-size: 1.1rem;
+}
+
+.decimal .active {
+  font-size: 1.6rem;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.decimal .near,
+.decimal .mid,
+.decimal .far {
+  color: rgba(255, 255, 255, 0.2);
 }
 
 /* Center highlight bar */
