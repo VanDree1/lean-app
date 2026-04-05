@@ -3,6 +3,17 @@
   to   { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes fadeSlideBack {
+  from { opacity: 0; transform: translateX(-18px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes cardGlow {
+  0% { box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.02); }
+  50% { box-shadow: 0 28px 72px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(207, 230, 214, 0.08), 0 0 36px rgba(207, 230, 214, 0.06); }
+  100% { box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.02); }
+}
+
 .overlay {
   min-height: 100svh;
   display: flex;
@@ -28,6 +39,7 @@
     0 0 0 1px rgba(255, 255, 255, 0.02);
   overflow-y: auto;
   scrollbar-width: none;
+  animation: cardGlow 0.55s ease;
 }
 
 .card::-webkit-scrollbar { display: none; }
@@ -58,7 +70,15 @@
 }
 
 .stepWrap {
-  animation: fadeSlideIn 0.25s ease;
+  will-change: transform, opacity;
+}
+
+.stepWrapForward {
+  animation: fadeSlideIn 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.stepWrapBackward {
+  animation: fadeSlideBack 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .skip {

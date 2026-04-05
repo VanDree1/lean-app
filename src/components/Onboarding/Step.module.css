@@ -407,6 +407,13 @@
   color: #a1a1aa;
 }
 
+.summarySaveNote {
+  margin-top: 0.75rem;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
 .summaryBadges {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -460,6 +467,7 @@
     0 8px 24px rgba(0, 0, 0, 0.12);
   transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
   z-index: 2;
+  overflow: hidden;
 }
 
 .btnPrimary::before {
@@ -473,6 +481,16 @@
   pointer-events: none;
 }
 
+.btnPrimary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.16) 42%, transparent 75%);
+  transform: translateX(-135%);
+  transition: transform 0.45s ease;
+  pointer-events: none;
+}
+
 .btnPrimary:hover {
   transform: translateY(-1px);
   background: rgba(183, 212, 194, 0.14);
@@ -481,6 +499,14 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 0 0 1px rgba(207, 230, 214, 0.08),
     0 12px 26px rgba(0, 0, 0, 0.14);
+}
+
+.btnPrimary:hover::after {
+  transform: translateX(135%);
+}
+
+.btnPrimary:active {
+  transform: translateY(0) scale(0.985);
 }
 
 .btnPrimary:disabled {

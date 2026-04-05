@@ -30,7 +30,7 @@ const ACTIVITY_LABELS = {
   very_active: 'Mycket aktiv',
 };
 
-export default function Step7Summary({ data, onNext }) {
+export default function Step7Summary({ data, onNext, submitLabel = 'Spara' }) {
   const [fired, setFired] = useState(false);
   const [confetti] = useState(() => makeConfetti());
 
@@ -78,6 +78,7 @@ export default function Step7Summary({ data, onNext }) {
         <p className={s.summaryHeroSub}>
           Nu finns en tydlig riktning för dig, {firstName}.
         </p>
+        <p className={s.summarySaveNote}>Spara planen och gå vidare till appen.</p>
       </div>
 
       <div className={s.summaryBadges}>
@@ -92,7 +93,7 @@ export default function Step7Summary({ data, onNext }) {
       </div>
 
       <button className={s.btnPrimary} onClick={handleStart} disabled={fired}>
-        Starta
+        {fired ? 'Sparar...' : submitLabel}
       </button>
     </div>
   );

@@ -48,6 +48,7 @@ export default function Onboarding() {
   const { complete }     = useOnboarding();
   const [step, setStep]  = useState(1);
   const [data, setData]  = useState(INITIAL_DATA);
+  const [direction, setDirection] = useState('forward');
 
   // Rebuild steps every render so navigation is always correct
   const steps = buildSteps(data);
@@ -65,6 +66,11 @@ export default function Onboarding() {
     }
 
     setData(newData);
+    setDirection('forward');
+
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(12);
+    }
 
     if (step === steps.length) {
       complete(newData);
@@ -74,10 +80,12 @@ export default function Onboarding() {
   }
 
   function back() {
+    setDirection('backward');
     setStep((s) => Math.max(1, s - 1));
   }
 
   function goToStep(n) {
+    setDirection(n > step ? 'forward' : 'backward');
     setStep(n);
   }
 
@@ -99,8 +107,18 @@ export default function Onboarding() {
           </div>
         )}
 
-        <div key={step} className={styles.stepWrap}>
-          <StepComponent data={data} onNext={next} />
+        <div
+          key={step}
+          className={[
+            styles.stepWrap,
+            direction === 'backward' ? styles.stepWrapBackward : styles.stepWrapForward,
+          ].join(' ')}
+        >
+          <StepComponent
+            data={data}
+            onNext={next}
+            submitLabel={isLast ? 'Spara' : 'Nästa'}
+          />
         </div>
 
         {!isWelcome && !isLast && (
