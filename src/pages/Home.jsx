@@ -1,20 +1,69 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import HeroCard from '../components/HeroCard/HeroCard';
 import QuickStats from '../components/QuickStats/QuickStats';
 import StreakBanner from '../components/StreakBanner/StreakBanner';
 import MotivationTip from '../components/MotivationTip/MotivationTip';
 import WeightModal from '../components/Weight/WeightModal';
+import ProfileModal from '../components/Onboarding/ProfileModal';
 import { useWeightLog } from '../components/Weight/useWeightLog';
 import { useStreak } from '../hooks/useStreak';
+import { useProfile } from '../hooks/useProfile';
 import { useCountUp } from '../hooks/useCountUp';
 import styles from './Home.module.css';
 
-const TODAY_TARGETS = {
-  calories: 1850,
-  calorieGoal: 2100,
-  protein: 142,
-  proteinGoal: 160,
+const PROFILE_KEY = 'djur-i-juni:profile';
+const ONBOARDING_KEY = 'djur-i-juni:onboarding';
+
+const GOAL_LABELS = {
+  fat_loss: 'Fettförlust',
+  muscle: 'Bygga muskler',
+  energy: 'Mer energi',
+  target: 'Målvikt',
 };
+
+const ACTIVITY_LABELS = {
+  sedentary: 'Stillasittande',
+  light: 'Måttligt aktiv',
+  very_active: 'Mycket aktiv',
+};
+
+function loadDashboardProfile() {
+  try {
+    const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
+    const onboarding = JSON.parse(localStorage.getItem(ONBOARDING_KEY) || '{}');
+
+    return {
+      name: profile.name || onboarding.name || '',
+      age: profile.age || onboarding.age || '',
+      height: profile.height || onboarding.height || '',
+      goal: profile.goal || onboarding.goal || '',
+      activity: profile.activity || onboarding.activity || '',
+      diet: profile.diet || onboarding.diet || '',
+      goalWeight: profile.goalWeight || onboarding.goalWeight || '',
+      targetDate: profile.targetDate || onboarding.targetDate || '',
+      updatedAt: profile.updatedAt || onboarding.completedAt || null,
+    };
+  } catch {
+    return {};
+  }
+}
+
+function formatUpdatedAt(updatedAt) {
+  if (!updatedAt) return 'Inte sparad ännu';
+
+  const diffMs = Date.now() - updatedAt;
+  const diffMin = Math.max(0, Math.floor(diffMs / 60000));
+
+  if (diffMin < 1) return 'Uppdaterad nyss';
+  if (diffMin === 1) return 'Uppdaterad för 1 min sedan';
+  if (diffMin < 60) return `Uppdaterad för ${diffMin} min sedan`;
+
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours === 1) return 'Uppdaterad för 1 timme sedan';
+  if (diffHours < 24) return `Uppdaterad för ${diffHours} timmar sedan`;
+
+  return `Uppdaterad ${new Date(updatedAt).toLocaleDateString('sv-SE')}`;
+}
 
 function ProgressRing({ progress }) {
   const radius = 52;
@@ -40,28 +89,29 @@ function ProgressRing({ progress }) {
 
 function DailyFocusCard({ onLogWeight }) {
   const { loggedToday } = useStreak();
-  const progress = Math.min(100, (TODAY_TARGETS.calories / TODAY_TARGETS.calorieGoal) * 100);
-  const caloriesLeft = Math.max(0, TODAY_TARGETS.calorieGoal - TODAY_TARGETS.calories);
-  const proteinLeft = Math.max(0, TODAY_TARGETS.proteinGoal - TODAY_TARGETS.protein);
-  const success = loggedToday && TODAY_TARGETS.calories <= TODAY_TARGETS.calorieGoal;
+  const { profile, kcalGoal, proteinGoal } = useProfile();
+
+  const focusText = profile.goal === 'muscle'
+    ? `Ditt proteinmål är ${proteinGoal} g. Bygg dagen runt det.`
+    : profile.goal === 'energy'
+      ? `Håll dig inom ${kcalGoal} kcal så att energin håller hela dagen.`
+      : `Ditt dagliga mål: ${kcalGoal} kcal och ${proteinGoal} g protein.`;
 
   return (
     <section className={styles.focusCard} aria-labelledby="today-title">
       <div className={styles.focusText}>
         <p className={styles.sectionEyebrow}>Today</p>
         <h2 id="today-title" className={styles.focusTitle}>Håll dagen enkel</h2>
-        <p className={styles.focusBody}>
-          {TODAY_TARGETS.calories} kcal loggat idag. {caloriesLeft} kcal återstår för att stänga dagen inom ramen.
-        </p>
+        <p className={styles.focusBody}>{focusText}</p>
 
         <div className={styles.focusMetrics}>
           <div className={styles.metricPill}>
-            <span className={styles.metricLabel}>Nästa fokus</span>
-            <span className={styles.metricValue}>{proteinLeft} g protein kvar</span>
+            <span className={styles.metricLabel}>Kalorigräns</span>
+            <span className={styles.metricValue}>{kcalGoal} kcal</span>
           </div>
           <div className={styles.metricPill}>
-            <span className={styles.metricLabel}>Status</span>
-            <span className={styles.metricValue}>{success ? 'I balans' : 'Håll kursen'}</span>
+            <span className={styles.metricLabel}>Proteinmål</span>
+            <span className={styles.metricValue}>{proteinGoal} g</span>
           </div>
         </div>
 
@@ -71,12 +121,105 @@ function DailyFocusCard({ onLogWeight }) {
       </div>
 
       <div className={styles.focusVisual}>
-        <ProgressRing progress={progress} />
+        <ProgressRing progress={loggedToday ? 100 : 0} />
         <div className={styles.ringCenter}>
-          <span className={styles.ringValue}>{Math.round(progress)}%</span>
-          <span className={styles.ringLabel}>inom ramen</span>
+          <span className={styles.ringValue}>{loggedToday ? '✓' : '–'}</span>
+          <span className={styles.ringLabel}>{loggedToday ? 'loggad' : 'idag'}</span>
         </div>
       </div>
+    </section>
+  );
+}
+
+function ProfileCard({ onOpen }) {
+  const [profile, setProfile] = useState(loadDashboardProfile);
+  const [highlighted, setHighlighted] = useState(false);
+
+  useEffect(() => {
+    function syncProfile() {
+      setProfile(loadDashboardProfile());
+      setHighlighted(true);
+      window.setTimeout(() => setHighlighted(false), 1600);
+    }
+
+    window.addEventListener('storage', syncProfile);
+    window.addEventListener('djur-i-juni:profile-updated', syncProfile);
+
+    return () => {
+      window.removeEventListener('storage', syncProfile);
+      window.removeEventListener('djur-i-juni:profile-updated', syncProfile);
+    };
+  }, []);
+
+  const firstName = profile.name ? String(profile.name).split(' ')[0] : 'Din profil';
+  const meta = [
+    profile.age ? `${profile.age} år` : null,
+    profile.height ? `${profile.height} cm` : null,
+    profile.diet || null,
+  ].filter(Boolean);
+  const completionFields = [
+    profile.name,
+    profile.age,
+    profile.height,
+    profile.goal,
+    profile.activity,
+    profile.diet,
+    profile.goalWeight,
+  ];
+  const completion = Math.round((completionFields.filter(Boolean).length / completionFields.length) * 100);
+
+  return (
+    <section
+      className={[styles.profileCard, highlighted ? styles.profileCardUpdated : ''].join(' ')}
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(event) => event.key === 'Enter' && onOpen()}
+    >
+      <div className={styles.profileTop}>
+        <div>
+          <p className={styles.sectionEyebrow}>Profile</p>
+          <h2 className={styles.profileTitle}>{firstName}</h2>
+        </div>
+        <span className={styles.profileEdit}>Redigera</span>
+      </div>
+
+      <p className={styles.profileUpdatedAt}>{formatUpdatedAt(profile.updatedAt)}</p>
+
+      <div className={styles.profileCompletion}>
+        <span className={styles.profileCompletionText}>{completion}% komplett</span>
+        <div className={styles.profileCompletionTrack}>
+          <div className={styles.profileCompletionFill} style={{ width: `${completion}%` }} />
+        </div>
+      </div>
+
+      {meta.length > 0 && (
+        <div className={styles.profileMeta}>
+          {meta.map((item) => (
+            <span key={item} className={styles.profileChip}>{item}</span>
+          ))}
+        </div>
+      )}
+
+      <div className={styles.profileGrid}>
+        <div className={styles.profileStat}>
+          <span className={styles.profileKey}>Fokus</span>
+          <span className={styles.profileValue}>{GOAL_LABELS[profile.goal] || 'Sätt riktning'}</span>
+        </div>
+        <div className={styles.profileStat}>
+          <span className={styles.profileKey}>Aktivitet</span>
+          <span className={styles.profileValue}>{ACTIVITY_LABELS[profile.activity] || 'Lägg till nivå'}</span>
+        </div>
+        <div className={styles.profileStat}>
+          <span className={styles.profileKey}>Målvikt</span>
+          <span className={styles.profileValue}>{profile.goalWeight ? `${profile.goalWeight} kg` : 'Inte satt'}</span>
+        </div>
+        <div className={styles.profileStat}>
+          <span className={styles.profileKey}>Måldatum</span>
+          <span className={styles.profileValue}>{profile.targetDate || 'Flexibelt'}</span>
+        </div>
+      </div>
+      <p className={styles.profileNote}>Tryck för att justera mål, kroppsvikt och kost utan att börja om.</p>
     </section>
   );
 }
@@ -142,6 +285,7 @@ export default function Home() {
     <main className={styles.main}>
       <div className={styles.stack}>
         <HeroCard />
+        <ProfileCard onOpen={() => setModal('profile')} />
         <DailyFocusCard onLogWeight={() => setModal('weight')} />
         <div className={styles.twoColumn}>
           <StreakBanner />
@@ -155,6 +299,7 @@ export default function Home() {
       </div>
 
       {modal === 'weight' && <WeightModal onClose={() => setModal(null)} />}
+      {modal === 'profile' && <ProfileModal onClose={() => setModal(null)} />}
     </main>
   );
 }

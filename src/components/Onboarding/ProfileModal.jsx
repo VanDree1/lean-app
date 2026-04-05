@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useOnboarding } from './useOnboarding';
 import StepProgress from './StepProgress';
+import StepGoal         from './steps/StepGoal';
+import StepActivity     from './steps/StepActivity';
 import Step2Profile       from './steps/Step2Profile';
 import Step3CurrentWeight from './steps/Step3CurrentWeight';
 import Step4GoalWeight    from './steps/Step4GoalWeight';
@@ -8,7 +10,7 @@ import Step6Diet          from './steps/Step6Diet';
 import styles from './Onboarding.module.css';
 import pm from './ProfileModal.module.css';
 
-const STEPS = [Step2Profile, Step3CurrentWeight, Step4GoalWeight, Step6Diet];
+const STEPS = [StepGoal, StepActivity, Step2Profile, Step3CurrentWeight, Step4GoalWeight, Step6Diet];
 
 const EMPTY = {
   name: '', height: '', age: '', gender: '', activity: '',
@@ -26,16 +28,23 @@ function loadSaved() {
 }
 
 export default function ProfileModal({ onClose }) {
-  const { complete }    = useOnboarding();
+  const { complete, saveDraft } = useOnboarding();
+  const closeTimeoutRef = useRef(null);
   const [step, setStep] = useState(1);
   const [data, setData] = useState(loadSaved);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => () => clearTimeout(closeTimeoutRef.current), []);
 
   function next(partial) {
     const newData = { ...data, ...partial };
     setData(newData);
+    saveDraft(newData);
     if (step === STEPS.length) {
       complete(newData);
-      onClose();
+      setSaved(true);
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = setTimeout(() => onClose(), 1400);
     } else {
       setStep((s) => s + 1);
     }
@@ -51,6 +60,16 @@ export default function ProfileModal({ onClose }) {
   return (
     <div className={pm.backdrop} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className={styles.card}>
+        {saved && (
+          <div className={pm.savedBanner} role="status" aria-live="polite">
+            <span className={pm.savedIcon} aria-hidden="true">✓</span>
+            <div className={pm.savedText}>
+              <span className={pm.savedTitle}>Din profil är sparad.</span>
+              <span className={pm.savedBody}>Alla ändringar är uppdaterade i appen.</span>
+            </div>
+          </div>
+        )}
+
         <div className={pm.header}>
           <div className={pm.headerTop}>
             <div>

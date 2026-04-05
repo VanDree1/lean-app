@@ -1,13 +1,24 @@
 import { useState } from 'react';
 import styles from './HeroCard.module.css';
 
-const QUOTES = [
-  'Lugn konsekvens slår intensiv perfektion.',
-  'Det här behöver inte kännas högt. Bara tydligt.',
-  'Små beslut ska kännas lätta att hålla.',
-  'Du bygger något hållbart nu.',
-  'Lägg energi på det som betyder något idag.',
-];
+const COPY_BY_GOAL = {
+  fat_loss: {
+    quote: 'Lugn konsekvens slår intensiv perfektion.',
+    subtle: 'Håll det enkelt, håll det lätt, håll det jämnt.',
+  },
+  muscle: {
+    quote: 'Bygg lugnt. Behåll rytmen.',
+    subtle: 'Tillräckligt med protein, tillräckligt med struktur, ingen stress.',
+  },
+  energy: {
+    quote: 'Mer energi börjar med mindre brus.',
+    subtle: 'Sov, ät jämnt, håll dagen tydlig.',
+  },
+  target: {
+    quote: 'Du bygger något hållbart nu.',
+    subtle: 'En tydlig riktning gör varje dag lättare att hålla.',
+  },
+};
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -18,17 +29,26 @@ function getGreeting() {
   return 'God kväll';
 }
 
-function loadName() {
+function loadProfile() {
   try {
-    const raw = localStorage.getItem('djur-i-juni:onboarding');
-    return raw ? JSON.parse(raw).name?.split(' ')[0] || '' : '';
-  } catch { return ''; }
+    const profile = JSON.parse(localStorage.getItem('djur-i-juni:profile') || '{}');
+    const onboarding = JSON.parse(localStorage.getItem('djur-i-juni:onboarding') || '{}');
+
+    return {
+      name: profile.name || onboarding.name || '',
+      goal: profile.goal || onboarding.goal || '',
+    };
+  } catch {
+    return { name: '', goal: '' };
+  }
 }
 
 export default function HeroCard() {
-  const [name] = useState(loadName);
-  const [dayIdx] = useState(() => Math.floor(Date.now() / 86_400_000) % QUOTES.length);
-  const quote = QUOTES[dayIdx];
+  const [profile] = useState(loadProfile);
+  const goalCopy = COPY_BY_GOAL[profile.goal] ?? {
+    quote: 'Det här behöver inte kännas högt. Bara tydligt.',
+    subtle: 'Mindre brus. Mer riktning. En sak i taget.',
+  };
   const greeting = getGreeting();
 
   return (
@@ -36,10 +56,10 @@ export default function HeroCard() {
       <div className={styles.glow} />
       <p className={styles.eyebrow}>Overview</p>
       <p className={styles.greeting}>
-        {greeting}{name ? `, ${name}` : ''}
+        {greeting}{profile.name ? `, ${String(profile.name).split(' ')[0]}` : ''}
       </p>
-      <h2 id="overview-title" className={styles.quote}>{quote}</h2>
-      <p className={styles.subtle}>Mindre brus. Mer riktning. En sak i taget.</p>
+      <h2 id="overview-title" className={styles.quote}>{goalCopy.quote}</h2>
+      <p className={styles.subtle}>{goalCopy.subtle}</p>
     </section>
   );
 }

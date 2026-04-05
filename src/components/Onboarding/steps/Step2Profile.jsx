@@ -2,11 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import s from '../Step.module.css';
 
 const GENDERS = ['Man', 'Kvinna'];
-const PROFILE_STORAGE_KEY = 'djur_i_juni_profile';
+const PROFILE_STORAGE_KEY = 'djur-i-juni:profile';
 
 export default function Step2Profile({ data, onNext, submitLabel = 'Nästa' }) {
-  const hideToastTimeoutRef = useRef(null);
-  const nextStepTimeoutRef = useRef(null);
+  const autosaveTimeoutRef = useRef(null);
   const [profile, setProfile] = useState(() => {
     const initial = {
       name: data.name ?? '',
@@ -31,14 +30,25 @@ export default function Step2Profile({ data, onNext, submitLabel = 'Nästa' }) {
       return initial;
     }
   });
-  const [showToast, setShowToast] = useState(false);
+  const [saveState, setSaveState] = useState('idle');
 
   useEffect(() => () => {
-    clearTimeout(hideToastTimeoutRef.current);
-    clearTimeout(nextStepTimeoutRef.current);
+    clearTimeout(autosaveTimeoutRef.current);
   }, []);
 
+  useEffect(() => {
+    const hasContent = profile.name || profile.age || profile.height || profile.gender;
+    if (!hasContent) return;
+
+    clearTimeout(autosaveTimeoutRef.current);
+    autosaveTimeoutRef.current = setTimeout(() => {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+      setSaveState('saved');
+    }, 220);
+  }, [profile]);
+
   function updateProfile(field, value) {
+    setSaveState('saving');
     setProfile((current) => ({ ...current, [field]: value }));
   }
 
@@ -60,11 +70,8 @@ export default function Step2Profile({ data, onNext, submitLabel = 'Nästa' }) {
     if (!validProfile) return;
 
     localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(payload));
-    setShowToast(true);
-    clearTimeout(hideToastTimeoutRef.current);
-    clearTimeout(nextStepTimeoutRef.current);
-    hideToastTimeoutRef.current = setTimeout(() => setShowToast(false), 4000);
-    nextStepTimeoutRef.current = setTimeout(() => onNext(payload), 650);
+    setSaveState('saved');
+    onNext(payload);
   }
 
   const valid =
@@ -74,16 +81,6 @@ export default function Step2Profile({ data, onNext, submitLabel = 'Nästa' }) {
 
   return (
     <form className={s.step} onSubmit={handleSubmit} noValidate>
-      {showToast && (
-        <div className={s.toast} role="status" aria-live="polite">
-          <span className={s.toastIcon} aria-hidden="true">✓</span>
-          <div className={s.toastText}>
-            <span className={s.toastTitle}>Din profil är sparad.</span>
-            <span className={s.toastBody}>Du kan ändra den när du vill.</span>
-          </div>
-        </div>
-      )}
-
       <h2 className={s.title}>Om dig</h2>
       <p className={s.subtitle}>
         Det här räcker för att sätta en plan som känns rimlig från start.
@@ -146,6 +143,21 @@ export default function Step2Profile({ data, onNext, submitLabel = 'Nästa' }) {
               {g}
             </button>
           ))}
+        </div>
+      </div>
+
+      <div className={s.profilePreview} aria-live="polite">
+        <div className={s.profilePreviewHead}>
+          <span className={s.profilePreviewTitle}>Profilutkast</span>
+          <span className={s.profileSaveState}>
+            {saveState === 'saving' ? 'Sparar...' : saveState === 'saved' ? 'Sparat' : 'Inte sparat än'}
+          </span>
+        </div>
+        <div className={s.profilePreviewGrid}>
+          <span className={s.profileChip}>{profile.name.trim() || 'Namn saknas'}</span>
+          <span className={s.profileChip}>{profile.age ? `${profile.age} år` : 'Ålder saknas'}</span>
+          <span className={s.profileChip}>{profile.height ? `${profile.height} cm` : 'Längd saknas'}</span>
+          <span className={s.profileChip}>{profile.gender || 'Kön valfritt'}</span>
         </div>
       </div>
 

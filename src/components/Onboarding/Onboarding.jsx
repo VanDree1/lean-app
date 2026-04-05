@@ -45,7 +45,7 @@ function buildSteps(data) {
 }
 
 export default function Onboarding() {
-  const { complete }     = useOnboarding();
+  const { complete, saveDraft } = useOnboarding();
   const [step, setStep]  = useState(1);
   const [data, setData]  = useState(INITIAL_DATA);
   const [direction, setDirection] = useState('forward');
@@ -66,6 +66,7 @@ export default function Onboarding() {
     }
 
     setData(newData);
+    saveDraft(newData);
     setDirection('forward');
 
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
