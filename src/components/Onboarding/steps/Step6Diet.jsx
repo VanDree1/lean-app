@@ -20,12 +20,31 @@ const DIETS = [
   { value: 'Carnivore', icon: Beef, desc: 'Endast animaliska produkter' },
 ];
 
-export default function Step6Diet({ data, onNext, submitLabel = 'Nästa' }) {
-  const [diet,      setDiet]      = useState(data.diet      ?? '');
-  const [allergies, setAllergies] = useState(data.allergies ?? '');
+export default function Step6Diet({ data, onNext, onChangeData, showFooter = true, submitLabel = 'Nästa' }) {
+  const controlled = typeof onChangeData === 'function';
+  const [localDiet, setLocalDiet] = useState(data.diet ?? '');
+  const [localAllergies, setLocalAllergies] = useState(data.allergies ?? '');
+  const diet = controlled ? (data.diet ?? '') : localDiet;
+  const allergies = controlled ? (data.allergies ?? '') : localAllergies;
+
+  function updateDiet(value) {
+    if (controlled) {
+      onChangeData({ diet: value });
+    } else {
+      setLocalDiet(value);
+    }
+  }
+
+  function updateAllergies(value) {
+    if (controlled) {
+      onChangeData({ allergies: value });
+    } else {
+      setLocalAllergies(value);
+    }
+  }
 
   return (
-    <div className={s.step}>
+    <div className={[s.step, !showFooter ? s.stepFooterless : ''].join(' ')}>
       <p className={s.kicker}>Nutrition Style</p>
       <h2 className={s.title}>Vilken kost passar dig?</h2>
       <p className={s.subtitle}>Välj det som ligger närmast hur du redan äter.</p>
@@ -42,7 +61,7 @@ export default function Step6Diet({ data, onNext, submitLabel = 'Nästa' }) {
                 diet === d.value ? s.hypeCardSelected : s.hypeCard,
                 s.hypeCardRow,
               ].join(' ')}
-              onClick={() => setDiet(diet === d.value ? '' : d.value)}
+              onClick={() => updateDiet(diet === d.value ? '' : d.value)}
             >
               <span className={s.hypeCardIcon} aria-hidden="true">
                 <Icon size={24} strokeWidth={1.5} />
@@ -65,18 +84,20 @@ export default function Step6Diet({ data, onNext, submitLabel = 'Nästa' }) {
           className={s.input}
           type="text"
           value={allergies}
-          onChange={(e) => setAllergies(e.target.value)}
+          onChange={(e) => updateAllergies(e.target.value)}
           placeholder="Till exempel laktos eller nötter"
         />
       </div>
 
-      <button
-        className={s.btnPrimary}
-        disabled={!diet}
-        onClick={() => onNext({ diet, allergies })}
-      >
-        {submitLabel}
-      </button>
+      {showFooter && (
+        <button
+          className={s.btnPrimary}
+          disabled={!diet}
+          onClick={() => onNext({ diet, allergies })}
+        >
+          {submitLabel}
+        </button>
+      )}
     </div>
   );
 }

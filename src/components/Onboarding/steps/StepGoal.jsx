@@ -14,11 +14,21 @@ const GOALS = [
   { value: 'target', icon: Target, label: 'Nå målvikt', desc: 'Specifik målsättning' },
 ];
 
-export default function StepGoal({ data, onNext, submitLabel = 'Nästa' }) {
-  const [goal, setGoal] = useState(data.goal ?? '');
+export default function StepGoal({ data, onNext, onChangeData, showFooter = true, submitLabel = 'Nästa' }) {
+  const controlled = typeof onChangeData === 'function';
+  const [localGoal, setLocalGoal] = useState(data.goal ?? '');
+  const goal = controlled ? (data.goal ?? '') : localGoal;
+
+  function updateGoal(value) {
+    if (controlled) {
+      onChangeData({ goal: value });
+    } else {
+      setLocalGoal(value);
+    }
+  }
 
   return (
-    <div className={s.step}>
+    <div className={[s.step, !showFooter ? s.stepFooterless : ''].join(' ')}>
       <h2 className={s.title}>Vad är ditt mål?</h2>
       <p className={s.subtitle}>Välj den riktning som känns mest relevant just nu.</p>
 
@@ -34,7 +44,7 @@ export default function StepGoal({ data, onNext, submitLabel = 'Nästa' }) {
                 goal === g.value ? s.hypeCardSelected : s.hypeCard,
                 s.hypeCardRow,
               ].join(' ')}
-              onClick={() => setGoal(g.value)}
+              onClick={() => updateGoal(g.value)}
             >
               <span className={s.hypeCardIcon} aria-hidden="true">
                 <Icon size={24} strokeWidth={1.5} />
@@ -48,13 +58,15 @@ export default function StepGoal({ data, onNext, submitLabel = 'Nästa' }) {
         })}
       </div>
 
-      <button
-        className={s.btnPrimary}
-        disabled={!goal}
-        onClick={() => onNext({ goal })}
-      >
-        {submitLabel}
-      </button>
+      {showFooter && (
+        <button
+          className={s.btnPrimary}
+          disabled={!goal}
+          onClick={() => onNext({ goal })}
+        >
+          {submitLabel}
+        </button>
+      )}
     </div>
   );
 }

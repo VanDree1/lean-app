@@ -13,18 +13,32 @@ function parseInitial(raw) {
   return { kg, dec };
 }
 
-export default function Step3CurrentWeight({ data, onNext, submitLabel = 'Nästa' }) {
+export default function Step3CurrentWeight({ data, onNext, onChangeData, showFooter = true, submitLabel = 'Nästa' }) {
+  const controlled = typeof onChangeData === 'function';
   const init = parseInitial(data.currentWeight);
-  const [kg,  setKg]  = useState(init.kg);
-  const [dec, setDec] = useState(init.dec);
+  const [localKg, setLocalKg] = useState(init.kg);
+  const [localDec, setLocalDec] = useState(init.dec);
+  const { kg, dec } = controlled ? parseInitial(data.currentWeight) : { kg: localKg, dec: localDec };
 
-  const handleKg  = useCallback((v) => setKg(v),  []);
-  const handleDec = useCallback((v) => setDec(v), []);
+  const handleKg = useCallback((v) => {
+    if (controlled) {
+      onChangeData({ currentWeight: String(parseFloat(`${v}${dec}`)) });
+    } else {
+      setLocalKg(v);
+    }
+  }, [controlled, dec, onChangeData]);
+  const handleDec = useCallback((v) => {
+    if (controlled) {
+      onChangeData({ currentWeight: String(parseFloat(`${kg}${v}`)) });
+    } else {
+      setLocalDec(v);
+    }
+  }, [controlled, kg, onChangeData]);
 
   const fullWeight = parseFloat(`${kg}${dec}`);
 
   return (
-    <div className={s.step}>
+    <div className={[s.step, !showFooter ? s.stepFooterless : ''].join(' ')}>
       <p className={s.kicker}>Current Weight</p>
       <h2 className={s.title}>Nuvarande vikt</h2>
       <p className={s.subtitle}>Det här är bara din startpunkt.</p>
@@ -49,12 +63,14 @@ export default function Step3CurrentWeight({ data, onNext, submitLabel = 'Nästa
         </div>
       </div>
 
-      <button
-        className={s.btnPrimary}
-        onClick={() => onNext({ currentWeight: String(fullWeight) })}
-      >
-        {submitLabel}
-      </button>
+      {showFooter && (
+        <button
+          className={s.btnPrimary}
+          onClick={() => onNext({ currentWeight: String(fullWeight) })}
+        >
+          {submitLabel}
+        </button>
+      )}
     </div>
   );
 }

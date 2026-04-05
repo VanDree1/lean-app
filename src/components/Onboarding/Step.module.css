@@ -11,6 +11,10 @@
   padding-bottom: 5.5rem;
 }
 
+.stepFooterless {
+  padding-bottom: 0;
+}
+
 .kicker,
 .wheelLabel {
   font-size: 0.6875rem;

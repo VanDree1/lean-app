@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import s from '../Step.module.css';
 
 const GENDERS = ['Man', 'Kvinna'];
 const PROFILE_STORAGE_KEY = 'djur-i-juni:profile';
 
-export default function Step2Profile({ data, onNext, submitLabel = 'Nästa' }) {
+export default function Step2Profile({ data, onNext, onChangeData, showFooter = true, submitLabel = 'Nästa' }) {
+  const controlled = typeof onChangeData === 'function';
   const autosaveTimeoutRef = useRef(null);
-  const [profile, setProfile] = useState(() => {
+  const [localProfile, setLocalProfile] = useState(() => {
     const initial = {
       name: data.name ?? '',
       age: data.age ?? '',
@@ -31,6 +32,16 @@ export default function Step2Profile({ data, onNext, submitLabel = 'Nästa' }) {
     }
   });
   const [saveState, setSaveState] = useState('idle');
+  const profile = useMemo(() => (
+    controlled
+      ? {
+        name: data.name ?? '',
+        age: data.age ?? '',
+        height: data.height ?? '',
+        gender: data.gender ?? '',
+      }
+      : localProfile
+  ), [controlled, data.age, data.gender, data.height, data.name, localProfile]);
 
   useEffect(() => () => {
     clearTimeout(autosaveTimeoutRef.current);
@@ -42,14 +53,23 @@ export default function Step2Profile({ data, onNext, submitLabel = 'Nästa' }) {
 
     clearTimeout(autosaveTimeoutRef.current);
     autosaveTimeoutRef.current = setTimeout(() => {
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+      try {
+        const existing = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || '{}');
+        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify({ ...existing, ...profile }));
+      } catch {
+        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
+      }
       setSaveState('saved');
     }, 220);
   }, [profile]);
 
   function updateProfile(field, value) {
     setSaveState('saving');
-    setProfile((current) => ({ ...current, [field]: value }));
+    if (controlled) {
+      onChangeData({ [field]: value });
+    } else {
+      setLocalProfile((current) => ({ ...current, [field]: value }));
+    }
   }
 
   function handleSubmit(e) {
@@ -69,7 +89,12 @@ export default function Step2Profile({ data, onNext, submitLabel = 'Nästa' }) {
 
     if (!validProfile) return;
 
-    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(payload));
+    try {
+      const existing = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || '{}');
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify({ ...existing, ...payload }));
+    } catch {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(payload));
+    }
     setSaveState('saved');
     onNext(payload);
   }
@@ -80,7 +105,7 @@ export default function Step2Profile({ data, onNext, submitLabel = 'Nästa' }) {
     Number(profile.height) > 0;
 
   return (
-    <form className={s.step} onSubmit={handleSubmit} noValidate>
+    <form className={[s.step, !showFooter ? s.stepFooterless : ''].join(' ')} onSubmit={showFooter ? handleSubmit : (e) => e.preventDefault()} noValidate>
       <h2 className={s.title}>Om dig</h2>
       <p className={s.subtitle}>
         Det här räcker för att sätta en plan som känns rimlig från start.
@@ -161,9 +186,11 @@ export default function Step2Profile({ data, onNext, submitLabel = 'Nästa' }) {
         </div>
       </div>
 
-      <button className={s.btnPrimary} type="submit" disabled={!valid}>
-        {submitLabel}
-      </button>
+      {showFooter && (
+        <button className={s.btnPrimary} type="submit" disabled={!valid}>
+          {submitLabel}
+        </button>
+      )}
     </form>
   );
 }

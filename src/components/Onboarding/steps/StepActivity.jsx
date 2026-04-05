@@ -12,11 +12,21 @@ const LEVELS = [
   { value: 'very_active', icon: Dumbbell, label: 'Mycket aktiv', desc: 'Tränar 4+/vecka' },
 ];
 
-export default function StepActivity({ data, onNext, submitLabel = 'Nästa' }) {
-  const [activity, setActivity] = useState(data.activity ?? '');
+export default function StepActivity({ data, onNext, onChangeData, showFooter = true, submitLabel = 'Nästa' }) {
+  const controlled = typeof onChangeData === 'function';
+  const [localActivity, setLocalActivity] = useState(data.activity ?? '');
+  const activity = controlled ? (data.activity ?? '') : localActivity;
+
+  function updateActivity(value) {
+    if (controlled) {
+      onChangeData({ activity: value });
+    } else {
+      setLocalActivity(value);
+    }
+  }
 
   return (
-    <div className={s.step}>
+    <div className={[s.step, !showFooter ? s.stepFooterless : ''].join(' ')}>
       <h2 className={s.title}>Hur aktiv är du?</h2>
       <p className={s.subtitle}>Din nivå hjälper oss sätta rätt ram för dagen.</p>
 
@@ -32,7 +42,7 @@ export default function StepActivity({ data, onNext, submitLabel = 'Nästa' }) {
                 activity === l.value ? s.hypeCardSelected : s.hypeCard,
                 s.hypeCardRow,
               ].join(' ')}
-              onClick={() => setActivity(l.value)}
+              onClick={() => updateActivity(l.value)}
             >
               <span className={s.hypeCardIcon} aria-hidden="true">
                 <Icon size={24} strokeWidth={1.5} />
@@ -46,13 +56,15 @@ export default function StepActivity({ data, onNext, submitLabel = 'Nästa' }) {
         })}
       </div>
 
-      <button
-        className={s.btnPrimary}
-        disabled={!activity}
-        onClick={() => onNext({ activity })}
-      >
-        {submitLabel}
-      </button>
+      {showFooter && (
+        <button
+          className={s.btnPrimary}
+          disabled={!activity}
+          onClick={() => onNext({ activity })}
+        >
+          {submitLabel}
+        </button>
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import s from '../Step.module.css';
 
 const LOSE_PRESETS = [
@@ -30,12 +30,15 @@ function formatDate(date) {
   return date.toLocaleDateString('sv-SE', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-export default function Step4GoalWeight({ data, onNext, submitLabel = 'Nästa' }) {
+export default function Step4GoalWeight({ data, onNext, onChangeData, showFooter = true, submitLabel = 'Nästa' }) {
+  const controlled = typeof onChangeData === 'function';
   const isGain   = data.weightGoal === 'gain';
   const presets  = isGain ? GAIN_PRESETS : LOSE_PRESETS;
 
-  const [weight, setWeight] = useState(data.goalWeight ?? '');
-  const [pace,   setPace]   = useState(data.pace ?? (isGain ? 0.25 : 0.5));
+  const [localWeight, setLocalWeight] = useState(data.goalWeight ?? '');
+  const [localPace, setLocalPace] = useState(data.pace ?? (isGain ? 0.25 : 0.5));
+  const weight = controlled ? (data.goalWeight ?? '') : localWeight;
+  const pace = controlled ? (data.pace ?? (isGain ? 0.25 : 0.5)) : localPace;
 
   const kg         = parseFloat(weight);
   const current    = parseFloat(data.currentWeight) || 0;
@@ -53,23 +56,48 @@ export default function Step4GoalWeight({ data, onNext, submitLabel = 'Nästa' }
       ? `${diff} kg upp`
       : `${diff} kg ner`
     : null;
+  const targetDateIso = targetDate ? targetDate.toISOString().slice(0, 10) : '';
+
+  useEffect(() => {
+    if (!controlled) return;
+    if (data.targetDate === targetDateIso) return;
+    onChangeData({
+      targetDate: targetDateIso,
+    });
+  }, [controlled, data.targetDate, onChangeData, targetDateIso]);
+
+  function updateWeight(value) {
+    if (controlled) {
+      onChangeData({ goalWeight: value });
+    } else {
+      setLocalWeight(value);
+    }
+  }
+
+  function updatePace(value) {
+    if (controlled) {
+      onChangeData({ pace: value });
+    } else {
+      setLocalPace(value);
+    }
+  }
 
   return (
-    <div className={s.step}>
-      <p className={s.kicker}>Goal Weight</p>
+    <div className={[s.step, !showFooter ? s.stepFooterless : ''].join(' ')}>
+      <p className={s.kicker}>Målvikt</p>
       <h2 className={s.title}>{isGain ? 'Målvikt (uppgång)' : 'Målvikt'}</h2>
       <p className={s.subtitle}>
         Sätt en riktning som är tydlig och rimlig över tid.
       </p>
 
       <div className={s.bigWrap}>
-        <label className={s.bigLabel} htmlFor="goal-weight-input">Target</label>
+        <label className={s.bigLabel} htmlFor="goal-weight-input">Målvikt</label>
         <input
           id="goal-weight-input"
           type="number" inputMode="decimal"
           className={s.bigInput}
           value={weight}
-          onChange={(e) => setWeight(e.target.value)}
+          onChange={(e) => updateWeight(e.target.value)}
           placeholder="0"
           autoFocus
           aria-label="Målvikt i kg"
@@ -87,7 +115,7 @@ export default function Step4GoalWeight({ data, onNext, submitLabel = 'Nästa' }
           {presets.map((p) => (
             <button type="button" key={p.value}
               className={pace === p.value ? s.pacePresetSelected : s.pacePreset}
-              onClick={() => setPace(p.value)}>
+              onClick={() => updatePace(p.value)}>
               <span className={s.pacePresetDesc}>{p.desc}</span>
               <span className={s.pacePresetLabel}>{p.label}</span>
               <span className={s.pacePresetDot} aria-hidden="true" />
@@ -124,15 +152,17 @@ export default function Step4GoalWeight({ data, onNext, submitLabel = 'Nästa' }
         </p>
       )}
 
-      <button className={s.btnPrimary}
-        disabled={!valid}
-        onClick={() => onNext({
-          goalWeight: weight,
-          pace,
-          targetDate: targetDate ? targetDate.toISOString().slice(0, 10) : '',
-        })}>
-        {submitLabel}
-      </button>
+      {showFooter && (
+        <button className={s.btnPrimary}
+          disabled={!valid}
+          onClick={() => onNext({
+            goalWeight: weight,
+            pace,
+            targetDate: targetDateIso,
+          })}>
+          {submitLabel}
+        </button>
+      )}
     </div>
   );
 }

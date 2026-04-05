@@ -18,6 +18,90 @@ const EMPTY = {
   diet: '', allergies: '',
 };
 
+function isPositiveNumber(value) {
+  return Number(value) > 0;
+}
+
+function buildGoalWeightPatch(data) {
+  const current = parseFloat(data.currentWeight) || 0;
+  const goal = parseFloat(data.goalWeight);
+  const pace = Number(data.pace) || 0;
+  const isGain = data.weightGoal === 'gain';
+  const validGoal = !Number.isNaN(goal) && goal >= 30 && goal <= 300 && (isGain ? goal > current : goal < current);
+
+  if (!validGoal || !pace || current <= 0) {
+    return {
+      goalWeight: data.goalWeight,
+      pace,
+      targetDate: '',
+    };
+  }
+
+  const diff = isGain ? goal - current : current - goal;
+  const weeks = diff / pace;
+  const date = new Date();
+  date.setDate(date.getDate() + Math.round(weeks * 7));
+
+  return {
+    goalWeight: data.goalWeight,
+    pace,
+    targetDate: date.toISOString().slice(0, 10),
+  };
+}
+
+function getStepPatch(step, data) {
+  switch (step) {
+    case 1:
+      return { goal: data.goal || '' };
+    case 2:
+      return { activity: data.activity || '' };
+    case 3:
+      return {
+        name: data.name?.trim?.() || '',
+        age: data.age || '',
+        height: data.height || '',
+        gender: data.gender || '',
+      };
+    case 4:
+      return {
+        currentWeight: data.currentWeight ? String(parseFloat(data.currentWeight)) : '',
+      };
+    case 5:
+      return buildGoalWeightPatch(data);
+    case 6:
+      return {
+        diet: data.diet || '',
+        allergies: data.allergies || '',
+      };
+    default:
+      return {};
+  }
+}
+
+function canProceed(step, data) {
+  switch (step) {
+    case 1:
+      return Boolean(data.goal);
+    case 2:
+      return Boolean(data.activity);
+    case 3:
+      return Boolean(data.name?.trim()) && isPositiveNumber(data.age) && isPositiveNumber(data.height);
+    case 4:
+      return isPositiveNumber(data.currentWeight);
+    case 5: {
+      const current = parseFloat(data.currentWeight) || 0;
+      const goal = parseFloat(data.goalWeight);
+      const isGain = data.weightGoal === 'gain';
+      return current > 0 && !Number.isNaN(goal) && goal >= 30 && goal <= 300 && Number(data.pace) > 0 &&
+        (isGain ? goal > current : goal < current);
+    }
+    case 6:
+      return Boolean(data.diet);
+    default:
+      return false;
+  }
+}
+
 function loadSaved() {
   try {
     const raw = localStorage.getItem('djur-i-juni:onboarding');
@@ -36,11 +120,18 @@ export default function ProfileModal({ onClose }) {
 
   useEffect(() => () => clearTimeout(closeTimeoutRef.current), []);
 
-  function next(partial) {
-    const newData = { ...profileData, ...partial };
+  function updateProfileData(partial) {
+    setProfileData((current) => ({ ...current, ...partial }));
+  }
+
+  function next() {
+    const patch = getStepPatch(currentStep, profileData);
+    const newData = { ...profileData, ...patch };
+
     setProfileData(newData);
     saveDraft(newData);
     if (currentStep === STEPS.length) {
+      localStorage.setItem('djur_i_juni_profile', JSON.stringify(newData));
       complete(newData);
       setSaved(true);
       clearTimeout(closeTimeoutRef.current);
@@ -56,6 +147,7 @@ export default function ProfileModal({ onClose }) {
 
   const StepComponent = STEPS[currentStep - 1];
   const isLast = currentStep === STEPS.length;
+  const nextEnabled = canProceed(currentStep, profileData);
 
   return (
     <div className={pm.backdrop} onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -99,15 +191,21 @@ export default function ProfileModal({ onClose }) {
             <StepComponent
               data={profileData}
               onNext={next}
-              submitLabel={isLast ? 'Spara' : undefined}
+              onChangeData={updateProfileData}
+              showFooter={false}
             />
           </div>
+        </div>
 
-          {!isLast && (
-            <button className={styles.skip} onClick={() => next({})}>
-              Hoppa över
-            </button>
-          )}
+        <div className={pm.footer}>
+          <button
+            type="button"
+            className={[pm.footerButton, !nextEnabled ? pm.footerButtonDisabled : ''].join(' ')}
+            disabled={!nextEnabled || saved}
+            onClick={next}
+          >
+            {isLast ? 'Spara' : 'Nästa'}
+          </button>
         </div>
       </div>
     </div>
