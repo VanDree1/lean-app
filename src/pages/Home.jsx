@@ -14,6 +14,8 @@ import styles from './Home.module.css';
 
 const PROFILE_KEY = 'djur-i-juni:profile';
 const ONBOARDING_KEY = 'djur-i-juni:onboarding';
+const HEALTH_FACT_CACHE_KEY = 'djur-i-juni:health-fact';
+const HEALTH_FACT_TTL_MS = 1000 * 60 * 60 * 12;
 
 const GOAL_LABELS = {
   fat_loss: 'Fettförlust',
@@ -37,6 +39,64 @@ const PROFILE_FIELD_LABELS = {
   diet: 'koststil',
   goalWeight: 'målvikt',
 };
+
+const HEALTH_TOPICS = [
+  {
+    title: 'Protein',
+    sourceUrl: 'https://sv.wikipedia.org/wiki/Protein',
+    fallback: 'Protein bidrar till att bygga upp och bevara kroppens vävnader, inklusive muskler.',
+  },
+  {
+    title: 'Sömn',
+    sourceUrl: 'https://sv.wikipedia.org/wiki/S%C3%B6mn',
+    fallback: 'Sömn påverkar både hunger, återhämtning och hur lätt det känns att hålla rutiner.',
+  },
+  {
+    title: 'Promenad',
+    sourceUrl: 'https://sv.wikipedia.org/wiki/Promenad',
+    fallback: 'Regelbundna promenader kan vara ett enkelt sätt att öka rörelse utan att skapa mycket friktion.',
+  },
+  {
+    title: 'Styrketräning',
+    sourceUrl: 'https://sv.wikipedia.org/wiki/Styrketr%C3%A4ning',
+    fallback: 'Styrketräning används ofta för att bygga styrka, muskelmassa och funktion över tid.',
+  },
+  {
+    title: 'Vatten',
+    sourceUrl: 'https://sv.wikipedia.org/wiki/Vatten',
+    fallback: 'Vatten är avgörande för kroppens normala funktioner och påverkar bland annat temperaturreglering och transport i kroppen.',
+  },
+];
+
+function getHealthTopicForToday() {
+  return HEALTH_TOPICS[Math.floor(Date.now() / 86_400_000) % HEALTH_TOPICS.length];
+}
+
+function readCachedHealthFact() {
+  try {
+    const raw = localStorage.getItem(HEALTH_FACT_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+
+    if (!parsed?.title || !parsed?.text || !parsed?.sourceUrl || !parsed?.fetchedAt) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function isFreshFact(cache) {
+  return Boolean(cache && Date.now() - cache.fetchedAt < HEALTH_FACT_TTL_MS);
+}
+
+function trimFactText(text) {
+  const clean = String(text || '').replace(/\s+/g, ' ').trim();
+  const firstSentence = clean.match(/.+?[.!?](?:\s|$)/)?.[0]?.trim() || clean;
+  return firstSentence.length > 180 ? `${firstSentence.slice(0, 177).trim()}...` : firstSentence;
+}
 
 function loadDashboardProfile() {
   try {
@@ -297,18 +357,94 @@ function WeightJourney({ onOpen }) {
   );
 }
 
-function DailyNote() {
-  const { loggedToday } = useStreak();
+function DidYouKnowCard() {
+  const [fact, setFact] = useState(() => {
+    const cached = readCachedHealthFact();
+    if (cached) return cached;
+
+    const topic = getHealthTopicForToday();
+    return {
+      title: topic.title,
+      text: topic.fallback,
+      sourceLabel: 'Arkiv',
+      sourceUrl: topic.sourceUrl,
+    };
+  });
+
+  useEffect(() => {
+    const cached = readCachedHealthFact();
+    if (isFreshFact(cached)) {
+      setFact(cached);
+      return undefined;
+    }
+
+    const topic = getHealthTopicForToday();
+    const controller = new AbortController();
+
+    async function loadFact() {
+      try {
+        const response = await fetch(`https://sv.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic.title)}`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Health fact request failed with ${response.status}`);
+        }
+
+        const data = await response.json();
+        const text = trimFactText(data.extract);
+        if (!text) {
+          throw new Error('Health fact response was incomplete');
+        }
+
+        const nextFact = {
+          title: topic.title,
+          text,
+          sourceLabel: 'Wikipedia',
+          sourceUrl: data.content_urls?.desktop?.page || topic.sourceUrl,
+          fetchedAt: Date.now(),
+        };
+
+        localStorage.setItem(HEALTH_FACT_CACHE_KEY, JSON.stringify(nextFact));
+        setFact(nextFact);
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          return;
+        }
+
+        const fallbackFact = cached || {
+          title: topic.title,
+          text: topic.fallback,
+          sourceLabel: 'Arkiv',
+          sourceUrl: topic.sourceUrl,
+          fetchedAt: Date.now(),
+        };
+
+        setFact(fallbackFact);
+      }
+    }
+
+    loadFact();
+
+    return () => controller.abort();
+  }, []);
 
   return (
     <section className={styles.noteCard}>
-      <p className={styles.sectionEyebrow}>Dagens notering</p>
-      <h3 className={styles.noteTitle}>{loggedToday ? 'Det viktigaste är redan gjort' : 'En liten loggning räcker'}</h3>
-      <p className={styles.noteText}>
-        {loggedToday
-          ? 'Behåll samma lugna rytm. Det enkla som upprepas håller.'
-          : 'Logga, håll ramen och gå vidare.'}
-      </p>
+      <div className={styles.noteHeader}>
+        <p className={styles.sectionEyebrow}>Visste du att</p>
+        <span className={styles.noteSource}>{fact.sourceLabel}</span>
+      </div>
+      <h3 className={styles.noteTitle}>{fact.title}</h3>
+      <p className={styles.noteText}>{fact.text}</p>
+      <a
+        className={styles.noteLink}
+        href={fact.sourceUrl}
+        target="_blank"
+        rel="noreferrer"
+      >
+        Läs källa
+      </a>
     </section>
   );
 }
@@ -328,7 +464,7 @@ export default function Home() {
         </div>
         <QuickStats />
         <div className={styles.bottomGrid}>
-          <DailyNote />
+          <DidYouKnowCard />
           <MotivationTip />
         </div>
       </div>

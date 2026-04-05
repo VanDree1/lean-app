@@ -482,6 +482,21 @@
   padding: 1.5rem;
 }
 
+.noteHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.noteSource {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(191, 232, 210, 0.72);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .noteTitle {
   margin-top: 0.45rem;
   font-size: 1.18rem;
@@ -498,6 +513,22 @@
   line-height: 1.7;
   max-width: 28ch;
   text-wrap: balance;
+}
+
+.noteLink {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 1rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.52);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+}
+
+.noteLink:hover {
+  color: rgba(255, 255, 255, 0.82);
 }
 
 @media (max-width: 740px) {
