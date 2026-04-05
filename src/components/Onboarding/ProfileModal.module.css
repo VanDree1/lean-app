@@ -13,6 +13,7 @@
 }
 
 .modalCard {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -66,6 +67,22 @@
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 0.85rem;
+}
+
+.footerProgress {
+  height: 2px;
+  width: 100%;
+  margin-bottom: 0.95rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.footerProgressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(199, 221, 207, 0.9);
+  transition: width 0.28s ease;
 }
 
 .footerStepCopy {
@@ -131,36 +148,70 @@
 }
 
 .savedState {
-  position: relative;
-  margin-bottom: 1rem;
-  padding-top: 0.25rem;
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
   animation: savedStateIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.savedGlow {
+.savedVeil {
   position: absolute;
-  inset: -0.5rem 1rem auto;
-  height: 3.5rem;
-  border-radius: 999px;
-  background: radial-gradient(circle at center, rgba(52, 211, 153, 0.2), rgba(52, 211, 153, 0));
-  filter: blur(10px);
-  opacity: 0.9;
+  inset: 0;
+  background: rgba(8, 10, 11, 0.68);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.savedBurst {
+  position: absolute;
+  width: 12rem;
+  height: 12rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: none;
-  animation: savedGlowPulse 0.9s ease-out both;
+}
+
+.savedSpark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin: -0.2rem;
+  border-radius: 999px;
+  background: rgba(207, 230, 214, 0.95);
+  box-shadow: 0 0 16px rgba(207, 230, 214, 0.35);
+  pointer-events: none;
+  transform:
+    rotate(calc(var(--spark-index) * 45deg))
+    translateY(-3.8rem)
+    scale(0.7);
+  animation: savedSparkOut 0.9s ease-out both;
+  animation-delay: calc(var(--spark-index) * 0.035s);
 }
 
 .savedBanner {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  text-align: center;
   gap: 0.75rem;
-  padding: 0.9rem 1rem;
-  border-radius: 1rem;
+  width: min(100%, 22rem);
+  padding: 2rem 1.35rem 1.4rem;
+  border-radius: 1.5rem;
   border: 1px solid rgba(52, 211, 153, 0.18);
-  background: rgba(52, 211, 153, 0.08);
+  background:
+    radial-gradient(circle at top, rgba(207, 230, 214, 0.12), transparent 46%),
+    rgba(17, 17, 17, 0.84);
   box-shadow:
     0 0 0 1px rgba(52, 211, 153, 0.05),
-    0 14px 34px rgba(0, 0, 0, 0.18);
+    0 24px 50px rgba(0, 0, 0, 0.3);
   overflow: hidden;
 }
 
@@ -168,13 +219,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 3.5rem;
+  height: 3.5rem;
   border-radius: 999px;
-  background: rgba(52, 211, 153, 0.12);
+  background: rgba(52, 211, 153, 0.14);
   border: 1px solid rgba(52, 211, 153, 0.18);
   color: #34d399;
   font-weight: 700;
+  font-size: 1.2rem;
   transform: scale(0.82);
   animation: savedCheckIn 0.45s cubic-bezier(0.22, 1.2, 0.36, 1) 0.08s forwards;
 }
@@ -182,18 +234,30 @@
 .savedText {
   display: flex;
   flex-direction: column;
-  gap: 0.125rem;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.savedEyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(199, 221, 207, 0.82);
 }
 
 .savedTitle {
   color: #ffffff;
-  font-size: 0.9rem;
+  font-size: 1.3rem;
   font-weight: 600;
+  letter-spacing: -0.03em;
 }
 
 .savedBody {
-  color: rgba(255, 255, 255, 0.58);
-  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  max-width: 26ch;
 }
 
 @keyframes savedStateIn {
@@ -207,18 +271,23 @@
   }
 }
 
-@keyframes savedGlowPulse {
+@keyframes savedSparkOut {
   0% {
     opacity: 0;
-    transform: scale(0.82);
+    transform:
+      rotate(calc(var(--spark-index) * 45deg))
+      translateY(-2.2rem)
+      scale(0.2);
   }
-  55% {
-    opacity: 0.95;
-    transform: scale(1);
+  35% {
+    opacity: 1;
   }
   100% {
-    opacity: 0.7;
-    transform: scale(1.04);
+    opacity: 0;
+    transform:
+      rotate(calc(var(--spark-index) * 45deg))
+      translateY(-5rem)
+      scale(1);
   }
 }
 
@@ -262,7 +331,7 @@
 .headerTop {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 1rem;
   margin-bottom: 0.8rem;
 }
@@ -304,8 +373,4 @@
   color: #ffffff;
   background: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.12);
-}
-
-.close:hover {
-  color: #ffffff;
 }
