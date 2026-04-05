@@ -47,15 +47,21 @@ export default function WheelPicker({ items, value, onChange, width }) {
         onScroll={handleScroll}
       >
         <div className={s.pad} />
-        {items.map((item, i) => (
+        {items.map((item, i) => {
+          const distance = Math.abs(i - idx);
+          const distanceClass =
+            distance === 0 ? s.active : distance === 1 ? s.near : distance === 2 ? s.mid : s.far;
+
+          return (
           <div
             key={item}
-            className={[s.item, item === value ? s.active : ''].join(' ')}
+            className={[s.item, distanceClass].join(' ')}
             onClick={() => handleClick(item, i)}
           >
             {item}
           </div>
-        ))}
+          );
+        })}
         <div className={s.pad} />
       </div>
     </div>

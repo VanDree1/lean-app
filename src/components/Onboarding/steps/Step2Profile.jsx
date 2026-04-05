@@ -19,6 +19,7 @@ export default function Step2Profile({ data, onNext, submitLabel = 'Nästa' }) {
 
   return (
     <form className={s.step} onSubmit={handleSubmit} noValidate>
+      <p className={s.kicker}>Profile</p>
       <h2 className={s.title}>Om dig</h2>
       <p className={s.subtitle}>
         Det här räcker för att sätta en plan som känns rimlig från start.

@@ -25,23 +25,27 @@ export default function Step3CurrentWeight({ data, onNext, submitLabel = 'Nästa
 
   return (
     <div className={s.step}>
+      <p className={s.kicker}>Current Weight</p>
       <h2 className={s.title}>Nuvarande vikt</h2>
       <p className={s.subtitle}>Det här är bara din startpunkt.</p>
 
-      <div className={s.wheelRow}>
-        <WheelPicker
-          items={KG_ITEMS}
-          value={kg}
-          onChange={handleKg}
-          width="5.5rem"
-        />
-        <WheelPicker
-          items={DEC_ITEMS}
-          value={dec}
-          onChange={handleDec}
-          width="3.5rem"
-        />
-        <span className={s.wheelUnit}>kg</span>
+      <div className={s.wheelCard}>
+        <p className={s.wheelLabel}>Weight</p>
+        <div className={s.wheelRow}>
+          <WheelPicker
+            items={KG_ITEMS}
+            value={kg}
+            onChange={handleKg}
+            width="5.5rem"
+          />
+          <WheelPicker
+            items={DEC_ITEMS}
+            value={dec}
+            onChange={handleDec}
+            width="3.5rem"
+          />
+          <span className={s.wheelUnit}>kg</span>
+        </div>
       </div>
 
       <button

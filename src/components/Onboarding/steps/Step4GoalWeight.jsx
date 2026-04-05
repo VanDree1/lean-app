@@ -56,13 +56,16 @@ export default function Step4GoalWeight({ data, onNext, submitLabel = 'Nästa' }
 
   return (
     <div className={s.step}>
+      <p className={s.kicker}>Goal Weight</p>
       <h2 className={s.title}>{isGain ? 'Målvikt (uppgång)' : 'Målvikt'}</h2>
       <p className={s.subtitle}>
         Sätt en riktning som är tydlig och rimlig över tid.
       </p>
 
       <div className={s.bigWrap}>
+        <label className={s.bigLabel} htmlFor="goal-weight-input">Target</label>
         <input
+          id="goal-weight-input"
           type="number" inputMode="decimal"
           className={s.bigInput}
           value={weight}
@@ -85,8 +88,9 @@ export default function Step4GoalWeight({ data, onNext, submitLabel = 'Nästa' }
             <button type="button" key={p.value}
               className={pace === p.value ? s.pacePresetSelected : s.pacePreset}
               onClick={() => setPace(p.value)}>
-              <span className={s.pacePresetLabel}>{p.label}</span>
               <span className={s.pacePresetDesc}>{p.desc}</span>
+              <span className={s.pacePresetLabel}>{p.label}</span>
+              <span className={s.pacePresetDot} aria-hidden="true" />
             </button>
           ))}
         </div>

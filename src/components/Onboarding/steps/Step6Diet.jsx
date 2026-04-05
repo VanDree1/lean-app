@@ -1,15 +1,25 @@
 import { useState } from 'react';
+import {
+  Beef,
+  Carrot,
+  Drumstick,
+  Egg,
+  Fish,
+  Leaf,
+  Nut,
+  WheatOff,
+} from 'lucide-react';
 import s from '../Step.module.css';
 
 const DIETS = [
-  { value: 'Allätare',    icon: '🍗', desc: 'Äter allt – inga restriktioner' },
-  { value: 'Pescetarian', icon: '🐟', desc: 'Fisk & skaldjur, inga landdjur' },
-  { value: 'Vegetarian',  icon: '🥗', desc: 'Ägg & mejeri, inget kött eller fisk' },
-  { value: 'Vegan',       icon: '🌱', desc: '100% växtbaserat' },
-  { value: 'Keto',        icon: '🥑', desc: 'Låg kolhydrat, hög fett (LCHF)' },
-  { value: 'Glutenfri',   icon: '🌾', desc: 'Undviker vete, råg, korn' },
-  { value: 'Carnivore',   icon: '🥩', desc: 'Endast animaliska produkter' },
-  { value: 'Lakto-ovo',   icon: '🥚', desc: 'Vegetarisk + ägg & mejeri' },
+  { value: 'Allätare', icon: Drumstick, desc: 'Äter allt – inga restriktioner' },
+  { value: 'Pescetarian', icon: Fish, desc: 'Fisk & skaldjur, inga landdjur' },
+  { value: 'Vegetarian', icon: Carrot, desc: 'Ägg & mejeri, inget kött eller fisk' },
+  { value: 'Vegan', icon: Leaf, desc: '100% växtbaserat' },
+  { value: 'Keto', icon: Nut, desc: 'Låg kolhydrat, hög fett (LCHF)' },
+  { value: 'Glutenfri', icon: WheatOff, desc: 'Undviker vete, råg, korn' },
+  { value: 'Carnivore', icon: Beef, desc: 'Endast animaliska produkter' },
+  { value: 'Lakto-ovo', icon: Egg, desc: 'Vegetarisk + ägg & mejeri' },
 ];
 
 export default function Step6Diet({ data, onNext, submitLabel = 'Nästa' }) {
@@ -18,22 +28,34 @@ export default function Step6Diet({ data, onNext, submitLabel = 'Nästa' }) {
 
   return (
     <div className={s.step}>
+      <p className={s.kicker}>Nutrition Style</p>
       <h2 className={s.title}>Vilken kost passar dig?</h2>
       <p className={s.subtitle}>Välj det som ligger närmast hur du redan äter.</p>
 
-      <div className={s.hypeGrid}>
-        {DIETS.map((d) => (
-          <button
-            type="button"
-            key={d.value}
-            className={diet === d.value ? s.hypeCardSelected : s.hypeCard}
-            onClick={() => setDiet(diet === d.value ? '' : d.value)}
-          >
-            <span className={s.hypeCardIcon}>{d.icon}</span>
-            <span className={s.hypeCardLabel}>{d.value}</span>
-            <span className={s.hypeCardDesc}>{d.desc}</span>
-          </button>
-        ))}
+      <div className={s.hypeStack}>
+        {DIETS.map((d) => {
+          const Icon = d.icon;
+
+          return (
+            <button
+              type="button"
+              key={d.value}
+              className={[
+                diet === d.value ? s.hypeCardSelected : s.hypeCard,
+                s.hypeCardRow,
+              ].join(' ')}
+              onClick={() => setDiet(diet === d.value ? '' : d.value)}
+            >
+              <span className={s.hypeCardIcon} aria-hidden="true">
+                <Icon size={24} strokeWidth={1.5} />
+              </span>
+              <span className={s.hypeCardText}>
+                <span className={s.hypeCardLabel}>{d.value}</span>
+                <span className={s.hypeCardDesc}>{d.desc}</span>
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div className={s.field}>

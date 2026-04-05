@@ -32,17 +32,34 @@
   scroll-snap-align: center;
   font-size: 1.25rem;
   font-weight: 500;
-  color: rgba(255,255,255,0.28);
+  color: rgba(255, 255, 255, 0.18);
   cursor: pointer;
-  transition: color 0.15s ease, font-size 0.15s ease;
+  transition: color 0.15s ease, font-size 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
   user-select: none;
   font-variant-numeric: tabular-nums;
+  opacity: 0.16;
 }
 
 .active {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 2.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  opacity: 1;
+}
+
+.near {
+  color: rgba(255, 255, 255, 0.34);
+  opacity: 0.42;
+}
+
+.mid {
+  color: rgba(255, 255, 255, 0.16);
+  opacity: 0.18;
+}
+
+.far {
+  color: rgba(255, 255, 255, 0.08);
+  opacity: 0.08;
 }
 
 /* Center highlight bar */
@@ -53,9 +70,9 @@
   right: 0;
   transform: translateY(-50%);
   height: var(--wheel-item-h);
-  border-top: 1px solid rgba(0,201,167,0.35);
-  border-bottom: 1px solid rgba(0,201,167,0.35);
-  background: rgba(0,201,167,0.06);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
   pointer-events: none;
   z-index: 1;
 }
