@@ -28,6 +28,16 @@ const ACTIVITY_LABELS = {
   very_active: 'Mycket aktiv',
 };
 
+const PROFILE_FIELD_LABELS = {
+  name: 'namn',
+  age: 'ålder',
+  height: 'längd',
+  goal: 'fokus',
+  activity: 'aktivitet',
+  diet: 'koststil',
+  goalWeight: 'målvikt',
+};
+
 function loadDashboardProfile() {
   try {
     const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
@@ -64,6 +74,11 @@ function formatUpdatedAt(updatedAt) {
   if (diffHours < 24) return `Uppdaterad för ${diffHours} timmar sedan`;
 
   return `Uppdaterad ${new Date(updatedAt).toLocaleDateString('sv-SE')}`;
+}
+
+function getMissingProfileFields(profile) {
+  const ordered = ['name', 'age', 'height', 'goal', 'activity', 'diet', 'goalWeight'];
+  return ordered.filter((key) => !profile[key]);
 }
 
 function ProgressRing({ progress }) {
@@ -158,16 +173,21 @@ function ProfileCard({ onOpen }) {
     profile.height ? `${profile.height} cm` : null,
     profile.diet || null,
   ].filter(Boolean);
-  const completionFields = [
-    profile.name,
-    profile.age,
-    profile.height,
-    profile.goal,
-    profile.activity,
-    profile.diet,
-    profile.goalWeight,
-  ];
-  const completion = Math.round((completionFields.filter(Boolean).length / completionFields.length) * 100);
+  const missingFields = getMissingProfileFields(profile);
+  const completion = Math.round(((7 - missingFields.length) / 7) * 100);
+  const initials = profile.name
+    ? String(profile.name)
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() || '')
+      .join('')
+    : 'DJ';
+  const nextStepText = missingFields.length === 0
+    ? 'Allt viktigt finns på plats. Tryck för att finjustera när du vill.'
+    : missingFields.length === 1
+      ? `Nästa steg: lägg till ${PROFILE_FIELD_LABELS[missingFields[0]]}.`
+      : `Nästa steg: lägg till ${PROFILE_FIELD_LABELS[missingFields[0]]} och ${missingFields.length - 1} till.`;
 
   return (
     <section
@@ -178,7 +198,8 @@ function ProfileCard({ onOpen }) {
       onKeyDown={(event) => event.key === 'Enter' && onOpen()}
     >
       <div className={styles.profileTop}>
-        <div>
+        <div className={styles.profileIdentity}>
+          <div className={styles.profileAvatar} aria-hidden="true">{initials}</div>
           <p className={styles.sectionEyebrow}>Profile</p>
           <h2 className={styles.profileTitle}>{firstName}</h2>
         </div>
@@ -188,7 +209,12 @@ function ProfileCard({ onOpen }) {
       <p className={styles.profileUpdatedAt}>{formatUpdatedAt(profile.updatedAt)}</p>
 
       <div className={styles.profileCompletion}>
-        <span className={styles.profileCompletionText}>{completion}% komplett</span>
+        <div className={styles.profileCompletionHead}>
+          <span className={styles.profileCompletionText}>{completion}% komplett</span>
+          <span className={styles.profileCompletionHint}>
+            {missingFields.length === 0 ? 'Klar' : `${missingFields.length} kvar`}
+          </span>
+        </div>
         <div className={styles.profileCompletionTrack}>
           <div className={styles.profileCompletionFill} style={{ width: `${completion}%` }} />
         </div>
@@ -220,6 +246,7 @@ function ProfileCard({ onOpen }) {
           <span className={styles.profileValue}>{profile.targetDate || 'Flexibelt'}</span>
         </div>
       </div>
+      <p className={styles.profileNextStep}>{nextStepText}</p>
       <p className={styles.profileNote}>Tryck för att justera mål, kroppsvikt och kost utan att börja om.</p>
     </section>
   );

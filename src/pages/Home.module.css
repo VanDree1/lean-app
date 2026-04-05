@@ -79,6 +79,31 @@
   gap: 1rem;
 }
 
+.profileIdentity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.profileAvatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.12), transparent 58%),
+    rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .profileTitle {
   margin-top: 0.5rem;
   font-size: clamp(1.5rem, 4vw, 1.9rem);
@@ -112,11 +137,26 @@
   margin-top: 1rem;
 }
 
+.profileCompletionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
 .profileCompletionText {
   display: inline-block;
   margin-bottom: 0.5rem;
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.profileCompletionHint {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
@@ -183,6 +223,17 @@
   color: rgba(255, 255, 255, 0.5);
   line-height: 1.7;
   max-width: 42ch;
+}
+
+.profileNextStep {
+  margin-top: 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.875rem;
+  line-height: 1.6;
 }
 
 .focusText,
