@@ -77,7 +77,7 @@ export default function ProfileModal({ onClose }) {
           <div className={pm.headerTop}>
             <div>
               <p className={pm.eyebrow}>Profil</p>
-              <h2 className={pm.title}>Justera din riktning</h2>
+              <h2 className={pm.title}>Din profil</h2>
             </div>
             <button className={pm.close} onClick={onClose} aria-label="Stäng">✕</button>
           </div>

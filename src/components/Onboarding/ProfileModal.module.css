@@ -37,6 +37,7 @@
   min-height: 0;
   overflow-y: auto;
   padding-right: 0.25rem;
+  padding-bottom: 1rem;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -196,10 +197,12 @@
 }
 
 .title {
-  font-size: 1.35rem;
-  font-weight: 700;
+  font-size: 1.2rem;
+  font-weight: 600;
   letter-spacing: -0.04em;
   color: #ffffff;
+  max-width: 14ch;
+  line-height: 1.1;
 }
 
 .close {
