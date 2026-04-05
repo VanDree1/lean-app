@@ -18,10 +18,10 @@ function makeConfetti() {
 }
 
 const GOAL_LABELS = {
-  fat_loss: '🔥 Bränna fett',
-  muscle:   '💪 Bygga muskler',
-  energy:   '⚡ Mer energi',
-  target:   '🎯 Nå målvikt',
+  fat_loss: 'Bränna fett',
+  muscle: 'Bygga muskler',
+  energy: 'Mer energi',
+  target: 'Nå målvikt',
 };
 
 const ACTIVITY_LABELS = {
