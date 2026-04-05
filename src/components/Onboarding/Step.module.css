@@ -151,8 +151,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  margin: 0.5rem 0 0;
-  padding: 1.5rem 1.5rem 1.75rem;
+  margin: 0.25rem 0 0;
+  padding: 1.35rem 1.25rem 1.5rem;
   border-radius: 1.5rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.02);
@@ -204,6 +204,12 @@
 
 .dateHint {
   margin-bottom: 1rem;
+}
+
+.hintCompact {
+  margin-top: 0.65rem;
+  margin-bottom: 1.15rem;
+  min-height: 0;
 }
 
 .hint {
@@ -514,6 +520,14 @@
   background: rgba(255, 255, 255, 0.035);
 }
 
+.profilePreviewCompact {
+  margin-top: 0.25rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .profilePreviewHead {
   display: flex;
   align-items: center;
@@ -543,14 +557,48 @@
   gap: 0.5rem;
 }
 
+.profilePreviewRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
 .profileChip {
-  padding: 0.5rem 0.75rem;
+  padding: 0.45rem 0.7rem;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.82);
-  font-size: 0.8125rem;
+  font-size: 0.78rem;
   line-height: 1;
+}
+
+.pacePctCompact,
+.paceInfo {
+  margin-top: 0.2rem;
+}
+
+@media (max-height: 820px) {
+  .subtitle {
+    margin-bottom: 2.1rem;
+  }
+
+  .field {
+    margin-bottom: 1.35rem;
+  }
+
+  .hypeStack {
+    margin-bottom: 1.75rem;
+  }
+
+  .wheelCard {
+    margin-bottom: 1.75rem;
+  }
+
+  .pacePresets {
+    gap: 0.7rem;
+    margin-bottom: 0.8rem;
+  }
 }
 
 .summaryBadges {

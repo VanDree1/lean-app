@@ -87,7 +87,7 @@ export default function Step4GoalWeight({ data, onNext, onChangeData, showFooter
       <p className={s.kicker}>Målvikt</p>
       <h2 className={s.title}>{isGain ? 'Målvikt (uppgång)' : 'Målvikt'}</h2>
       <p className={s.subtitle}>
-        Sätt en riktning som är tydlig och rimlig över tid.
+        Sätt en tydlig siffra och välj en hållbar takt.
       </p>
 
       <div className={s.bigWrap}>
@@ -105,9 +105,11 @@ export default function Step4GoalWeight({ data, onNext, onChangeData, showFooter
         <span className={s.bigUnit}>kg</span>
       </div>
 
-      <p className={s.hint}>
-        {diffLabel ? <span className={s.hintAccent}>{diffLabel}</span> : ' '}
-      </p>
+      {diffLabel && (
+        <p className={[s.hint, s.hintCompact].join(' ')}>
+          <span className={s.hintAccent}>{diffLabel}</span>
+        </p>
+      )}
 
       <div className={s.field}>
         <span className={s.label}>{isGain ? 'Viktuppgångstakt' : 'Viktnedgångstakt'}</span>
@@ -127,12 +129,10 @@ export default function Step4GoalWeight({ data, onNext, onChangeData, showFooter
           {isGain
             ? 'Rekommenderad takt: upp till 0,5 kg/vecka'
             : 'Rekommenderad takt: 0,5 till 1 kg/vecka'}
-          <br />
-          <span className={s.paceInfoSub}>Välj en takt som känns hållbar, inte bara snabb</span>
         </p>
 
         {pctOfBW && (
-          <p className={s.pacePct}>
+          <p className={[s.pacePct, s.pacePctCompact].join(' ')}>
             Cirka <strong>{pctOfBW}%</strong> av kroppsvikten per vecka
           </p>
         )}

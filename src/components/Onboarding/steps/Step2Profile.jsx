@@ -106,6 +106,7 @@ export default function Step2Profile({ data, onNext, onChangeData, showFooter = 
 
   return (
     <form className={[s.step, !showFooter ? s.stepFooterless : ''].join(' ')} onSubmit={showFooter ? handleSubmit : (e) => e.preventDefault()} noValidate>
+      <p className={s.kicker}>Om dig</p>
       <h2 className={s.title}>Om dig</h2>
       <p className={s.subtitle}>
         Det här räcker för att sätta en plan som känns rimlig från start.
@@ -171,18 +172,18 @@ export default function Step2Profile({ data, onNext, onChangeData, showFooter = 
         </div>
       </div>
 
-      <div className={s.profilePreview} aria-live="polite">
+      <div className={s.profilePreviewCompact} aria-live="polite">
         <div className={s.profilePreviewHead}>
-          <span className={s.profilePreviewTitle}>Profilutkast</span>
+          <span className={s.profilePreviewTitle}>Utkast</span>
           <span className={s.profileSaveState}>
             {saveState === 'saving' ? 'Sparar...' : saveState === 'saved' ? 'Sparat' : 'Inte sparat än'}
           </span>
         </div>
-        <div className={s.profilePreviewGrid}>
+        <div className={s.profilePreviewRow}>
           <span className={s.profileChip}>{profile.name.trim() || 'Namn saknas'}</span>
           <span className={s.profileChip}>{profile.age ? `${profile.age} år` : 'Ålder saknas'}</span>
           <span className={s.profileChip}>{profile.height ? `${profile.height} cm` : 'Längd saknas'}</span>
-          <span className={s.profileChip}>{profile.gender || 'Kön valfritt'}</span>
+          {profile.gender && <span className={s.profileChip}>{profile.gender}</span>}
         </div>
       </div>
 
