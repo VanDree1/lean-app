@@ -1,0 +1,87 @@
+/* Item height must match ITEM_H constant in WheelPicker.jsx */
+:root { --wheel-item-h: 48px; }
+
+.wheel {
+  position: relative;
+  height: calc(var(--wheel-item-h) * 5); /* show 5 rows */
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.list {
+  height: 100%;
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-y: contain;
+}
+
+.list::-webkit-scrollbar { display: none; }
+
+.pad {
+  height: calc(var(--wheel-item-h) * 2); /* 2 rows top/bottom padding */
+  flex-shrink: 0;
+}
+
+.item {
+  height: var(--wheel-item-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.28);
+  cursor: pointer;
+  transition: color 0.15s ease, font-size 0.15s ease;
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.active {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Center highlight bar */
+.highlight {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  height: var(--wheel-item-h);
+  border-top: 1px solid rgba(0,201,167,0.35);
+  border-bottom: 1px solid rgba(0,201,167,0.35);
+  background: rgba(0,201,167,0.06);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Gradient fades */
+.fadeTop,
+.fadeBottom {
+  position: absolute;
+  left: 0; right: 0;
+  height: calc(var(--wheel-item-h) * 2);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.fadeTop {
+  top: 0;
+  background: linear-gradient(to bottom,
+    var(--bg, #1e1e2e) 0%,
+    transparent 100%
+  );
+}
+
+.fadeBottom {
+  bottom: 0;
+  background: linear-gradient(to top,
+    var(--bg, #1e1e2e) 0%,
+    transparent 100%
+  );
+}

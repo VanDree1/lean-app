@@ -1,0 +1,89 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.inputWrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0 0.875rem;
+  border-bottom: 1px solid var(--border);
+  transition: border-color var(--transition);
+}
+
+.inputWrap:focus-within {
+  border-color: rgba(52, 211, 153, 0.4);
+}
+
+.bigInput {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 3.5rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  letter-spacing: -0.03em;
+  text-align: right;
+  width: 6ch;
+  min-width: 0;
+  -moz-appearance: textfield;
+}
+
+.bigInput::-webkit-outer-spin-button,
+.bigInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.bigInput:focus {
+  outline: none;
+}
+
+.unit {
+  font-size: 1.375rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.dateInput {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-family: var(--font-sans);
+  text-align: center;
+  padding: 0.25rem;
+  width: 100%;
+  cursor: pointer;
+}
+
+.dateInput:focus {
+  outline: none;
+  color: var(--text-secondary);
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+  filter: invert(0.4);
+  cursor: pointer;
+}
+
+.btn {
+  background: linear-gradient(135deg, var(--green-start), var(--green-end));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.875rem;
+  cursor: pointer;
+  transition: opacity var(--transition), box-shadow var(--transition);
+  font-family: var(--font-sans);
+  margin-top: 0.25rem;
+  box-shadow: 0 4px 16px var(--green-glow);
+}
+
+.btn:hover  { opacity: 0.9; box-shadow: 0 6px 20px var(--green-glow); }
+.btn:active { opacity: 0.75; }
