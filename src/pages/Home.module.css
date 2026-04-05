@@ -363,8 +363,16 @@
   letter-spacing: 0.12em;
 }
 
+.sparklineWrap {
+  margin-top: 1rem;
+  height: 52px;
+  overflow: hidden;
+  border-radius: 8px;
+  opacity: 0.85;
+}
+
 .milestoneWrap {
-  margin-top: 1.5rem;
+  margin-top: 1rem;
 }
 
 .milestoneHeader {

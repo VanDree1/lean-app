@@ -9,6 +9,7 @@ import { useWeightLog } from '../components/Weight/useWeightLog';
 import { useStreak } from '../hooks/useStreak';
 import { useProfile } from '../hooks/useProfile';
 import { useCountUp } from '../hooks/useCountUp';
+import Sparkline from '../components/WeightCard/Sparkline';
 import styles from './Home.module.css';
 
 const PROFILE_KEY = 'djur-i-juni:profile';
@@ -242,6 +243,12 @@ function WeightJourney({ onOpen }) {
         </div>
         <div className={styles.weightBadge}>{progress.toFixed(0)}% klart</div>
       </div>
+
+      {recent.length >= 2 && (
+        <div className={styles.sparklineWrap}>
+          <Sparkline entries={recent} />
+        </div>
+      )}
 
       <div className={styles.milestoneWrap}>
         <div className={styles.milestoneHeader}>
