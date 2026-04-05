@@ -5,15 +5,15 @@
 }
 
 .card {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: var(--bg-surface);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 1.5rem;
-  padding: 1.25rem;
+  padding: 1.5rem;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   min-width: 0;
 }
@@ -39,7 +39,7 @@
 }
 
 .value {
-  font-size: 1.95rem;
+  font-size: 1.875rem;
   font-weight: 600;
   letter-spacing: -0.05em;
   color: #ffffff;
@@ -47,22 +47,26 @@
 }
 
 .unit {
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.6);
+  margin-left: 0.25rem;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
+  font-weight: 400;
 }
 
 .label {
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
 }
 
 .goalText {
-  font-size: 0.72rem;
-  color: #a1a1aa;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
 }
 
 .metaRow {
@@ -73,29 +77,31 @@
 }
 
 .metaValue {
-  font-size: 0.78rem;
-  color: #a1a1aa;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
 }
 
 .track {
-  height: 4px;
+  height: 3px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.1);
   overflow: hidden;
 }
 
 .fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), var(--accent));
+  background: rgba(255, 255, 255, 0.8);
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .detail {
   margin-top: 0.1rem;
-  font-size: 0.8rem;
-  line-height: 1.6;
-  color: #a1a1aa;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 @media (max-width: 640px) {

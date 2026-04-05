@@ -92,7 +92,10 @@ function WeightJourney({ onOpen }) {
       <div className={styles.weightHeader}>
         <div>
           <p className={styles.sectionEyebrow}>Weight</p>
-          <h2 className={styles.weightValue}>{currentDisplay.toFixed(1)} kg</h2>
+          <h2 className={styles.weightValue}>
+            {currentDisplay.toFixed(1)}
+            <span className={styles.weightUnit}>kg</span>
+          </h2>
         </div>
         <div className={styles.weightBadge}>{progress.toFixed(0)}% klart</div>
       </div>
