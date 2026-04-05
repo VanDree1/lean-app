@@ -116,7 +116,7 @@ function DailyFocusCard({ onLogWeight }) {
   return (
     <section className={styles.focusCard} aria-labelledby="today-title">
       <div className={styles.focusText}>
-        <p className={styles.sectionEyebrow}>Today</p>
+        <p className={styles.sectionEyebrow}>Idag</p>
         <h2 id="today-title" className={styles.focusTitle}>Håll dagen enkel</h2>
         <p className={styles.focusBody}>{focusText}</p>
 
@@ -184,7 +184,7 @@ function ProfileCard({ onOpen }) {
       .join('')
     : 'DJ';
   const nextStepText = missingFields.length === 0
-    ? 'Allt viktigt finns på plats. Tryck för att finjustera när du vill.'
+    ? 'Allt viktigt finns på plats.'
     : missingFields.length === 1
       ? `Nästa steg: lägg till ${PROFILE_FIELD_LABELS[missingFields[0]]}.`
       : `Nästa steg: lägg till ${PROFILE_FIELD_LABELS[missingFields[0]]} och ${missingFields.length - 1} till.`;
@@ -200,7 +200,7 @@ function ProfileCard({ onOpen }) {
       <div className={styles.profileTop}>
         <div className={styles.profileIdentity}>
           <div className={styles.profileAvatar} aria-hidden="true">{initials}</div>
-          <p className={styles.sectionEyebrow}>Profile</p>
+          <p className={styles.sectionEyebrow}>Profil</p>
           <h2 className={styles.profileTitle}>{firstName}</h2>
         </div>
         <span className={styles.profileEdit}>Redigera</span>
@@ -246,8 +246,9 @@ function ProfileCard({ onOpen }) {
           <span className={styles.profileValue}>{profile.targetDate || 'Flexibelt'}</span>
         </div>
       </div>
-      <p className={styles.profileNextStep}>{nextStepText}</p>
-      <p className={styles.profileNote}>Tryck för att justera mål, kroppsvikt och kost utan att börja om.</p>
+      <p className={styles.profileNextStep}>
+        {nextStepText} <span className={styles.profileNoteInline}>Tryck för att justera utan att börja om.</span>
+      </p>
     </section>
   );
 }
@@ -262,7 +263,7 @@ function WeightJourney({ onOpen }) {
     <section className={styles.weightCard} role="button" tabIndex={0} onClick={onOpen} onKeyDown={(event) => event.key === 'Enter' && onOpen()}>
       <div className={styles.weightHeader}>
         <div>
-          <p className={styles.sectionEyebrow}>Weight</p>
+          <p className={styles.sectionEyebrow}>Vikt</p>
           <h2 className={styles.weightValue}>
             {currentDisplay.toFixed(1)}
             <span className={styles.weightUnit}>kg</span>
@@ -301,12 +302,12 @@ function DailyNote() {
 
   return (
     <section className={styles.noteCard}>
-      <p className={styles.sectionEyebrow}>Today note</p>
+      <p className={styles.sectionEyebrow}>Dagens notering</p>
       <h3 className={styles.noteTitle}>{loggedToday ? 'Det viktigaste är redan gjort' : 'En liten loggning räcker'}</h3>
       <p className={styles.noteText}>
         {loggedToday
-          ? 'Behåll samma lugna rytm. Det enkla som upprepas blir det som håller.'
-          : 'Tänk inte större än nödvändigt. Logga, håll ramen och gå vidare.'}
+          ? 'Behåll samma lugna rytm. Det enkla som upprepas håller.'
+          : 'Logga, håll ramen och gå vidare.'}
       </p>
     </section>
   );
