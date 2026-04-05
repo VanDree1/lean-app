@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # Local tool settings
-.claude/
+.claude/settings.local.json
