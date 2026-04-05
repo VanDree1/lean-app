@@ -84,7 +84,7 @@
 }
 
 .track {
-  height: 3px;
+  height: 2px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
   overflow: hidden;
@@ -93,7 +93,7 @@
 .fill {
   height: 100%;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.8);
+  background: #ffffff;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

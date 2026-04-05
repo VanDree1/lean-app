@@ -196,9 +196,10 @@
 
 .weightHeader {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  width: 100%;
 }
 
 .weightValue {
@@ -240,18 +241,20 @@
 
 .milestoneHeader {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  width: 100%;
   margin-bottom: 0.75rem;
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
 
 .milestoneTrack {
   position: relative;
-  height: 3px;
+  height: 2px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.1);
   overflow: hidden;
@@ -260,7 +263,7 @@
 .milestoneFill {
   height: 100%;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.8);
+  background: #ffffff;
   transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
