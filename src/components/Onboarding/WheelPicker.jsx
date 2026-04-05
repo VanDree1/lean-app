@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 import s from './WheelPicker.module.css';
 
 const ITEM_H = 48; // px — must match CSS
@@ -6,15 +6,23 @@ const ITEM_H = 48; // px — must match CSS
 export default function WheelPicker({ items, value, onChange, width }) {
   const listRef = useRef(null);
   const isScrolling = useRef(null);
+  const [visualIdx, setVisualIdx] = useState(() => Math.max(0, items.indexOf(value)));
 
   const idx = Math.max(0, items.indexOf(value));
 
-  // Set initial scroll position
   useEffect(() => {
     const el = listRef.current;
     if (!el) return;
     el.scrollTop = idx * ITEM_H;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    setVisualIdx(idx);
+  }, [idx]);
+
+  useEffect(() => {
+    return () => clearTimeout(isScrolling.current);
+  }, []);
 
   const commit = useCallback((el) => {
     const rawIdx = el.scrollTop / ITEM_H;
@@ -26,9 +34,14 @@ export default function WheelPicker({ items, value, onChange, width }) {
   const handleScroll = useCallback(() => {
     const el = listRef.current;
     if (!el) return;
+
+    const rawIdx = el.scrollTop / ITEM_H;
+    const liveIdx = Math.max(0, Math.min(Math.round(rawIdx), items.length - 1));
+    setVisualIdx(liveIdx);
+
     clearTimeout(isScrolling.current);
     isScrolling.current = setTimeout(() => commit(el), 80);
-  }, [commit]);
+  }, [commit, items.length]);
 
   // Click an item to snap to it
   function handleClick(item, i) {
@@ -48,7 +61,7 @@ export default function WheelPicker({ items, value, onChange, width }) {
       >
         <div className={s.pad} />
         {items.map((item, i) => {
-          const distance = Math.abs(i - idx);
+          const distance = Math.abs(i - visualIdx);
           const distanceClass =
             distance === 0 ? s.active : distance === 1 ? s.near : distance === 2 ? s.mid : s.far;
 
