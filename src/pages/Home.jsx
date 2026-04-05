@@ -42,29 +42,46 @@ const PROFILE_FIELD_LABELS = {
 
 const HEALTH_TOPICS = [
   {
-    title: 'Protein',
-    sourceUrl: 'https://sv.wikipedia.org/wiki/Protein',
-    fallback: 'Protein bidrar till att bygga upp och bevara kroppens vävnader, inklusive muskler.',
+    title: 'Glykogen',
+    queryTitle: 'Glykogen',
+    sourceUrl: 'https://sv.wikipedia.org/wiki/Glykogen',
+    fallback: 'Glykogen är kroppens lagrade form av glukos och finns främst i levern och musklerna, där det fungerar som snabb energi.',
   },
   {
-    title: 'Sömn',
-    sourceUrl: 'https://sv.wikipedia.org/wiki/S%C3%B6mn',
-    fallback: 'Sömn påverkar både hunger, återhämtning och hur lätt det känns att hålla rutiner.',
+    title: 'Basalomsättning',
+    queryTitle: 'Basalomsättning',
+    sourceUrl: 'https://sv.wikipedia.org/wiki/Basaloms%C3%A4ttning',
+    fallback: 'Basalomsättningen är den energi kroppen använder i vila för att hålla igång grundläggande funktioner som andning, temperatur och cirkulation.',
   },
   {
-    title: 'Promenad',
-    sourceUrl: 'https://sv.wikipedia.org/wiki/Promenad',
-    fallback: 'Regelbundna promenader kan vara ett enkelt sätt att öka rörelse utan att skapa mycket friktion.',
+    title: 'Dygnsrytm',
+    queryTitle: 'Dygnsrytm',
+    sourceUrl: 'https://sv.wikipedia.org/wiki/Dygnsrytm',
+    fallback: 'Dygnsrytmen påverkar bland annat sömn, hormoner, kroppstemperatur och när kroppen känns mest vaken eller trött.',
   },
   {
-    title: 'Styrketräning',
-    sourceUrl: 'https://sv.wikipedia.org/wiki/Styrketr%C3%A4ning',
-    fallback: 'Styrketräning används ofta för att bygga styrka, muskelmassa och funktion över tid.',
+    title: 'Muskelhypertrofi',
+    queryTitle: 'Muskelhypertrofi',
+    sourceUrl: 'https://sv.wikipedia.org/wiki/Muskelhypertrofi',
+    fallback: 'Muskelhypertrofi innebär att muskelfibrerna ökar i storlek, vilket är en central del av hur muskler byggs över tid.',
   },
   {
-    title: 'Vatten',
-    sourceUrl: 'https://sv.wikipedia.org/wiki/Vatten',
-    fallback: 'Vatten är avgörande för kroppens normala funktioner och påverkar bland annat temperaturreglering och transport i kroppen.',
+    title: 'Kreatin',
+    queryTitle: 'Kreatin',
+    sourceUrl: 'https://sv.wikipedia.org/wiki/Kreatin',
+    fallback: 'Kreatin hjälper till att snabbt återbilda ATP, vilket gör det särskilt relevant vid korta och intensiva arbetsinsatser.',
+  },
+  {
+    title: 'Brunt fett',
+    queryTitle: 'Brunt_fett',
+    sourceUrl: 'https://sv.wikipedia.org/wiki/Brunt_fett',
+    fallback: 'Brunt fett skiljer sig från vanligt fett genom att det är mer specialiserat på värmeproduktion än energilagring.',
+  },
+  {
+    title: 'Mättnad',
+    queryTitle: 'Mättnad',
+    sourceUrl: 'https://sv.wikipedia.org/wiki/M%C3%A4ttnad',
+    fallback: 'Mättnad styrs inte bara av kalorier, utan också av volym, protein, fibrer och hur snabbt maten äts.',
   },
 ];
 
@@ -94,8 +111,18 @@ function isFreshFact(cache) {
 
 function trimFactText(text) {
   const clean = String(text || '').replace(/\s+/g, ' ').trim();
-  const firstSentence = clean.match(/.+?[.!?](?:\s|$)/)?.[0]?.trim() || clean;
-  return firstSentence.length > 180 ? `${firstSentence.slice(0, 177).trim()}...` : firstSentence;
+  const sentences = clean.match(/[^.!?]+[.!?]+/g)?.map((sentence) => sentence.trim()) || [clean];
+  const [first = '', second = ''] = sentences;
+
+  let selected = first;
+
+  if (second && first.length < 110) {
+    selected = `${first} ${second}`.trim();
+  } else if (second && /^(?:[A-ZÅÄÖa-zåäö0-9_\- ]+?)\s+är\b/.test(first) && second.length > 50) {
+    selected = second;
+  }
+
+  return selected.length > 220 ? `${selected.slice(0, 217).trim()}...` : selected;
 }
 
 function loadDashboardProfile() {
@@ -383,7 +410,7 @@ function DidYouKnowCard() {
 
     async function loadFact() {
       try {
-        const response = await fetch(`https://sv.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic.title)}`, {
+        const response = await fetch(`https://sv.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic.queryTitle || topic.title)}`, {
           signal: controller.signal,
         });
 
