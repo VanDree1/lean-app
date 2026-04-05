@@ -3,7 +3,6 @@ import {
   Beef,
   Carrot,
   Drumstick,
-  Egg,
   Fish,
   Leaf,
   Nut,
@@ -19,7 +18,6 @@ const DIETS = [
   { value: 'Keto', icon: Nut, desc: 'Låg kolhydrat, hög fett (LCHF)' },
   { value: 'Glutenfri', icon: WheatOff, desc: 'Undviker vete, råg, korn' },
   { value: 'Carnivore', icon: Beef, desc: 'Endast animaliska produkter' },
-  { value: 'Lakto-ovo', icon: Egg, desc: 'Vegetarisk + ägg & mejeri' },
 ];
 
 export default function Step6Diet({ data, onNext, submitLabel = 'Nästa' }) {
