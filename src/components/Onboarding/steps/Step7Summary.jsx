@@ -49,11 +49,11 @@ export default function Step7Summary({ data, onNext, submitLabel = 'Spara' }) {
 
   function handleStart() {
     setFired(true);
-    setTimeout(() => onNext({}), 900);
+    setTimeout(() => onNext({}), 1100);
   }
 
   return (
-    <div className={s.summaryStep}>
+    <div className={[s.summaryStep, fired ? s.summaryStepDone : ''].join(' ')}>
       {fired && (
         <div className={s.confettiWrap}>
           {confetti.map((c) => (
@@ -73,7 +73,10 @@ export default function Step7Summary({ data, onNext, submitLabel = 'Spara' }) {
       )}
 
       <div className={s.summaryHero}>
-        <div className={s.summaryCheck}>✓</div>
+        <div className={s.summaryGlow} aria-hidden="true" />
+        <div className={s.summaryCheckWrap}>
+          <div className={s.summaryCheck}>✓</div>
+        </div>
         <p className={s.summaryHeroTitle}>Din plan är klar</p>
         <p className={s.summaryHeroSub}>
           Nu finns en tydlig riktning för dig, {firstName}.
@@ -92,8 +95,8 @@ export default function Step7Summary({ data, onNext, submitLabel = 'Spara' }) {
         ))}
       </div>
 
-      <button className={s.btnPrimary} onClick={handleStart} disabled={fired}>
-        {fired ? 'Sparar...' : submitLabel}
+      <button className={[s.btnPrimary, fired ? s.summaryButtonDone : ''].join(' ')} onClick={handleStart} disabled={fired}>
+        {fired ? 'Klart...' : submitLabel}
       </button>
     </div>
   );

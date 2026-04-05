@@ -30,36 +30,36 @@ function loadSaved() {
 export default function ProfileModal({ onClose }) {
   const { complete, saveDraft } = useOnboarding();
   const closeTimeoutRef = useRef(null);
-  const [step, setStep] = useState(1);
-  const [data, setData] = useState(loadSaved);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [profileData, setProfileData] = useState(loadSaved);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => () => clearTimeout(closeTimeoutRef.current), []);
 
   function next(partial) {
-    const newData = { ...data, ...partial };
-    setData(newData);
+    const newData = { ...profileData, ...partial };
+    setProfileData(newData);
     saveDraft(newData);
-    if (step === STEPS.length) {
+    if (currentStep === STEPS.length) {
       complete(newData);
       setSaved(true);
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = setTimeout(() => onClose(), 1400);
     } else {
-      setStep((s) => s + 1);
+      setCurrentStep((s) => s + 1);
     }
   }
 
   function back() {
-    setStep((s) => Math.max(1, s - 1));
+    setCurrentStep((s) => Math.max(1, s - 1));
   }
 
-  const StepComponent = STEPS[step - 1];
-  const isLast = step === STEPS.length;
+  const StepComponent = STEPS[currentStep - 1];
+  const isLast = currentStep === STEPS.length;
 
   return (
     <div className={pm.backdrop} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className={styles.card}>
+      <div className={[styles.card, pm.modalCard].join(' ')}>
         {saved && (
           <div className={pm.savedState} role="status" aria-live="polite">
             <div className={pm.savedGlow} aria-hidden="true" />
@@ -82,31 +82,33 @@ export default function ProfileModal({ onClose }) {
             <button className={pm.close} onClick={onClose} aria-label="Stäng">✕</button>
           </div>
           <StepProgress
-            current={step}
+            current={currentStep}
             total={STEPS.length}
-            onStepClick={setStep}
+            onStepClick={setCurrentStep}
           />
         </div>
 
-        {step > 1 && (
-          <button className={styles.back} onClick={back} aria-label="Tillbaka">
-            ← Tillbaka
-          </button>
-        )}
+        <div className={pm.scrollBody}>
+          {currentStep > 1 && (
+            <button className={styles.back} onClick={back} aria-label="Tillbaka">
+              ← Tillbaka
+            </button>
+          )}
 
-        <div key={step} className={styles.stepWrap}>
-          <StepComponent
-            data={data}
-            onNext={next}
-            submitLabel={isLast ? 'Spara' : undefined}
-          />
+          <div key={currentStep} className={[styles.stepWrap, pm.stepFade].join(' ')}>
+            <StepComponent
+              data={profileData}
+              onNext={next}
+              submitLabel={isLast ? 'Spara' : undefined}
+            />
+          </div>
+
+          {!isLast && (
+            <button className={styles.skip} onClick={() => next({})}>
+              Hoppa över
+            </button>
+          )}
         </div>
-
-        {!isLast && (
-          <button className={styles.skip} onClick={() => next({})}>
-            Hoppa över
-          </button>
-        )}
       </div>
     </div>
   );

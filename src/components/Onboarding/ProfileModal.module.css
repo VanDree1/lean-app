@@ -12,6 +12,15 @@
   animation: fadeIn 0.2s ease;
 }
 
+.modalCard {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: min(85vh, 100%);
+  max-height: 85vh;
+  overflow: hidden;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -20,6 +29,24 @@
 .header {
   position: relative;
   margin-bottom: 1rem;
+  flex-shrink: 0;
+}
+
+.scrollBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollBody::-webkit-scrollbar {
+  display: none;
+}
+
+.stepFade {
+  animation: stepFadeIn 0.28s ease;
 }
 
 .savedState {
@@ -133,6 +160,17 @@
   from {
     opacity: 0;
     transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes stepFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
   to {
     opacity: 1;

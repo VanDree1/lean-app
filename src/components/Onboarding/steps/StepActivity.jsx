@@ -1,10 +1,15 @@
 import { useState } from 'react';
+import {
+  Briefcase,
+  PersonStanding,
+  Dumbbell,
+} from 'lucide-react';
 import s from '../Step.module.css';
 
 const LEVELS = [
-  { value: 'sedentary',   icon: '🛋️', label: 'Stillasittande', desc: 'Kontor, lite rörelse' },
-  { value: 'light',       icon: '🚶', label: 'Måttligt aktiv',  desc: 'Tränar 1–3×/vecka' },
-  { value: 'very_active', icon: '🏃', label: 'Mycket aktiv',    desc: 'Tränar 4+/vecka' },
+  { value: 'sedentary', icon: Briefcase, label: 'Stillasittande', desc: 'Kontor, lite rörelse' },
+  { value: 'light', icon: PersonStanding, label: 'Måttligt aktiv', desc: 'Tränar 1–3×/vecka' },
+  { value: 'very_active', icon: Dumbbell, label: 'Mycket aktiv', desc: 'Tränar 4+/vecka' },
 ];
 
 export default function StepActivity({ data, onNext, submitLabel = 'Nästa' }) {
@@ -16,23 +21,29 @@ export default function StepActivity({ data, onNext, submitLabel = 'Nästa' }) {
       <p className={s.subtitle}>Din nivå hjälper oss sätta rätt ram för dagen.</p>
 
       <div className={s.hypeStack}>
-        {LEVELS.map((l) => (
-          <button
-            type="button"
-            key={l.value}
-            className={[
-              activity === l.value ? s.hypeCardSelected : s.hypeCard,
-              s.hypeCardRow,
-            ].join(' ')}
-            onClick={() => setActivity(l.value)}
-          >
-            <span className={s.hypeCardIcon}>{l.icon}</span>
-            <span className={s.hypeCardText}>
-              <span className={s.hypeCardLabel}>{l.label}</span>
-              <span className={s.hypeCardDesc}>{l.desc}</span>
-            </span>
-          </button>
-        ))}
+        {LEVELS.map((l) => {
+          const Icon = l.icon;
+
+          return (
+            <button
+              type="button"
+              key={l.value}
+              className={[
+                activity === l.value ? s.hypeCardSelected : s.hypeCard,
+                s.hypeCardRow,
+              ].join(' ')}
+              onClick={() => setActivity(l.value)}
+            >
+              <span className={s.hypeCardIcon} aria-hidden="true">
+                <Icon size={24} strokeWidth={1.5} />
+              </span>
+              <span className={s.hypeCardText}>
+                <span className={s.hypeCardLabel}>{l.label}</span>
+                <span className={s.hypeCardDesc}>{l.desc}</span>
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <button
