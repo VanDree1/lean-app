@@ -197,7 +197,6 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
           <div className={styles.focusSheet} role="dialog" aria-modal="true" aria-label="Fyll i dagens insats">
             <div className={styles.focusSheetHeader}>
               <p className={styles.sectionEyebrow}>Dagens insats</p>
-              <h3 className={styles.focusSheetTitle}>Fyll i hur dagen faktiskt såg ut</h3>
             </div>
             <div className={styles.focusForm}>
               <label className={styles.focusField}>
@@ -230,13 +229,8 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
               <div className={[styles.focusField, !activeWorkout ? styles.focusFieldMuted : ''].join(' ')}>
                 <div className={styles.focusFieldHeader}>
                   <span className={styles.focusFieldLabel}>Dagens träning</span>
-                  <span className={styles.focusFieldHint}>
-                    {activeWorkout ? `+${estimatedCalories} kcal` : 'Valfritt'}
-                  </span>
+                  {activeWorkout ? <span className={styles.focusFieldHint}>+{estimatedCalories} kcal</span> : null}
                 </div>
-                <p className={styles.focusFieldSubtle}>
-                  {activeWorkout ? 'Justerat pass för idag.' : 'Välj bara något här om du faktiskt tränade.'}
-                </p>
                 <div className={styles.workoutGrid}>
                   {Object.entries(WORKOUTS).map(([key, workout]) => {
                     const active = activeWorkoutKey === key;
@@ -278,7 +272,7 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
                       <span>10 min</span>
                       <span>120 min</span>
                     </div>
-                    <p className={styles.workoutEstimate}>Uppskattning: +{estimatedCalories} kcal</p>
+                    <p className={styles.workoutEstimate}>+{estimatedCalories} kcal</p>
                   </div>
                 )}
               </div>

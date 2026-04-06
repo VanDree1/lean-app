@@ -406,14 +406,6 @@
   margin-bottom: 0.9rem;
 }
 
-.focusSheetTitle {
-  margin-top: 0.45rem;
-  font-size: 1.15rem;
-  line-height: 1.2;
-  letter-spacing: -0.03em;
-  color: #ffffff;
-}
-
 .focusForm {
   display: grid;
   gap: 0.9rem;
@@ -448,13 +440,6 @@
   color: rgba(199, 221, 207, 0.82);
   letter-spacing: 0.08em;
   white-space: nowrap;
-}
-
-.focusFieldSubtle {
-  margin: 0;
-  font-size: 0.76rem;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.4);
 }
 
 .focusInput {
@@ -873,7 +858,7 @@
 }
 
 .workoutEstimate {
-  margin-top: 0.9rem;
+  margin-top: 0.8rem;
   font-size: 0.8rem;
   color: rgba(199, 221, 207, 0.88);
 }
