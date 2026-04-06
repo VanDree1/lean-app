@@ -383,9 +383,10 @@ export default function Home({ profile }) {
         <HeroCard profile={profile} />
         <DailyFocusCard />
         <div className={styles.logSection}>
-          <div className={styles.logSectionHeader}>
-            <p className={styles.sectionEyebrow}>Logga idag</p>
-            <h2 className={styles.logSectionTitle}>Vikt, träning och kalorier</h2>
+        <div className={styles.logSectionHeader}>
+          <p className={styles.sectionEyebrow}>Logga idag</p>
+          <h2 className={styles.logSectionTitle}>Vikt, träning och kalorier</h2>
+          <p className={styles.logSectionBody}>Tre tydliga kort. Ett för vikt, ett för kalorier och ett för träning.</p>
           </div>
         <WeightJourney profile={profile} onOpen={() => setModal('weight')} />
         <QuickStats profile={profile} eaten={eaten} burned={burned} setEaten={setEaten} />

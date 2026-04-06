@@ -158,7 +158,7 @@ function CaloriesCard({
         <Plus size={16} strokeWidth={1.5} />
       </button>
 
-      <span className={styles.label}>Logga kalorier</span>
+      <span className={styles.label}>Kalorier idag</span>
 
       <div className={styles.valueRow}>
         {isEditing ? (
@@ -187,7 +187,7 @@ function CaloriesCard({
             <span className={[styles.value, remaining <= 0 ? styles.valueEmpty : ''].join(' ')}>
               <AnimatedNumber value={remaining} duration={800} />
             </span>
-            <span className={styles.unit}>KCAL KVAR</span>
+            <span className={styles.unit}>kvar</span>
           </>
         )}
       </div>
@@ -197,9 +197,9 @@ function CaloriesCard({
       </div>
 
       <div className={styles.calorieMetaRow}>
-        <span className={styles.meta}>Mål: {goal.toLocaleString('sv-SE')}</span>
-        <span className={styles.meta}>Ätit: -{eaten.toLocaleString('sv-SE')}</span>
-        <span className={styles.meta}>Tränat: +{burned.toLocaleString('sv-SE')}</span>
+        <span className={styles.meta}>Mål {goal.toLocaleString('sv-SE')}</span>
+        <span className={styles.meta}>Ätit -{eaten.toLocaleString('sv-SE')}</span>
+        <span className={styles.meta}>Tränat +{burned.toLocaleString('sv-SE')}</span>
       </div>
 
       <div className={styles.footerRow}>
