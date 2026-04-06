@@ -138,6 +138,20 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   })();
   const isLoggedToday = locked && Boolean(todayCheckin);
   const activeWorkout = activeWorkoutKey ? WORKOUTS[activeWorkoutKey] : null;
+  const workoutEntries = Object.entries(WORKOUTS).sort(([a], [b]) => {
+    if (!lowEnergyMode) return 0;
+
+    const rank = (key) => {
+      if (key === 'yoga') return 0;
+      if (key === 'run') return 1;
+      if (key === 'cycle') return 2;
+      if (key === 'other') return 3;
+      if (key === 'gym') return 4;
+      return 5;
+    };
+
+    return rank(a) - rank(b);
+  });
   const estimatedCalories = activeWorkout
     ? Math.round(activeWorkout.met * weight * (duration / 60))
     : 0;
@@ -400,7 +414,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 </p>
               ) : null}
               <div className={styles.workoutGrid}>
-                {Object.entries(WORKOUTS).map(([key, workout]) => {
+                {workoutEntries.map(([key, workout]) => {
                   const active = activeWorkoutKey === key;
                   const isRecoveryPick = key === 'yoga' || key === 'run';
                   const isDimmedInRecovery = lowEnergyMode && key === 'gym';
