@@ -7,6 +7,7 @@ import QuickStats from '../components/QuickStats/QuickStats';
 import WeightModal from '../components/Weight/WeightModal';
 import { useWeightLog } from '../components/Weight/useWeightLog';
 import { useGoalTone } from '../hooks/useGoalTone';
+import { useInsights } from '../hooks/useInsights';
 import { useAppStore } from '../store/useAppStore';
 import styles from './Home.module.css';
 const WEIGHT_TREND = [103.2, 102.5, 102.1, 101.8, 101.0, 100.5, 100.0];
@@ -473,14 +474,16 @@ function SleepRecoveryCard({ sleepHoursToday, setSleepHoursToday, lowEnergyMode,
   );
 }
 
-function CoachTipCard({ tone }) {
+function PatternInsightCard({ insight }) {
+  if (!insight) return null;
+
   return (
-    <section className={styles.noteCard} aria-label={tone.coach.title}>
+    <section className={[styles.noteCard, styles.insightCard, styles[`insightTone${insight.tone === 'warning' ? 'Warning' : insight.tone === 'positive' ? 'Positive' : 'Neutral'}`]].join(' ')} aria-label={insight.title}>
       <div className={styles.contextHeader}>
-        <p className={styles.sectionEyebrow}>{tone.coach.title}</p>
-        <span className={styles.contextStatus}>{tone.quote.status}</span>
+        <p className={styles.sectionEyebrow}>{insight.title}</p>
+        <span className={styles.contextStatus}>{insight.status}</span>
       </div>
-      <p className={styles.contextBody}>{tone.coach.body(tone)}</p>
+      <p className={styles.contextBody}>{insight.body}</p>
     </section>
   );
 }
@@ -565,6 +568,11 @@ export default function Home({ profile }) {
   const { state, setDailyValues } = useAppStore();
   const { current: latestWeight } = useWeightLog();
   const tone = useGoalTone(profile);
+  const insight = useInsights({
+    dailyEntries: state.daily.dailyEntries,
+    weightLog: state.weightLog,
+    goal: tone.goal,
+  });
   const [modal, setModal] = useState(null);
   const eaten = state.daily.calories;
   const burned = state.daily.burned;
@@ -609,7 +617,7 @@ export default function Home({ profile }) {
           locked={isDayLocked}
         />
         </div>
-        <CoachTipCard tone={lowEnergyMode ? { ...tone, coach: { ...tone.coach, title: tone.recovery.coachTitle, body: () => tone.recovery.coachBody }, quote: { ...tone.quote, status: tone.recovery.quoteStatus } } : tone} />
+        <PatternInsightCard insight={insight} />
         <MotivationTip profile={profile} lowEnergyMode={lowEnergyMode} recoveryTone={tone.recovery} />
       </div>
 

@@ -138,6 +138,7 @@ function reducer(state, action) {
       const { date, weight } = action.payload;
       const filtered = state.weightLog.filter((entry) => entry.date !== date);
       const next = [...filtered, { date, weight: parseFloat(weight) }].sort((a, b) => b.date.localeCompare(a.date));
+      const currentEntry = state.daily.dailyEntries[date] || { date };
       return {
         ...state,
         weightLog: next,
@@ -145,13 +146,40 @@ function reducer(state, action) {
           ...state.profile,
           currentWeight: parseFloat(weight),
         },
+        daily: {
+          ...state.daily,
+          dailyEntries: {
+            ...state.daily.dailyEntries,
+            [date]: {
+              ...currentEntry,
+              date,
+              weight: parseFloat(weight),
+            },
+          },
+        },
       };
     }
-    case 'REMOVE_WEIGHT':
+    case 'REMOVE_WEIGHT': {
+      const date = action.payload.date;
+      const currentEntry = state.daily.dailyEntries[date];
+      const nextDailyEntries = currentEntry
+        ? {
+            ...state.daily.dailyEntries,
+            [date]: {
+              ...currentEntry,
+              weight: null,
+            },
+          }
+        : state.daily.dailyEntries;
       return {
         ...state,
-        weightLog: state.weightLog.filter((entry) => entry.date !== action.payload.date),
+        weightLog: state.weightLog.filter((entry) => entry.date !== date),
+        daily: {
+          ...state.daily,
+          dailyEntries: nextDailyEntries,
+        },
       };
+    }
     case 'SET_DAILY_VALUES':
       return {
         ...state,
@@ -190,27 +218,57 @@ function reducer(state, action) {
       };
     }
     case 'COMPLETE_DAILY_CHECKIN':
-      return {
-        ...state,
-        daily: {
-          ...state.daily,
-          calories: action.payload.calories,
-          burned: action.payload.burned,
-          sleepHours: action.payload.sleepHours,
-          dailyCheckin: action.payload.checkin,
-          lastLoggedDate: action.payload.lastLoggedDate,
-          streak: action.payload.streak,
-          savedAt: action.payload.savedAt,
-        },
-      };
-    case 'UNLOCK_DAILY_CHECKIN':
+      {
+        const checkinDate = new Date(action.payload.lastLoggedDate).toISOString().slice(0, 10);
+        const currentEntry = state.daily.dailyEntries[checkinDate] || { date: checkinDate };
+        return {
+          ...state,
+          daily: {
+            ...state.daily,
+            calories: action.payload.calories,
+            burned: action.payload.burned,
+            sleepHours: action.payload.sleepHours,
+            dailyCheckin: action.payload.checkin,
+            lastLoggedDate: action.payload.lastLoggedDate,
+            streak: action.payload.streak,
+            savedAt: action.payload.savedAt,
+            dailyEntries: {
+              ...state.daily.dailyEntries,
+              [checkinDate]: {
+                ...currentEntry,
+                date: checkinDate,
+                calories: action.payload.calories,
+                burned: action.payload.burned,
+                sleepHours: action.payload.sleepHours,
+                locked: true,
+                workoutKey: action.payload.checkin?.workoutKey || '',
+                workoutName: action.payload.checkin?.workoutName || '',
+                duration: Number(action.payload.checkin?.duration) || 0,
+              },
+            },
+          },
+        };
+      }
+    case 'UNLOCK_DAILY_CHECKIN': {
+      const today = isoToday();
+      const currentEntry = state.daily.dailyEntries[today];
       return {
         ...state,
         daily: {
           ...state.daily,
           lastLoggedDate: null,
+          dailyEntries: currentEntry
+            ? {
+                ...state.daily.dailyEntries,
+                [today]: {
+                  ...currentEntry,
+                  locked: false,
+                },
+              }
+            : state.daily.dailyEntries,
         },
       };
+    }
     case 'SET_QUOTE_CACHE':
       return {
         ...state,
