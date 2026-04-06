@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Check } from 'lucide-react';
 import HeroCard from '../components/HeroCard/HeroCard';
 import QuickStats from '../components/QuickStats/QuickStats';
 import StreakBanner from '../components/StreakBanner/StreakBanner';
@@ -205,70 +206,43 @@ function applyDailyCoachContext(tip, loggedToday) {
 }
 
 
-function DailyFocusCard({ onOpenHistory }) {
+function DailyFocusCard() {
   const { loggedToday } = useStreak();
-  const { current, addEntry } = useWeightLog();
-  const [inputVal, setInputVal] = useState('');
-  const [saved, setSaved] = useState(false);
+  const [isLoggedToday, setIsLoggedToday] = useState(loggedToday);
 
-  const today = new Date().toISOString().slice(0, 10);
-
-  function handleLog() {
-    const w = parseFloat(inputVal.replace(',', '.'));
-    if (!w || w < 20 || w > 500) return;
-    addEntry(today, w);
-    setInputVal('');
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      navigator.vibrate(18);
-    }
-  }
-
-  function handleKey(e) {
-    if (e.key === 'Enter') handleLog();
-  }
+  useEffect(() => {
+    setIsLoggedToday(loggedToday);
+  }, [loggedToday]);
 
   return (
-    <section className={styles.focusCard} aria-labelledby="today-title">
+    <button
+      type="button"
+      className={[
+        styles.focusCard,
+        styles.focusCheckin,
+        isLoggedToday ? styles.focusCardDone : styles.focusCardTodo,
+      ].join(' ')}
+      aria-labelledby="today-title"
+      onClick={() => setIsLoggedToday(true)}
+    >
       <div className={styles.focusMain}>
         <p className={styles.sectionEyebrow}>Idag</p>
         <h2 id="today-title" className={styles.focusTitle}>
-          {loggedToday ? 'Dagens vikt' : 'Logga dagens vikt'}
+          {isLoggedToday ? 'Dagens insats är loggad.' : 'Logga idag'}
         </h2>
-
-        {saved ? (
-          <div className={styles.quickLogSaved}>✓ Sparat!</div>
-        ) : (
-          <div className={styles.quickLog}>
-            <input
-              className={styles.quickLogInput}
-              type="number"
-              inputMode="decimal"
-              placeholder={current ? String(current) : 'kg'}
-              value={inputVal}
-              onChange={(e) => setInputVal(e.target.value)}
-              onKeyDown={handleKey}
-              min="20"
-              max="500"
-              aria-label="Vikt i kg"
-            />
-            <button
-              type="button"
-              className={styles.quickLogBtn}
-              onClick={handleLog}
-              disabled={!inputVal}
-            >
-              Logga
-            </button>
-          </div>
-        )}
-
-        <button type="button" className={styles.historyLink} onClick={onOpenHistory}>
-          Visa historik →
-        </button>
+        <p className={styles.focusBody}>
+          {isLoggedToday ? 'Bra jobbat. Vila nu.' : 'Tryck här när dagens insats är klar.'}
+        </p>
       </div>
-    </section>
+
+      <div className={styles.focusStatus} aria-hidden="true">
+        {isLoggedToday ? (
+          <Check size={18} strokeWidth={1.8} className={styles.focusCheckIcon} />
+        ) : (
+          <span className={styles.focusPulseDot} />
+        )}
+      </div>
+    </button>
   );
 }
 
@@ -406,7 +380,7 @@ export default function Home() {
     <main className={styles.main}>
       <div className={styles.stack}>
         <HeroCard />
-        <DailyFocusCard onOpenHistory={() => setModal('weight')} />
+        <DailyFocusCard />
         <div className={styles.twoColumn}>
           <StreakBanner />
           <WeightJourney onOpen={() => setModal('weight')} />
