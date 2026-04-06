@@ -369,7 +369,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
           <div className={styles.focusContent}>
             <div className={styles.focusMain}>
               <p className={styles.sectionEyebrow}>Dagens insats</p>
-              <h2 id="today-title" className={styles.focusTitle}>Klar</h2>
+              <h2 id="today-title" className={styles.focusTitle}>Dag säkrad</h2>
               <div className={styles.focusSummaryRow}>
                 {summaryItems.map((item) => (
                   <span key={item} className={styles.focusSummaryPill}>
@@ -648,7 +648,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 <span className={styles.focusSavedCheck}>
                   <Check size={16} strokeWidth={1.9} />
                 </span>
-                <span className={styles.focusSavedText}>Dagen är sparad</span>
+                <span className={styles.focusSavedText}>Dag säkrad</span>
               </div>
             ) : null}
               <button
