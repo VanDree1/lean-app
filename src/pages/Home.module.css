@@ -925,6 +925,10 @@
   transition: box-shadow 0.35s ease;
 }
 
+.trendCardUnlock {
+  border-color: rgba(52, 211, 153, 0.16);
+}
+
 .trendHeader {
   display: flex;
   align-items: center;
