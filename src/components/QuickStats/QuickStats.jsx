@@ -25,6 +25,7 @@ const SIZE_CONFIG = [
   { key: 'heavy', label: 'Tung', multiplier: 1.28 },
 ];
 const EXTRA_PROTEIN_KCAL = 120;
+const EXTRA_PROTEIN_GRAMS = 25;
 
 const STEP_GOALS = {
   sedentary: 6000,
@@ -131,6 +132,13 @@ function readMealsForToday(fallbackCalories = 0) {
 
 function sumMealCalories(meals) {
   return Object.values(meals).reduce((sum, meal) => sum + (meal?.calories || 0), 0);
+}
+
+function sumMealProtein(meals) {
+  return Object.values(meals).reduce((sum, meal) => {
+    if (!meal?.extraProtein) return sum;
+    return sum + EXTRA_PROTEIN_GRAMS;
+  }, 0);
 }
 
 function roundMealCalories(value) {
@@ -444,7 +452,9 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
   const kcalGoal = profile.caloriesGoal ?? derivedTargets.kcalGoal;
   const stepGoal = STEP_GOALS[profile.activity] || STEP_GOALS.light;
   const isProteinPriority = tone.stats.priority === 'protein';
-  const secondaryValue = isProteinPriority ? protein : steps;
+  const mealProteinBonus = sumMealProtein(meals);
+  const totalProtein = protein + mealProteinBonus;
+  const secondaryValue = isProteinPriority ? totalProtein : steps;
   const secondaryTarget = isProteinPriority ? tone.proteinGoal : stepGoal;
   const secondaryLabel = tone.stats.secondaryLabel;
   const secondaryUnit = tone.stats.secondaryUnit;
@@ -489,6 +499,10 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
     setEaten(nextCalories);
     setActiveMealSlot(null);
     triggerFeedback('calories', mealData.calories, 'kcal');
+
+    if (mealData.extraProtein && isProteinPriority) {
+      triggerFeedback('steps', EXTRA_PROTEIN_GRAMS, 'g');
+    }
   }
 
   function handleSaveSteps() {
