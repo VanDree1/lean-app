@@ -722,43 +722,25 @@
   padding: 1.35rem 1.4rem;
 }
 
-.workoutCard {
-  padding: 1.35rem 1.4rem;
-}
-
-.workoutHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.workoutSubtle {
-  margin-top: 0.35rem;
-  font-size: 0.8rem;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.42);
-}
-
 .workoutGrid {
-  margin-top: 1rem;
+  margin-top: 0.85rem;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.65rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
 }
 
 .workoutOption {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  min-height: 5rem;
-  padding: 0.75rem;
+  justify-content: flex-start;
+  gap: 0.55rem;
+  min-height: 3.15rem;
+  padding: 0.75rem 0.8rem;
   border-radius: 0.95rem;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(255, 255, 255, 0.02);
-  color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.34);
   cursor: pointer;
   transition:
     color 0.18s ease,
@@ -770,18 +752,18 @@
 }
 
 .workoutOption:hover {
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.52);
 }
 
 .workoutOption:active {
-  transform: scale(0.9);
+  transform: scale(0.96);
 }
 
 .workoutOptionActive {
-  color: #34d399;
-  border-color: rgba(52, 211, 153, 0.3);
-  background: rgba(52, 211, 153, 0.1);
-  box-shadow: 0 0 15px rgba(52, 211, 153, 0.1);
+  color: #ffffff;
+  border-color: rgba(199, 221, 207, 0.24);
+  background: rgba(199, 221, 207, 0.1);
+  box-shadow: 0 0 0 1px rgba(199, 221, 207, 0.06);
 }
 
 .workoutLabel {
@@ -806,8 +788,8 @@
 }
 
 .workoutDetail {
-  margin-top: 1rem;
-  padding: 0.95rem 1rem 1rem;
+  margin-top: 0.85rem;
+  padding: 0.9rem 0.95rem 0.95rem;
   border-radius: 1.1rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.035);
@@ -891,55 +873,9 @@
 }
 
 .workoutEstimate {
-  font-size: 0.84rem;
-  color: rgba(199, 221, 207, 0.92);
-}
-
-.workoutLogButton {
-  padding: 0.6rem 0.95rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
-  cursor: pointer;
-  transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.workoutActionRow {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.workoutCancelButton {
-  padding: 0.6rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: transparent;
-  color: rgba(255, 255, 255, 0.62);
-  cursor: pointer;
-  transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.workoutCancelButton:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-}
-
-.workoutCancelButton:active {
-  transform: scale(0.95);
-}
-
-.workoutLogButton:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.16);
-}
-
-.workoutLogButton:active {
-  transform: scale(0.95);
+  margin-top: 0.9rem;
+  font-size: 0.8rem;
+  color: rgba(199, 221, 207, 0.88);
 }
 
 @keyframes workoutDetailIn {
@@ -1019,20 +955,6 @@
 
   .workoutGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .workoutEstimateRow {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .workoutActionRow {
-    width: 100%;
-  }
-
-  .workoutCancelButton,
-  .workoutLogButton {
-    flex: 1;
   }
 }
 
