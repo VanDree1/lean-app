@@ -14,6 +14,8 @@ const PROFILE_KEY = 'djur-i-juni:profile';
 const ONBOARDING_KEY = 'djur-i-juni:onboarding';
 const HEALTH_FACT_CACHE_KEY_PREFIX = 'djur-i-juni:health-fact';
 const HEALTH_FACT_TTL_MS = 1000 * 60 * 60 * 12;
+const LOGGED_TODAY_KEY = 'djur_i_juni_logged_today';
+const STREAK_KEY = 'djur_i_juni_streak';
 const WEIGHT_TREND = [103.2, 102.5, 102.1, 101.8, 101.0, 100.5, 100.0];
 
 const HEALTH_TOPICS_BY_GOAL = {
@@ -207,12 +209,18 @@ function applyDailyCoachContext(tip, loggedToday) {
 
 
 function DailyFocusCard() {
-  const { loggedToday } = useStreak();
-  const [isLoggedToday, setIsLoggedToday] = useState(loggedToday);
+  const [isLoggedToday, setIsLoggedToday] = useState(() => localStorage.getItem(LOGGED_TODAY_KEY) === 'true');
+  const [streak, setStreak] = useState(() => Number(localStorage.getItem(STREAK_KEY)) || 0);
 
-  useEffect(() => {
-    setIsLoggedToday(loggedToday);
-  }, [loggedToday]);
+  function handleCheckIn() {
+    if (isLoggedToday) return;
+
+    const nextStreak = streak + 1;
+    setIsLoggedToday(true);
+    setStreak(nextStreak);
+    localStorage.setItem(LOGGED_TODAY_KEY, 'true');
+    localStorage.setItem(STREAK_KEY, String(nextStreak));
+  }
 
   return (
     <button
@@ -223,7 +231,8 @@ function DailyFocusCard() {
         isLoggedToday ? styles.focusCardDone : styles.focusCardTodo,
       ].join(' ')}
       aria-labelledby="today-title"
-      onClick={() => setIsLoggedToday(true)}
+      onClick={handleCheckIn}
+      disabled={isLoggedToday}
     >
       <div className={styles.focusMain}>
         <p className={styles.sectionEyebrow}>Idag</p>
@@ -233,6 +242,7 @@ function DailyFocusCard() {
         <p className={styles.focusBody}>
           {isLoggedToday ? 'Bra jobbat. Vila nu.' : 'Tryck här när dagens insats är klar.'}
         </p>
+        <p className={styles.focusMeta}>Streak {streak} dagar</p>
       </div>
 
       <div className={styles.focusStatus} aria-hidden="true">

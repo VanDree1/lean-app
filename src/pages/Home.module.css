@@ -288,6 +288,14 @@
   line-height: 1.55;
 }
 
+.focusMeta {
+  margin-top: 0.8rem;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .focusStatus {
   flex-shrink: 0;
   display: flex;
