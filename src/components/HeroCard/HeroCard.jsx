@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import styles from './HeroCard.module.css';
 
 const COPY_BY_GOAL = {
@@ -29,22 +28,7 @@ function getGreeting() {
   return 'God kväll';
 }
 
-function loadProfile() {
-  try {
-    const profile = JSON.parse(localStorage.getItem('djur-i-juni:profile') || '{}');
-    const onboarding = JSON.parse(localStorage.getItem('djur-i-juni:onboarding') || '{}');
-
-    return {
-      name: profile.name || onboarding.name || '',
-      goal: profile.goal || onboarding.goal || '',
-    };
-  } catch {
-    return { name: '', goal: '' };
-  }
-}
-
-export default function HeroCard() {
-  const [profile] = useState(loadProfile);
+export default function HeroCard({ profile = {} }) {
   const goalCopy = COPY_BY_GOAL[profile.goal] ?? {
     quote: 'Det här behöver inte kännas högt. Bara tydligt.',
     subtle: 'Mindre brus. Mer riktning.',

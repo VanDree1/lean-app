@@ -7,7 +7,6 @@ import StreakBanner from '../components/StreakBanner/StreakBanner';
 import WeightModal from '../components/Weight/WeightModal';
 import { useWeightLog } from '../components/Weight/useWeightLog';
 import { useStreak } from '../hooks/useStreak';
-import { useProfile } from '../hooks/useProfile';
 import styles from './Home.module.css';
 
 const PROFILE_KEY = 'djur-i-juni:profile';
@@ -271,8 +270,15 @@ function DailyFocusCard() {
   );
 }
 
-function WeightJourney({ onOpen }) {
-  const { recent, current, progress, GOAL_WEIGHT, START_WEIGHT } = useWeightLog();
+function WeightJourney({ onOpen, profile }) {
+  const { recent, current } = useWeightLog();
+  const startWeight = profile.startWeight ?? profile.weight ?? profile.currentWeight ?? 100;
+  const goalWeight = profile.goalWeight ?? 90;
+  const lost = startWeight - current;
+  const totalToLose = startWeight - goalWeight;
+  const progress = totalToLose > 0
+    ? Math.min(100, Math.max(0, (lost / totalToLose) * 100))
+    : 0;
   const lowest = recent.length > 0 ? Math.min(...recent.map((entry) => entry.weight)) : current;
   const isLowest = current <= lowest;
   const minTrend = Math.min(...WEIGHT_TREND);
@@ -306,9 +312,9 @@ function WeightJourney({ onOpen }) {
 
       <div className={styles.milestoneWrap}>
         <div className={styles.milestoneHeader}>
-          <span>Start {START_WEIGHT}</span>
+          <span>Start {startWeight}</span>
           <span>Nu {current.toFixed(1)}</span>
-          <span>Mål {GOAL_WEIGHT}</span>
+          <span>Mål {goalWeight}</span>
         </div>
         <div className={styles.milestoneTrack}>
           <div className={styles.milestoneFill} style={{ width: `${progress}%` }} />
@@ -324,8 +330,7 @@ function WeightJourney({ onOpen }) {
   );
 }
 
-function CoachTipCard() {
-  const { profile } = useProfile();
+function CoachTipCard({ profile }) {
   const { loggedToday } = useStreak();
   const goal = profile.goal || 'default';
   const [tip, setTip] = useState(() => {
@@ -407,20 +412,20 @@ function CoachTipCard() {
   );
 }
 
-export default function Home() {
+export default function Home({ profile }) {
   const [modal, setModal] = useState(null);
 
   return (
     <main className={styles.main}>
       <div className={styles.stack}>
-        <HeroCard />
+        <HeroCard profile={profile} />
         <DailyFocusCard />
         <div className={styles.twoColumn}>
           <StreakBanner />
-          <WeightJourney onOpen={() => setModal('weight')} />
+          <WeightJourney profile={profile} onOpen={() => setModal('weight')} />
         </div>
-        <QuickStats />
-        <CoachTipCard />
+        <QuickStats profile={profile} />
+        <CoachTipCard profile={profile} />
       </div>
 
       {modal === 'weight' && <WeightModal onClose={() => setModal(null)} />}

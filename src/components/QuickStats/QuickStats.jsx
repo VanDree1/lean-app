@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
 import AnimatedNumber from '../AnimatedNumber/AnimatedNumber';
-import { useProfile } from '../../hooks/useProfile';
+import { calcTargets } from '../../hooks/useProfile';
 import styles from './QuickStats.module.css';
 
 const CALORIES_KEY = 'djur_juni_cal';
@@ -140,8 +140,7 @@ function TodayCard({
   );
 }
 
-export default function QuickStats() {
-  const { profile, kcalGoal } = useProfile();
+export default function QuickStats({ profile = {} }) {
   const [calories, setCalories] = useState(() => readInitialCalories());
   const [steps, setSteps] = useState(() => readInitialSteps());
   const [editMode, setEditMode] = useState({ calories: false, steps: false });
@@ -178,6 +177,8 @@ export default function QuickStats() {
     }
   }, [editMode]);
 
+  const derivedTargets = calcTargets(profile);
+  const kcalGoal = profile.caloriesGoal ?? derivedTargets.kcalGoal;
   const stepGoal = STEP_GOALS[profile.activity] || STEP_GOALS.light;
 
   function triggerFeedback(key, amount, unit) {
