@@ -73,6 +73,7 @@ function TodayCard({
   target,
   isEditing,
   inputValue,
+  feedback,
   onEditStart,
   onInputChange,
   onInputSubmit,
@@ -81,7 +82,7 @@ function TodayCard({
   const progress = Math.max(0, Math.min(100, target > 0 ? (value / target) * 100 : 0));
 
   return (
-    <section className={styles.card} aria-label={label}>
+    <section className={[styles.card, feedback ? styles.cardSaved : ''].join(' ')} aria-label={label}>
       <button type="button" className={styles.addButton} onClick={onEditStart} aria-label={`Lägg till ${label.toLowerCase()}`}>
         <Plus size={16} strokeWidth={1.5} />
       </button>
@@ -119,7 +120,12 @@ function TodayCard({
         <div className={styles.fill} style={{ width: `${progress}%` }} />
       </div>
 
-      <span className={styles.meta}>Mål {target.toLocaleString('sv-SE')}</span>
+      <div className={styles.footerRow}>
+        <span className={styles.meta}>Mål {target.toLocaleString('sv-SE')}</span>
+        <span className={[styles.feedback, feedback ? styles.feedbackVisible : ''].join(' ')}>
+          {feedback || ''}
+        </span>
+      </div>
     </section>
   );
 }
@@ -131,6 +137,7 @@ export default function QuickStats() {
   const [isEditingCalories, setIsEditingCalories] = useState(false);
   const [isEditingSteps, setIsEditingSteps] = useState(false);
   const [tempInput, setTempInput] = useState('');
+  const [feedback, setFeedback] = useState({ calories: '', steps: '' });
 
   useEffect(() => {
     function syncStats() {
@@ -149,6 +156,17 @@ export default function QuickStats() {
 
   const stepGoal = STEP_GOALS[profile.activity] || STEP_GOALS.light;
 
+  function triggerFeedback(key, amount, unit) {
+    setFeedback((current) => ({ ...current, [key]: `+${amount} ${unit}` }));
+
+    window.setTimeout(() => {
+      setFeedback((current) => {
+        if (!current[key]) return current;
+        return { ...current, [key]: '' };
+      });
+    }, 1600);
+  }
+
   function handleSaveCalories() {
     const increment = Number(tempInput);
     if (!increment) {
@@ -162,6 +180,7 @@ export default function QuickStats() {
     localStorage.setItem(CALORIES_KEY, String(nextCalories));
     const nextStats = { calories: nextCalories, steps };
     saveTodayStats(nextStats);
+    triggerFeedback('calories', increment, 'kcal');
     setIsEditingCalories(false);
     setTempInput('');
   }
@@ -179,6 +198,7 @@ export default function QuickStats() {
     localStorage.setItem(STEPS_KEY, String(nextSteps));
     const nextStats = { calories, steps: nextSteps };
     saveTodayStats(nextStats);
+    triggerFeedback('steps', increment, 'steg');
     setIsEditingSteps(false);
     setTempInput('');
   }
@@ -192,6 +212,7 @@ export default function QuickStats() {
         target={kcalGoal}
         isEditing={isEditingCalories}
         inputValue={tempInput}
+        feedback={feedback.calories}
         onEditStart={() => {
           setIsEditingSteps(false);
           setTempInput('');
@@ -208,6 +229,7 @@ export default function QuickStats() {
         target={stepGoal}
         isEditing={isEditingSteps}
         inputValue={tempInput}
+        feedback={feedback.steps}
         onEditStart={() => {
           setIsEditingCalories(false);
           setTempInput('');

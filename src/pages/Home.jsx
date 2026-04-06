@@ -211,15 +211,23 @@ function applyDailyCoachContext(tip, loggedToday) {
 function DailyFocusCard() {
   const [isLoggedToday, setIsLoggedToday] = useState(() => localStorage.getItem(LOGGED_TODAY_KEY) === 'true');
   const [streak, setStreak] = useState(() => Number(localStorage.getItem(STREAK_KEY)) || 0);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   function handleCheckIn() {
     if (isLoggedToday) return;
 
     const nextStreak = streak + 1;
+    setIsCompleting(true);
     setIsLoggedToday(true);
     setStreak(nextStreak);
     localStorage.setItem(LOGGED_TODAY_KEY, 'true');
     localStorage.setItem(STREAK_KEY, String(nextStreak));
+
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate([18, 24, 28]);
+    }
+
+    window.setTimeout(() => setIsCompleting(false), 850);
   }
 
   return (
@@ -228,6 +236,7 @@ function DailyFocusCard() {
       className={[
         styles.focusCard,
         styles.focusCheckin,
+        isCompleting ? styles.focusCardCompleting : '',
         isLoggedToday ? styles.focusCardDone : styles.focusCardTodo,
       ].join(' ')}
       aria-labelledby="today-title"
@@ -247,7 +256,9 @@ function DailyFocusCard() {
 
       <div className={styles.focusStatus} aria-hidden="true">
         {isLoggedToday ? (
-          <Check size={18} strokeWidth={1.8} className={styles.focusCheckIcon} />
+          <span className={styles.focusCheckWrap}>
+            <Check size={18} strokeWidth={1.8} className={styles.focusCheckIcon} />
+          </span>
         ) : (
           <span className={styles.focusPulseDot} />
         )}

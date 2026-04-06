@@ -26,7 +26,7 @@
   color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   font: inherit;
-  transition: color 0.18s ease, background 0.18s ease;
+  transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -35,8 +35,13 @@
   background: rgba(255, 255, 255, 0.05);
 }
 
+.tab:active {
+  transform: scale(0.94);
+}
+
 .tabActive {
   color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .tabActive:hover {
