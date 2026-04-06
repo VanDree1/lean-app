@@ -375,6 +375,14 @@
   transition: color 0.18s ease;
 }
 
+.focusSavedMeta {
+  margin-top: 0.55rem;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.38);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .focusEditLink:hover {
   color: rgba(255, 255, 255, 0.72);
 }

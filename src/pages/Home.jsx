@@ -12,6 +12,7 @@ const STREAK_KEY = 'djur_juni_streak';
 const DAILY_CHECKIN_KEY = 'djur_juni_daily_checkin';
 const CALORIES_KEY = 'djur_juni_cal';
 const BURNED_KEY = 'djur_juni_burned';
+const DAILY_SAVED_AT_KEY = 'djur_juni_daily_saved_at';
 const TODAY_STATS_KEYS = [
   'djur-i-juni:today-stats',
   'djur-i-juni:daily-summary',
@@ -82,6 +83,17 @@ function saveBurnedCalories(burned) {
   window.dispatchEvent(new Event('djur-i-juni:today-stats-updated'));
 }
 
+function formatSavedTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  return date.toLocaleTimeString('sv-SE', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, setLocked }) {
   const weight = Number(latestWeight) || 100;
   const [isCompleting, setIsCompleting] = useState(false);
@@ -91,6 +103,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   const [sleepHours, setSleepHours] = useState('8');
   const [activeWorkoutKey, setActiveWorkoutKey] = useState(null);
   const [duration, setDuration] = useState(30);
+  const [savedAt, setSavedAt] = useState(() => formatSavedTime(localStorage.getItem(DAILY_SAVED_AT_KEY)));
   const caloriesInputRef = useRef(null);
   const sleepInputRef = useRef(null);
   const workoutSectionRef = useRef(null);
@@ -173,6 +186,8 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     localStorage.setItem(DAILY_CHECKIN_KEY, JSON.stringify(nextCheckin));
     localStorage.setItem(LAST_LOGGED_DATE_KEY, todayString);
     localStorage.setItem(STREAK_KEY, String(nextStreak));
+    localStorage.setItem(DAILY_SAVED_AT_KEY, new Date().toISOString());
+    setSavedAt(formatSavedTime(new Date().toISOString()));
     setShowSavedState(true);
 
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
@@ -251,6 +266,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
               <button type="button" className={styles.focusEditLink} onClick={handleUnlock}>
                 Lås upp
               </button>
+              {savedAt ? <p className={styles.focusSavedMeta}>Sparad {savedAt}</p> : null}
             </div>
           </div>
 
