@@ -71,6 +71,24 @@ function detectWeightTrainingTrend(entries) {
   };
 }
 
+function detectWorkoutMomentum(entries) {
+  const recent = getRecentLockedEntries(entries, 7);
+  if (recent.length < 4) return null;
+
+  const workoutDays = recent.filter((entry) => Number(entry.duration || 0) > 0);
+  if (workoutDays.length < 4) return null;
+
+  const totalMinutes = workoutDays.reduce((sum, entry) => sum + Number(entry.duration || 0), 0);
+
+  return {
+    key: 'workout_momentum',
+    title: 'Mönster upptäckt',
+    status: 'Momentum',
+    body: `Bra momentum. Du har tränat ${workoutDays.length} gånger den senaste veckan och samlat ${totalMinutes} minuters rörelse.`,
+    tone: 'positive',
+  };
+}
+
 function detectMealPattern(entries, goal) {
   if (goal !== 'muscle') return null;
 
@@ -99,6 +117,7 @@ export function useInsights({ dailyEntries, weightLog, goal }) {
     const detectors = [
       detectLowSleepStreak(entries),
       detectWeightTrainingTrend(entries),
+      detectWorkoutMomentum(entries),
       detectMealPattern(entries, goal),
     ];
 
