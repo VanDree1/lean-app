@@ -128,7 +128,7 @@ function getSevenDayAverages(dailyEntries, weightLog) {
   };
 }
 
-function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, tone, sleepHoursToday, setSleepHoursToday, lowEnergyMode, onOpenJournal }) {
+function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, tone, sleepHoursToday, setSleepHoursToday, lowEnergyMode, onOpenJournal, onCompletePulse }) {
   const { state, completeDailyCheckin, unlockDailyCheckin } = useAppStore();
   const { addEntry } = useWeightLog();
   const weight = Number(latestWeight) || 100;
@@ -268,6 +268,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     });
     setSavedAt(formatSavedTime(savedAtIso));
     setShowSavedState(true);
+    onCompletePulse?.();
 
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
       navigator.vibrate([18, 24, 28]);
@@ -680,7 +681,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   );
 }
 
-function WeekRhythmCard({ dailyEntries }) {
+function WeekRhythmCard({ dailyEntries, pulseKey = 0 }) {
   const days = buildWeekRhythm(dailyEntries);
 
   return (
@@ -695,6 +696,7 @@ function WeekRhythmCard({ dailyEntries }) {
                 styles.rhythmDot,
                 day.complete ? styles.rhythmDotComplete : '',
                 day.isToday ? styles.rhythmDotToday : '',
+                pulseKey > 0 && day.complete && day.isToday ? styles.rhythmDotPulse : '',
               ].join(' ')}
             />
           </div>
@@ -704,21 +706,21 @@ function WeekRhythmCard({ dailyEntries }) {
   );
 }
 
-function SevenDayAverageCard({ dailyEntries, weightLog }) {
+function SevenDayAverageCard({ dailyEntries, weightLog, pulseKey = 0 }) {
   const averages = getSevenDayAverages(dailyEntries, weightLog);
   const daysLeft = Math.max(0, 7 - averages.days);
   const unlockProgress = Math.max(0, Math.min(100, (averages.days / 7) * 100));
 
   if (averages.days < 7) {
     return (
-      <section className={styles.trendCard} aria-label="7-dagars snitt låst">
+      <section className={[styles.trendCard, pulseKey > 0 ? styles.trendCardPulse : ''].join(' ')} aria-label="7-dagars snitt låst">
         <p className={styles.sectionEyebrow}>7-dagars snitt</p>
         <div className={styles.unlockState}>
           <p className={styles.unlockTitle}>
             Logga {daysLeft} dagar till för att låsa upp din trend
           </p>
           <div className={styles.unlockTrack} aria-hidden="true">
-            <div className={styles.unlockFill} style={{ width: `${unlockProgress}%` }} />
+            <div className={[styles.unlockFill, pulseKey > 0 ? styles.unlockFillActive : ''].join(' ')} style={{ width: `${unlockProgress}%` }} />
           </div>
           <p className={styles.trendMeta}>{averages.days} av 7 dagar</p>
         </div>
@@ -727,7 +729,7 @@ function SevenDayAverageCard({ dailyEntries, weightLog }) {
   }
 
   return (
-    <section className={styles.trendCard} aria-label="7-dagars snitt">
+    <section className={[styles.trendCard, pulseKey > 0 ? styles.trendCardPulse : ''].join(' ')} aria-label="7-dagars snitt">
       <p className={styles.sectionEyebrow}>7-dagars snitt</p>
       <div className={styles.averageGrid}>
         <div className={styles.averageStat}>
@@ -753,6 +755,7 @@ export default function Home({ profile }) {
   const { current: latestWeight } = useWeightLog();
   const tone = useGoalTone(profile);
   const [modal, setModal] = useState(null);
+  const [completionPulse, setCompletionPulse] = useState(0);
   const eaten = state.daily.calories;
   const burned = state.daily.burned;
   const isDayLocked = isSameDayAsToday(state.daily.lastLoggedDate) && isSameDayAsToday(state.daily.dailyCheckin?.date);
@@ -777,14 +780,17 @@ export default function Home({ profile }) {
           setSleepHoursToday={setSleepHoursToday}
           lowEnergyMode={lowEnergyMode}
           onOpenJournal={() => setModal('journal')}
+          onCompletePulse={() => setCompletionPulse((value) => value + 1)}
         />
         <div className={styles.overviewGrid}>
           <WeekRhythmCard
             dailyEntries={state.daily.dailyEntries}
+            pulseKey={completionPulse}
           />
           <SevenDayAverageCard
             dailyEntries={state.daily.dailyEntries}
             weightLog={state.weightLog}
+            pulseKey={completionPulse}
           />
         </div>
       </div>
