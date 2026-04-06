@@ -79,7 +79,6 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
     }
   }, [todayString]);
   const isLoggedToday = lastLoggedDate === todayString && Boolean(todayCheckin);
-  const streakLabel = `${streak} ${streak === 1 ? 'dag' : 'dagar'}`;
   const activeWorkout = activeWorkoutKey ? WORKOUTS[activeWorkoutKey] : null;
   const estimatedCalories = activeWorkout
     ? Math.round(activeWorkout.met * weight * (duration / 60))
@@ -178,7 +177,7 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
                 <span className={styles.focusEditLink}>Ändra</span>
               </>
             ) : (
-              <p className={styles.focusMeta}>Streak {streakLabel}</p>
+              <p className={styles.focusMeta}>Tryck för att fylla i dagen.</p>
             )}
           </div>
         </div>
