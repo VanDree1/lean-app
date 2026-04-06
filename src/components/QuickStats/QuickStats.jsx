@@ -158,7 +158,7 @@ function CaloriesCard({
         <Plus size={16} strokeWidth={1.5} />
       </button>
 
-      <span className={styles.label}>Kalorier</span>
+      <span className={styles.label}>Logga kalorier</span>
 
       <div className={styles.valueRow}>
         {isEditing ? (
@@ -355,7 +355,7 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten }) {
       />
       <StepsCard
         cardKey="steps"
-        label="Steg"
+        label="Steg idag"
         unit="STEG"
         value={steps}
         target={stepGoal}

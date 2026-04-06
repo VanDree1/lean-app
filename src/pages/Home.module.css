@@ -12,6 +12,25 @@
   gap: 1rem;
 }
 
+.logSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.logSectionHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.logSectionTitle {
+  font-size: 1.2rem;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+}
+
 .sectionEyebrow {
   font-size: 0.6875rem;
   font-weight: 700;

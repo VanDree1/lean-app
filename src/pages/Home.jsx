@@ -5,13 +5,8 @@ import HeroCard from '../components/HeroCard/HeroCard';
 import QuickStats from '../components/QuickStats/QuickStats';
 import WeightModal from '../components/Weight/WeightModal';
 import { useWeightLog } from '../components/Weight/useWeightLog';
-import { useStreak } from '../hooks/useStreak';
 import styles from './Home.module.css';
 
-const PROFILE_KEY = 'djur-i-juni:profile';
-const ONBOARDING_KEY = 'djur-i-juni:onboarding';
-const HEALTH_FACT_CACHE_KEY_PREFIX = 'djur-i-juni:health-fact';
-const HEALTH_FACT_TTL_MS = 1000 * 60 * 60 * 12;
 const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
 const LAST_LOGGED_ACTION_KEY = 'djur_juni_last_action';
 const STREAK_KEY = 'djur_juni_streak';
@@ -56,196 +51,6 @@ function saveWorkoutCalories(estimatedCalories) {
   window.dispatchEvent(new Event('djur-i-juni:today-stats-updated'));
   return nextBurned;
 }
-
-const HEALTH_TOPICS_BY_GOAL = {
-  fat_loss: [
-    {
-      title: 'Mättnad',
-      queryTitle: 'Mättnad',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/M%C3%A4ttnad',
-      fallback: 'Mättnad styrs inte bara av kalorier, utan också av volym, protein, fibrer och hur snabbt maten äts.',
-    },
-    {
-      title: 'Basalomsättning',
-      queryTitle: 'Basalomsättning',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/Basaloms%C3%A4ttning',
-      fallback: 'Basalomsättningen är den energi kroppen använder i vila för att hålla igång grundläggande funktioner som andning, temperatur och cirkulation.',
-    },
-    {
-      title: 'Brunt fett',
-      queryTitle: 'Brunt_fett',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/Brunt_fett',
-      fallback: 'Brunt fett skiljer sig från vanligt fett genom att det är mer specialiserat på värmeproduktion än energilagring.',
-    },
-  ],
-  muscle: [
-    {
-      title: 'Muskelhypertrofi',
-      queryTitle: 'Muskelhypertrofi',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/Muskelhypertrofi',
-      fallback: 'Muskelhypertrofi innebär att muskelfibrerna ökar i storlek, vilket är en central del av hur muskler byggs över tid.',
-    },
-    {
-      title: 'Kreatin',
-      queryTitle: 'Kreatin',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/Kreatin',
-      fallback: 'Kreatin hjälper till att snabbt återbilda ATP, vilket gör det särskilt relevant vid korta och intensiva arbetsinsatser.',
-    },
-    {
-      title: 'Glykogen',
-      queryTitle: 'Glykogen',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/Glykogen',
-      fallback: 'Glykogen är kroppens lagrade form av glukos och finns främst i levern och musklerna, där det fungerar som snabb energi.',
-    },
-  ],
-  energy: [
-    {
-      title: 'Dygnsrytm',
-      queryTitle: 'Dygnsrytm',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/Dygnsrytm',
-      fallback: 'Dygnsrytmen påverkar bland annat sömn, hormoner, kroppstemperatur och när kroppen känns mest vaken eller trött.',
-    },
-    {
-      title: 'Glykogen',
-      queryTitle: 'Glykogen',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/Glykogen',
-      fallback: 'Glykogen är kroppens lagrade form av glukos och finns främst i levern och musklerna, där det fungerar som snabb energi.',
-    },
-    {
-      title: 'Basalomsättning',
-      queryTitle: 'Basalomsättning',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/Basaloms%C3%A4ttning',
-      fallback: 'Basalomsättningen är den energi kroppen använder i vila för att hålla igång grundläggande funktioner som andning, temperatur och cirkulation.',
-    },
-  ],
-  target: [
-    {
-      title: 'Mättnad',
-      queryTitle: 'Mättnad',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/M%C3%A4ttnad',
-      fallback: 'Mättnad styrs inte bara av kalorier, utan också av volym, protein, fibrer och hur snabbt maten äts.',
-    },
-    {
-      title: 'Dygnsrytm',
-      queryTitle: 'Dygnsrytm',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/Dygnsrytm',
-      fallback: 'Dygnsrytmen påverkar bland annat sömn, hormoner, kroppstemperatur och när kroppen känns mest vaken eller trött.',
-    },
-    {
-      title: 'Glykogen',
-      queryTitle: 'Glykogen',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/Glykogen',
-      fallback: 'Glykogen är kroppens lagrade form av glukos och finns främst i levern och musklerna, där det fungerar som snabb energi.',
-    },
-  ],
-  default: [
-    {
-      title: 'Dygnsrytm',
-      queryTitle: 'Dygnsrytm',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/Dygnsrytm',
-      fallback: 'Dygnsrytmen påverkar bland annat sömn, hormoner, kroppstemperatur och när kroppen känns mest vaken eller trött.',
-    },
-    {
-      title: 'Mättnad',
-      queryTitle: 'Mättnad',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/M%C3%A4ttnad',
-      fallback: 'Mättnad styrs inte bara av kalorier, utan också av volym, protein, fibrer och hur snabbt maten äts.',
-    },
-    {
-      title: 'Kreatin',
-      queryTitle: 'Kreatin',
-      sourceUrl: 'https://sv.wikipedia.org/wiki/Kreatin',
-      fallback: 'Kreatin hjälper till att snabbt återbilda ATP, vilket gör det särskilt relevant vid korta och intensiva arbetsinsatser.',
-    },
-  ],
-};
-
-function getHealthTopicForToday(goal) {
-  const topics = HEALTH_TOPICS_BY_GOAL[goal] || HEALTH_TOPICS_BY_GOAL.default;
-  return topics[Math.floor(Date.now() / 86_400_000) % topics.length];
-}
-
-function getHealthFactCacheKey(goal) {
-  return `${HEALTH_FACT_CACHE_KEY_PREFIX}:${goal || 'default'}`;
-}
-
-function readCachedHealthFact(goal) {
-  try {
-    const raw = localStorage.getItem(getHealthFactCacheKey(goal));
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-
-    if (!parsed?.title || !parsed?.text || !parsed?.sourceUrl || !parsed?.fetchedAt) {
-      return null;
-    }
-
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function isFreshFact(cache) {
-  return Boolean(cache && Date.now() - cache.fetchedAt < HEALTH_FACT_TTL_MS);
-}
-
-function trimFactText(text) {
-  const clean = String(text || '').replace(/\s+/g, ' ').trim();
-  const sentences = clean.match(/[^.!?]+[.!?]+/g)?.map((sentence) => sentence.trim()) || [clean];
-  const [first = '', second = ''] = sentences;
-
-  let selected = first;
-
-  if (second && first.length < 110) {
-    selected = `${first} ${second}`.trim();
-  } else if (second && /^(?:[A-ZÅÄÖa-zåäö0-9_\- ]+?)\s+är\b/.test(first) && second.length > 50) {
-    selected = second;
-  }
-
-  return selected.length > 220 ? `${selected.slice(0, 217).trim()}...` : selected;
-}
-
-function buildCoachTip(goal, topic, sourceText) {
-  const COACH_TITLES = {
-    fat_loss: 'Gör hungern lättare',
-    muscle: 'Bygg rätt saker',
-    energy: 'Skydda energin',
-    target: 'Håll riktningen enkel',
-    default: 'Håll det enkelt',
-  };
-
-  const ONE_LINERS = {
-    'Mättnad': 'Bygg måltider som håller dig lugn längre.',
-    'Basalomsättning': 'Mycket energi går åt redan i vila.',
-    'Brunt fett': 'Allt kroppsfett beter sig inte likadant.',
-    'Muskelhypertrofi': 'Muskler byggs bäst av jämn belastning.',
-    'Kreatin': 'Kreatin hjälper vid korta, hårda insatser.',
-    'Glykogen': 'När energin dippar är glykogen ofta med i bilden.',
-    'Dygnsrytm': 'Bra rytm gör resten av dagen lättare.',
-  };
-
-  return {
-    title: COACH_TITLES[goal] || COACH_TITLES.default,
-    text: ONE_LINERS[topic.title] || trimFactText(sourceText || topic.fallback),
-  };
-}
-
-function applyDailyCoachContext(tip, loggedToday) {
-  if (loggedToday) {
-    return {
-      title: 'Skydda rytmen',
-      text: 'Det räcker nu. Håll det lugnt.',
-      status: 'Klar',
-    };
-  }
-
-  return {
-    title: tip.title,
-    text: tip.text,
-    status: 'Nu',
-  };
-}
-
 
 function DailyFocusCard() {
   const [lastLoggedDate, setLastLoggedDate] = useState(() => localStorage.getItem(LAST_LOGGED_DATE_KEY) || null);
@@ -521,7 +326,7 @@ function WeightJourney({ onOpen, profile }) {
       <div className={styles.weightContent}>
       <div className={styles.weightHeader}>
         <div>
-          <p className={styles.sectionEyebrow}>Vikt</p>
+          <p className={styles.sectionEyebrow}>Logga vikt</p>
           <h2 className={styles.weightValue}>
             <AnimatedNumber value={current} duration={800} decimals={1} />
             <span className={styles.weightUnit}>kg</span>
@@ -542,92 +347,10 @@ function WeightJourney({ onOpen, profile }) {
       </div>
 
       <div className={styles.weightFooter}>
-        <p className={styles.weightMessage}>{isLowest ? 'Nytt lägsta. Bra riktning.' : 'Låt trenden väga tyngre än enskilda dagar.'}</p>
-        <span className={styles.weightLink}>Öppna historik</span>
+        <p className={styles.weightMessage}>{isLowest ? 'Nytt lägsta. Fortsätt registrera vikten lugnt.' : 'Tryck här för att logga eller justera dagens vikt.'}</p>
+        <span className={styles.weightLink}>Logga vikt</span>
       </div>
       </div>
-    </section>
-  );
-}
-
-function CoachTipCard({ profile }) {
-  const { loggedToday } = useStreak();
-  const goal = profile.goal || 'default';
-  const [tip, setTip] = useState(() => {
-    const cached = readCachedHealthFact(goal);
-    if (cached) {
-      return applyDailyCoachContext(buildCoachTip(goal, cached, cached.text), loggedToday);
-    }
-
-    const topic = getHealthTopicForToday(goal);
-    return applyDailyCoachContext(buildCoachTip(goal, topic, topic.fallback), loggedToday);
-  });
-
-  useEffect(() => {
-    const cached = readCachedHealthFact(goal);
-    if (isFreshFact(cached)) {
-      setTip(applyDailyCoachContext(buildCoachTip(goal, cached, cached.text), loggedToday));
-      return undefined;
-    }
-
-    const topic = getHealthTopicForToday(goal);
-    const controller = new AbortController();
-
-    async function loadFact() {
-      try {
-        const response = await fetch(`https://sv.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic.queryTitle || topic.title)}`, {
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Health fact request failed with ${response.status}`);
-        }
-
-        const data = await response.json();
-        const text = trimFactText(data.extract);
-        if (!text) {
-          throw new Error('Health fact response was incomplete');
-        }
-
-        const nextFact = {
-          title: topic.title,
-          text,
-          sourceUrl: data.content_urls?.desktop?.page || topic.sourceUrl,
-          fetchedAt: Date.now(),
-        };
-
-        localStorage.setItem(getHealthFactCacheKey(goal), JSON.stringify(nextFact));
-        setTip(applyDailyCoachContext(buildCoachTip(goal, nextFact, text), loggedToday));
-      } catch (error) {
-        if (error.name === 'AbortError') {
-          return;
-        }
-
-        const fallbackFact = cached || {
-          title: topic.title,
-          text: topic.fallback,
-          sourceLabel: 'Arkiv',
-          sourceUrl: topic.sourceUrl,
-          fetchedAt: Date.now(),
-        };
-
-        setTip(applyDailyCoachContext(buildCoachTip(goal, fallbackFact, fallbackFact.text), loggedToday));
-      }
-    }
-
-    loadFact();
-
-    return () => controller.abort();
-  }, [goal, loggedToday]);
-
-  return (
-    <section className={styles.noteCard}>
-      <div className={styles.noteHeader}>
-        <p className={styles.sectionEyebrow}>Tips från coachen</p>
-        <span className={styles.noteSource}>{tip.status}</span>
-      </div>
-      <h3 className={styles.noteTitle}>{tip.title}</h3>
-      <p className={styles.noteText}>{tip.text}</p>
     </section>
   );
 }
@@ -659,10 +382,15 @@ export default function Home({ profile }) {
       <div className={styles.stack}>
         <HeroCard profile={profile} />
         <DailyFocusCard />
+        <div className={styles.logSection}>
+          <div className={styles.logSectionHeader}>
+            <p className={styles.sectionEyebrow}>Logga idag</p>
+            <h2 className={styles.logSectionTitle}>Vikt, träning och kalorier</h2>
+          </div>
         <WeightJourney profile={profile} onOpen={() => setModal('weight')} />
         <QuickStats profile={profile} eaten={eaten} burned={burned} setEaten={setEaten} />
         <WorkoutCard profile={profile} setBurned={setBurned} />
-        <CoachTipCard profile={profile} />
+        </div>
       </div>
 
       {modal === 'weight' && <WeightModal onClose={() => setModal(null)} />}
