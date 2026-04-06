@@ -12,29 +12,14 @@
   gap: 1rem;
 }
 
-.logSection {
-  display: flex;
-  flex-direction: column;
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
 
-.logSectionHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.logSectionTitle {
-  font-size: 1.2rem;
-  line-height: 1.15;
-  letter-spacing: -0.03em;
-  color: #ffffff;
-}
-
-.logSectionBody {
-  font-size: 0.84rem;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.42);
+.overviewGrid > :first-child {
+  grid-column: 1 / -1;
 }
 
 .sectionEyebrow {
@@ -323,21 +308,6 @@
   color: #ffffff;
 }
 
-.focusBody {
-  margin-top: 0.8rem;
-  max-width: 24ch;
-  color: rgba(255, 255, 255, 0.48);
-  line-height: 1.45;
-}
-
-.focusMeta {
-  margin-top: 0.8rem;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.4);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
 .focusSummaryRow {
   display: flex;
   flex-wrap: wrap;
@@ -577,6 +547,37 @@
   margin: 0;
 }
 
+.focusPresetRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.focusPreset {
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.78rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.focusPresetActive {
+  border-color: rgba(199, 221, 207, 0.2);
+  background: rgba(199, 221, 207, 0.12);
+  color: #ffffff;
+}
+
+.focusPreset:active {
+  transform: scale(0.98);
+}
+
 .focusSheetActions {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
@@ -706,9 +707,12 @@
 .weightCard {
   position: relative;
   padding: 1.5rem;
-  cursor: pointer;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
+}
+
+.weightCardReadOnly {
+  cursor: default;
 }
 
 .weightCardLocked {
@@ -719,8 +723,11 @@
   box-shadow: none;
 }
 
-.weightCard:active {
-  transform: scale(0.985);
+.weightCardReadOnly:hover,
+.weightCardReadOnly:active {
+  transform: none;
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
 }
 
 .weightCardLocked:active {
@@ -838,65 +845,8 @@
   transition: width 0.9s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.weightFooter {
-  margin-top: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.weightMessage {
-  max-width: 28ch;
-  text-wrap: balance;
-  font-size: 0.9rem;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.5);
-  line-height: 1.7;
-}
-
-.weightHistoryLink {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.46);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: color 0.18s ease;
-}
-
-.weightHistoryLink:hover {
-  color: rgba(255, 255, 255, 0.78);
-}
-
 .noteCard {
   padding: 1.35rem 1.4rem;
-}
-
-.insightCard {
-  position: relative;
-  overflow: hidden;
-}
-
-.insightToneWarning {
-  border-color: rgba(245, 158, 11, 0.16);
-  background:
-    linear-gradient(180deg, rgba(245, 158, 11, 0.05), rgba(255, 255, 255, 0.035)),
-    rgba(255, 255, 255, 0.04);
-}
-
-.insightTonePositive {
-  border-color: rgba(52, 211, 153, 0.16);
-  background:
-    linear-gradient(180deg, rgba(52, 211, 153, 0.05), rgba(255, 255, 255, 0.035)),
-    rgba(255, 255, 255, 0.04);
-}
-
-.insightToneNeutral {
-  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .sleepTopRow {
@@ -925,55 +875,6 @@
   color: rgba(255, 255, 255, 0.42);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-}
-
-.sleepBadge {
-  padding: 0.45rem 0.75rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.56);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.sleepBadgeWarning {
-  border-color: rgba(199, 221, 207, 0.16);
-  background: rgba(199, 221, 207, 0.08);
-  color: rgba(199, 221, 207, 0.92);
-}
-
-.contextHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.contextStatus {
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.34);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.contextBody {
-  margin-top: 0.9rem;
-  max-width: 34ch;
-  font-size: 0.94rem;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.72);
-  text-wrap: balance;
-}
-
-.contextMeta {
-  margin-top: 0.9rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.34);
 }
 
 .workoutGrid {
@@ -1191,6 +1092,14 @@
 }
 
 @media (max-width: 740px) {
+  .overviewGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .overviewGrid > :first-child {
+    grid-column: auto;
+  }
+
   .twoColumn,
   .bottomGrid {
     grid-template-columns: 1fr;

@@ -37,9 +37,6 @@ function MetricCard({
       <div className={styles.track}>
         <div className={styles.fill} style={{ width: `${progress}%` }} />
       </div>
-      <div className={styles.footerRow}>
-        <span className={styles.meta}>Mål {target.toLocaleString('sv-SE')}</span>
-      </div>
     </section>
   );
 }
@@ -69,16 +66,6 @@ function CaloriesCard({
 
       <div className={styles.track}>
         <div className={styles.fill} style={{ width: `${progress}%` }} />
-      </div>
-
-      <div className={styles.calorieMetaRow}>
-        <span className={styles.meta}>Mål {goal.toLocaleString('sv-SE')}</span>
-        <span className={styles.meta}>Ätit -{eaten.toLocaleString('sv-SE')}</span>
-        <span className={styles.meta}>Tränat +{burned.toLocaleString('sv-SE')}</span>
-      </div>
-
-      <div className={styles.footerRow}>
-        <span className={styles.meta}>Loggas i Dagens insats</span>
       </div>
     </section>
   );

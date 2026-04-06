@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Activity, Bike, Check, Dumbbell, Flower2, Footprints } from 'lucide-react';
 import AnimatedNumber from '../components/AnimatedNumber/AnimatedNumber';
-import HeroCard from '../components/HeroCard/HeroCard';
-import MotivationTip from '../components/MotivationTip/MotivationTip';
 import QuickStats from '../components/QuickStats/QuickStats';
-import WeightModal from '../components/Weight/WeightModal';
 import { useWeightLog } from '../components/Weight/useWeightLog';
 import { useGoalTone } from '../hooks/useGoalTone';
-import { useInsights } from '../hooks/useInsights';
 import { useAppStore } from '../store/useAppStore';
 import Journal from './Journal';
 import styles from './Home.module.css';
@@ -19,6 +15,8 @@ const WORKOUTS = {
   cycle: { name: 'Cykling', met: 7.5, Icon: Bike },
   other: { name: 'Annat', met: 5.0, Icon: Activity },
 };
+const SLEEP_PRESETS = [6, 7, 8, 9];
+const STEP_PRESETS = [4000, 8000, 10000, 12000];
 
 function isSameDayAsToday(value) {
   if (!value) return false;
@@ -49,8 +47,22 @@ function preventWheelValueChange(event) {
   event.currentTarget.blur();
 }
 
+function formatStepPreset(value) {
+  if (value >= 1000) {
+    const rounded = value / 1000;
+    return `${Number.isInteger(rounded) ? rounded : rounded.toFixed(1)}k`;
+  }
+
+  return String(value);
+}
+
+function todayIsoString() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, tone, sleepHoursToday, setSleepHoursToday, lowEnergyMode, onOpenJournal }) {
   const { state, completeDailyCheckin, unlockDailyCheckin } = useAppStore();
+  const { addEntry } = useWeightLog();
   const weight = Number(latestWeight) || 100;
   const [isCompleting, setIsCompleting] = useState(false);
   const [showSavedState, setShowSavedState] = useState(false);
@@ -59,6 +71,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   const [caloriesInput, setCaloriesInput] = useState('');
   const [sleepHours, setSleepHours] = useState(String(sleepHoursToday || 8));
   const [stepsInput, setStepsInput] = useState(String(state.daily.steps || 0));
+  const [weightInput, setWeightInput] = useState(String(weight));
   const [activeWorkoutKey, setActiveWorkoutKey] = useState(null);
   const [duration, setDuration] = useState(30);
   const [comment, setComment] = useState('');
@@ -98,6 +111,8 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   const parsedCalories = parseInt(caloriesInput, 10);
   const parsedSleep = Number(sleepHours);
   const parsedSteps = parseInt(stepsInput, 10);
+  const parsedWeight = Number(weightInput);
+  const todayWeight = state.weightLog.find((entry) => entry.date === todayIsoString())?.weight ?? null;
   const canSave =
     Number.isFinite(parsedCalories) &&
     parsedCalories >= 0 &&
@@ -105,9 +120,12 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     parsedSleep > 0 &&
     parsedSleep <= 24 &&
     Number.isFinite(parsedSteps) &&
-    parsedSteps >= 0;
+    parsedSteps >= 0 &&
+    Number.isFinite(parsedWeight) &&
+    parsedWeight > 0;
   const summaryItems = isLoggedToday
     ? [
+        `${Number(todayWeight ?? latestWeight ?? 0).toFixed(1)} kg`,
         `${todayCheckin?.calories ?? eaten} kcal`,
         `${todayCheckin?.steps ?? state.daily.steps ?? 0} steg`,
         todayCheckin?.workoutName
@@ -132,6 +150,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
     setSleepHours(String(todayCheckin?.sleepHours ?? sleepHoursToday ?? 8));
     setStepsInput(String(todayCheckin?.steps ?? state.daily.steps ?? 0));
+    setWeightInput(String(todayWeight ?? latestWeight ?? 100));
     setActiveWorkoutKey(todayCheckin?.workoutKey ?? null);
     setDuration(Number(todayCheckin?.duration) || 30);
     setComment(todayCheckin?.comment ?? '');
@@ -142,6 +161,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     if (!Number.isFinite(parsedCalories) || parsedCalories < 0) return;
     if (!Number.isFinite(parsedSleep) || parsedSleep <= 0 || parsedSleep > 24) return;
     if (!Number.isFinite(parsedSteps) || parsedSteps < 0) return;
+    if (!Number.isFinite(parsedWeight) || parsedWeight <= 0) return;
 
     const alreadyLogged = locked || Boolean(todayCheckin);
     const currentStreak = state.daily.streak || 0;
@@ -162,6 +182,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     };
 
     setIsCompleting(true);
+    addEntry(todayIsoString(), parsedWeight);
     setEaten(parsedCalories);
     setBurned(nextBurnedTotal);
     setSleepHoursToday(parsedSleep);
@@ -219,6 +240,23 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     }
 
     if (field === 'steps') {
+      const next = document.getElementById('daily-weight-input');
+      if (next) {
+        next.focus();
+        next.select?.();
+        return;
+      }
+
+      if (!activeWorkoutKey) {
+        if (canSave) completeCheckIn();
+        return;
+      }
+
+      workoutSectionRef.current?.focus();
+      return;
+    }
+
+    if (field === 'weight') {
       if (!activeWorkoutKey) {
         if (canSave) completeCheckIn();
         return;
@@ -239,6 +277,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
     setSleepHours(String(todayCheckin?.sleepHours ?? sleepHoursToday ?? 8));
     setStepsInput(String(todayCheckin?.steps ?? state.daily.steps ?? 0));
+    setWeightInput(String(todayWeight ?? latestWeight ?? 100));
     setActiveWorkoutKey(todayCheckin?.workoutKey ?? null);
     setDuration(Number(todayCheckin?.duration) || 30);
     setComment(todayCheckin?.comment ?? '');
@@ -260,9 +299,8 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
         >
           <div className={styles.focusContent}>
             <div className={styles.focusMain}>
-              <p className={styles.sectionEyebrow}>Idag</p>
-              <h2 id="today-title" className={styles.focusTitle}>Dagens insats är klar.</h2>
-              <p className={styles.focusBody}>Kalorier, träning och sömn är sparat.</p>
+              <p className={styles.sectionEyebrow}>Dagens insats</p>
+              <h2 id="today-title" className={styles.focusTitle}>Klar</h2>
               <div className={styles.focusSummaryRow}>
                 {summaryItems.map((item) => (
                   <span key={item} className={styles.focusSummaryPill}>
@@ -302,10 +340,8 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
         >
           <div className={styles.focusContent}>
             <div className={styles.focusMain}>
-              <p className={styles.sectionEyebrow}>Idag</p>
-              <h2 id="today-title" className={styles.focusTitle}>Logga dagen</h2>
-              <p className={styles.focusBody}>{lowEnergyMode ? tone.recovery.dailyBody : tone.daily.body}</p>
-              <p className={styles.focusMeta}>{lowEnergyMode ? tone.recovery.dailyMeta : tone.daily.meta}</p>
+              <p className={styles.sectionEyebrow}>Dagens insats</p>
+              <h2 id="today-title" className={styles.focusTitle}>Öppna</h2>
             </div>
           </div>
 
@@ -372,6 +408,22 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 onWheel={preventWheelValueChange}
                 placeholder="Till exempel 8"
               />
+              <div className={styles.focusPresetRow}>
+                {SLEEP_PRESETS.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    className={[
+                      styles.focusPreset,
+                      Number(sleepHours) === preset ? styles.focusPresetActive : '',
+                    ].join(' ')}
+                    onClick={() => setSleepHours(String(preset))}
+                    aria-pressed={Number(sleepHours) === preset}
+                  >
+                    {preset} h
+                  </button>
+                ))}
+              </div>
             </label>
 
             <label className={styles.focusField}>
@@ -387,6 +439,39 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 onWheel={preventWheelValueChange}
                 placeholder="Till exempel 7800"
                 min="0"
+              />
+              <div className={styles.focusPresetRow}>
+                {STEP_PRESETS.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    className={[
+                      styles.focusPreset,
+                      parseInt(stepsInput, 10) === preset ? styles.focusPresetActive : '',
+                    ].join(' ')}
+                    onClick={() => setStepsInput(String(preset))}
+                    aria-pressed={parseInt(stepsInput, 10) === preset}
+                  >
+                    {formatStepPreset(preset)}
+                  </button>
+                ))}
+              </div>
+            </label>
+
+            <label className={styles.focusField}>
+              <span className={styles.focusFieldLabel}>Vikt</span>
+              <input
+                id="daily-weight-input"
+                type="number"
+                inputMode="decimal"
+                step="0.1"
+                min="0"
+                className={styles.focusInput}
+                value={weightInput}
+                onChange={(event) => setWeightInput(event.target.value)}
+                onKeyDown={(event) => handleFormKeyDown(event, 'weight')}
+                onWheel={preventWheelValueChange}
+                placeholder="Till exempel 82.4"
               />
             </label>
             </div>
@@ -505,13 +590,10 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   );
 }
 
-function SleepRecoveryCard({ sleepHoursToday, lowEnergyMode, tone }) {
+function SleepRecoveryCard({ sleepHoursToday, tone }) {
   return (
     <section className={styles.noteCard} aria-label={tone.recovery.sleepTitle}>
-      <div className={styles.contextHeader}>
-        <p className={styles.sectionEyebrow}>{tone.recovery.sleepTitle}</p>
-        <span className={styles.contextStatus}>{lowEnergyMode ? tone.recovery.quoteStatus : 'Återhämtning'}</span>
-      </div>
+      <p className={styles.sectionEyebrow}>{tone.recovery.sleepTitle}</p>
       <div className={styles.sleepTopRow}>
         <div className={styles.sleepValueWrap}>
           <span className={styles.sleepValue}>
@@ -519,32 +601,13 @@ function SleepRecoveryCard({ sleepHoursToday, lowEnergyMode, tone }) {
           </span>
           <span className={styles.sleepUnit}>timmar</span>
         </div>
-        <span className={[styles.sleepBadge, lowEnergyMode ? styles.sleepBadgeWarning : ''].join(' ')}>
-          {lowEnergyMode ? 'Låg energi' : 'Stabil'}
-        </span>
       </div>
-      <p className={styles.contextBody}>{tone.recovery.sleepBody}</p>
-      <p className={styles.contextMeta}>Loggas i Dagens insats</p>
     </section>
   );
 }
 
-function PatternInsightCard({ insight }) {
-  if (!insight) return null;
-
-  return (
-    <section className={[styles.noteCard, styles.insightCard, styles[`insightTone${insight.tone === 'warning' ? 'Warning' : insight.tone === 'positive' ? 'Positive' : 'Neutral'}`]].join(' ')} aria-label={insight.title}>
-      <div className={styles.contextHeader}>
-        <p className={styles.sectionEyebrow}>{insight.title}</p>
-        <span className={styles.contextStatus}>{insight.status}</span>
-      </div>
-      <p className={styles.contextBody}>{insight.body}</p>
-    </section>
-  );
-}
-
-function WeightJourney({ onOpen, onOpenHistory, profile, locked }) {
-  const { recent, current } = useWeightLog();
+function WeightJourney({ profile }) {
+  const { current } = useWeightLog();
   const startWeight = profile.startWeight ?? profile.weight ?? profile.currentWeight ?? 100;
   const goalWeight = profile.goalWeight ?? 90;
   const lost = startWeight - current;
@@ -552,8 +615,6 @@ function WeightJourney({ onOpen, onOpenHistory, profile, locked }) {
   const progress = totalToLose > 0
     ? Math.min(100, Math.max(0, (lost / totalToLose) * 100))
     : 0;
-  const lowest = recent.length > 0 ? Math.min(...recent.map((entry) => entry.weight)) : current;
-  const isLowest = current <= lowest;
   const minTrend = Math.min(...WEIGHT_TREND);
   const maxTrend = Math.max(...WEIGHT_TREND);
   const trendRange = maxTrend - minTrend || 1;
@@ -564,17 +625,7 @@ function WeightJourney({ onOpen, onOpenHistory, profile, locked }) {
   }).join(' ');
 
   return (
-    <section
-      className={[styles.weightCard, locked ? styles.weightCardLocked : ''].join(' ')}
-      role="button"
-      tabIndex={locked ? -1 : 0}
-      onClick={locked ? undefined : onOpen}
-      onKeyDown={(event) => {
-        if (locked) return;
-        if (event.key === 'Enter') onOpen();
-      }}
-      aria-disabled={locked}
-    >
+    <section className={[styles.weightCard, styles.weightCardReadOnly].join(' ')}>
       <div className={styles.weightSparkline} aria-hidden="true">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={styles.weightSparklineSvg}>
           <path d={trendPath} className={styles.weightSparklinePath} />
@@ -584,7 +635,7 @@ function WeightJourney({ onOpen, onOpenHistory, profile, locked }) {
       <div className={styles.weightContent}>
       <div className={styles.weightHeader}>
         <div>
-          <p className={styles.sectionEyebrow}>Logga vikt</p>
+          <p className={styles.sectionEyebrow}>Vikt</p>
           <h2 className={styles.weightValue}>
             <AnimatedNumber value={current} duration={800} decimals={1} />
             <span className={styles.weightUnit}>kg</span>
@@ -603,26 +654,6 @@ function WeightJourney({ onOpen, onOpenHistory, profile, locked }) {
           <div className={styles.milestoneFill} style={{ width: `${progress}%` }} />
         </div>
       </div>
-
-      <div className={styles.weightFooter}>
-        <p className={styles.weightMessage}>
-          {locked
-            ? 'Dagens vikt är stängd.'
-            : isLowest
-              ? 'Nytt lägsta. Fortsätt registrera vikten lugnt.'
-              : 'Tryck här för att logga eller justera dagens vikt.'}
-        </p>
-        <button
-          type="button"
-          className={styles.weightHistoryLink}
-          onClick={(event) => {
-            event.stopPropagation();
-            onOpenHistory();
-          }}
-        >
-          Öppna historik
-        </button>
-      </div>
       </div>
     </section>
   );
@@ -632,11 +663,6 @@ export default function Home({ profile }) {
   const { state, setDailyValues } = useAppStore();
   const { current: latestWeight } = useWeightLog();
   const tone = useGoalTone(profile);
-  const insight = useInsights({
-    dailyEntries: state.daily.dailyEntries,
-    weightLog: state.weightLog,
-    goal: tone.goal,
-  });
   const [modal, setModal] = useState(null);
   const eaten = state.daily.calories;
   const burned = state.daily.burned;
@@ -650,7 +676,6 @@ export default function Home({ profile }) {
   return (
     <main className={styles.main}>
       <div className={styles.stack}>
-        <HeroCard profile={profile} />
         <DailyFocusCard
           latestWeight={latestWeight}
           eaten={eaten}
@@ -664,33 +689,20 @@ export default function Home({ profile }) {
           lowEnergyMode={lowEnergyMode}
           onOpenJournal={() => setModal('journal')}
         />
-        <SleepRecoveryCard
-          sleepHoursToday={sleepHoursToday}
-          lowEnergyMode={lowEnergyMode}
-          tone={tone}
-        />
-        <div className={styles.logSection}>
-        <div className={styles.logSectionHeader}>
-          <p className={styles.sectionEyebrow}>Logga idag</p>
-          <h2 className={styles.logSectionTitle}>{tone.log.title}</h2>
-          <p className={styles.logSectionBody}>{tone.log.body}</p>
-          </div>
-        <WeightJourney
-          profile={profile}
-          locked={isDayLocked}
-          onOpen={() => setModal('weight')}
-          onOpenHistory={() => setModal('journal')}
-        />
-        <QuickStats
-          profile={profile}
-          locked={isDayLocked}
-        />
+        <div className={styles.overviewGrid}>
+          <QuickStats
+            profile={profile}
+            locked={isDayLocked}
+          />
+          <WeightJourney
+            profile={profile}
+          />
+          <SleepRecoveryCard
+            sleepHoursToday={sleepHoursToday}
+            tone={tone}
+          />
         </div>
-        <PatternInsightCard insight={insight} />
-        <MotivationTip profile={profile} lowEnergyMode={lowEnergyMode} recoveryTone={tone.recovery} />
       </div>
-
-      {modal === 'weight' && <WeightModal onClose={() => setModal(null)} onOpenJournal={() => setModal('journal')} />}
       {modal === 'journal' && <Journal onClose={() => setModal(null)} />}
     </main>
   );
