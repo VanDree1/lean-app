@@ -252,10 +252,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned }) {
                 {activeWorkout && (
                   <div className={styles.workoutDetail}>
                     <div className={styles.workoutDetailHeader}>
-                      <div>
-                        <span className={styles.workoutDetailName}>{activeWorkout.name}</span>
-                        <p className={styles.workoutDetailMeta}>Senast loggad vikt: {weight.toFixed(1)} kg</p>
-                      </div>
+                      <span className={styles.workoutDetailName}>{activeWorkout.name}</span>
                       <span className={styles.workoutDuration}>{duration} min</span>
                     </div>
                     <input

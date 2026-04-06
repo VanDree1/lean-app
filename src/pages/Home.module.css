@@ -793,14 +793,6 @@
   color: #ffffff;
 }
 
-.workoutDetailMeta {
-  margin-top: 0.25rem;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.42);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .workoutDuration {
   font-size: 0.76rem;
   color: rgba(255, 255, 255, 0.46);
