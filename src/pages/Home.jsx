@@ -447,7 +447,7 @@ function WeightJourney({ onOpen }) {
   );
 }
 
-function DidYouKnowCard() {
+function CoachTipCard() {
   const { profile } = useProfile();
   const goal = profile.goal || 'default';
   const [fact, setFact] = useState(() => {
@@ -524,8 +524,8 @@ function DidYouKnowCard() {
   return (
     <section className={styles.noteCard}>
       <div className={styles.noteHeader}>
-        <p className={styles.sectionEyebrow}>Visste du att</p>
-        <span className={styles.noteSource}>{fact.sourceLabel}</span>
+        <p className={styles.sectionEyebrow}>Tips från coachen</p>
+        <span className={styles.noteSource}>Anpassat</span>
       </div>
       <h3 className={styles.noteTitle}>{fact.title}</h3>
       <p className={styles.noteText}>{fact.text}</p>
@@ -556,7 +556,7 @@ export default function Home() {
         </div>
         <QuickStats />
         <div className={styles.bottomGrid}>
-          <DidYouKnowCard />
+          <CoachTipCard />
           <MotivationTip />
         </div>
       </div>
