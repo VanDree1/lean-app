@@ -129,7 +129,7 @@ function getSevenDayAverages(dailyEntries, weightLog) {
 }
 
 function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, tone, sleepHoursToday, setSleepHoursToday, lowEnergyMode, onOpenJournal, onCompletePulse, onTrendUnlock, trendLoggedDays = 0 }) {
-  const { state, completeDailyCheckin, unlockDailyCheckin } = useAppStore();
+  const { state, completeDailyCheckin } = useAppStore();
   const { addEntry } = useWeightLog();
   const weight = Number(latestWeight) || 100;
   const [isCompleting, setIsCompleting] = useState(false);
@@ -343,10 +343,9 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     completeCheckIn();
   }
 
-  function handleUnlock(event) {
+  function handleEdit(event) {
     event.stopPropagation();
     setIsEditingToday(true);
-    unlockDailyCheckin();
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
     setSleepHours(String(todayCheckin?.sleepHours ?? sleepHoursToday ?? 8));
     setStepsInput(String(todayCheckin?.steps ?? state.daily.steps ?? 0));
@@ -382,8 +381,8 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 ))}
               </div>
               <div className={styles.focusMetaActions}>
-                <button type="button" className={styles.focusEditLink} onClick={handleUnlock}>
-                  Lås upp
+                <button type="button" className={styles.focusEditLink} onClick={handleEdit}>
+                  Ändra
                 </button>
                 <button type="button" className={styles.focusJournalLink} onClick={onOpenJournal}>
                   Journal
