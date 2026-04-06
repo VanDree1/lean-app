@@ -314,8 +314,38 @@
 }
 
 .weightCard {
+  position: relative;
   padding: 1.5rem;
   cursor: pointer;
+  overflow: hidden;
+}
+
+.weightSparkline {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 50%;
+  opacity: 0.2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.weightSparklineSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.weightSparklinePath {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  color: #ffffff;
+}
+
+.weightContent {
+  position: relative;
+  z-index: 10;
 }
 
 .weightHeader {

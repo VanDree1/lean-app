@@ -8,13 +8,13 @@ import { useWeightLog } from '../components/Weight/useWeightLog';
 import { useStreak } from '../hooks/useStreak';
 import { useProfile } from '../hooks/useProfile';
 import { useCountUp } from '../hooks/useCountUp';
-import Sparkline from '../components/WeightCard/Sparkline';
 import styles from './Home.module.css';
 
 const PROFILE_KEY = 'djur-i-juni:profile';
 const ONBOARDING_KEY = 'djur-i-juni:onboarding';
 const HEALTH_FACT_CACHE_KEY_PREFIX = 'djur-i-juni:health-fact';
 const HEALTH_FACT_TTL_MS = 1000 * 60 * 60 * 12;
+const WEIGHT_TREND = [103.2, 102.5, 102.1, 101.8, 101.0, 100.5, 100.0];
 
 const HEALTH_TOPICS_BY_GOAL = {
   fat_loss: [
@@ -251,9 +251,24 @@ function WeightJourney({ onOpen }) {
   const currentDisplay = useCountUp(Math.round(current * 10), 900) / 10;
   const lowest = recent.length > 0 ? Math.min(...recent.map((entry) => entry.weight)) : current;
   const isLowest = current <= lowest;
+  const minTrend = Math.min(...WEIGHT_TREND);
+  const maxTrend = Math.max(...WEIGHT_TREND);
+  const trendRange = maxTrend - minTrend || 1;
+  const trendPath = WEIGHT_TREND.map((value, index) => {
+    const x = (index / (WEIGHT_TREND.length - 1)) * 100;
+    const y = 85 - (((value - minTrend) / trendRange) * 55);
+    return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
+  }).join(' ');
 
   return (
     <section className={styles.weightCard} role="button" tabIndex={0} onClick={onOpen} onKeyDown={(event) => event.key === 'Enter' && onOpen()}>
+      <div className={styles.weightSparkline} aria-hidden="true">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={styles.weightSparklineSvg}>
+          <path d={trendPath} className={styles.weightSparklinePath} />
+        </svg>
+      </div>
+
+      <div className={styles.weightContent}>
       <div className={styles.weightHeader}>
         <div>
           <p className={styles.sectionEyebrow}>Vikt</p>
@@ -264,12 +279,6 @@ function WeightJourney({ onOpen }) {
         </div>
         <div className={styles.weightBadge}>{progress.toFixed(0)}% klart</div>
       </div>
-
-      {recent.length >= 2 && (
-        <div className={styles.sparklineWrap}>
-          <Sparkline entries={recent} />
-        </div>
-      )}
 
       <div className={styles.milestoneWrap}>
         <div className={styles.milestoneHeader}>
@@ -285,6 +294,7 @@ function WeightJourney({ onOpen }) {
       <div className={styles.weightFooter}>
         <p className={styles.weightMessage}>{isLowest ? 'Nytt lägsta. Bra riktning.' : 'Låt trenden väga tyngre än enskilda dagar.'}</p>
         <span className={styles.weightLink}>Öppna historik</span>
+      </div>
       </div>
     </section>
   );
