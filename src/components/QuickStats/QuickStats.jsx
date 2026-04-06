@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
 import AnimatedNumber from '../AnimatedNumber/AnimatedNumber';
 import { useProfile } from '../../hooks/useProfile';
 import styles from './QuickStats.module.css';
 
-const CALORIES_KEY = 'djur_i_juni_calories';
-const STEPS_KEY = 'djur_i_juni_steps';
+const CALORIES_KEY = 'djur_juni_cal';
+const STEPS_KEY = 'djur_juni_steps';
 const TODAY_STATS_KEYS = [
   'djur-i-juni:today-stats',
   'djur-i-juni:daily-summary',
@@ -69,14 +69,17 @@ function saveTodayStats(nextStats) {
 function TodayCard({
   label,
   unit,
+  cardKey,
   value,
   target,
   isEditing,
   inputValue,
   feedback,
+  inputRef,
   onEditStart,
   onInputChange,
   onInputSubmit,
+  onInputCancel,
   onInputBlur,
 }) {
   const progress = Math.max(0, Math.min(100, target > 0 ? (value / target) * 100 : 0));
@@ -92,19 +95,26 @@ function TodayCard({
       <div className={styles.valueRow}>
         {isEditing ? (
           <input
+            ref={inputRef}
             className={styles.inlineInput}
             type="number"
             inputMode="numeric"
-            autoFocus
+            pattern="[0-9]*"
             value={inputValue}
             onChange={(event) => onInputChange(event.target.value)}
             onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                onInputCancel();
+                return;
+              }
+
               if (event.key === 'Enter') {
                 onInputSubmit();
               }
             }}
             onBlur={onInputBlur}
             aria-label={`${label} input`}
+            aria-describedby={`${cardKey}-meta`}
           />
         ) : (
           <>
@@ -121,7 +131,7 @@ function TodayCard({
       </div>
 
       <div className={styles.footerRow}>
-        <span className={styles.meta}>Mål {target.toLocaleString('sv-SE')}</span>
+        <span id={`${cardKey}-meta`} className={styles.meta}>Mål {target.toLocaleString('sv-SE')}</span>
         <span className={[styles.feedback, feedback ? styles.feedbackVisible : ''].join(' ')}>
           {feedback || ''}
         </span>
@@ -134,10 +144,12 @@ export default function QuickStats() {
   const { profile, kcalGoal } = useProfile();
   const [calories, setCalories] = useState(() => readInitialCalories());
   const [steps, setSteps] = useState(() => readInitialSteps());
-  const [isEditingCalories, setIsEditingCalories] = useState(false);
-  const [isEditingSteps, setIsEditingSteps] = useState(false);
-  const [tempInput, setTempInput] = useState('');
+  const [editMode, setEditMode] = useState({ calories: false, steps: false });
+  const [inputValue, setInputValue] = useState('');
   const [feedback, setFeedback] = useState({ calories: '', steps: '' });
+  const caloriesInputRef = useRef(null);
+  const stepsInputRef = useRef(null);
+  const skipBlurSaveRef = useRef(false);
 
   useEffect(() => {
     function syncStats() {
@@ -154,6 +166,18 @@ export default function QuickStats() {
     };
   }, []);
 
+  useEffect(() => {
+    if (editMode.calories) {
+      caloriesInputRef.current?.focus();
+      caloriesInputRef.current?.select();
+    }
+
+    if (editMode.steps) {
+      stepsInputRef.current?.focus();
+      stepsInputRef.current?.select();
+    }
+  }, [editMode]);
+
   const stepGoal = STEP_GOALS[profile.activity] || STEP_GOALS.light;
 
   function triggerFeedback(key, amount, unit) {
@@ -167,76 +191,118 @@ export default function QuickStats() {
     }, 1600);
   }
 
+  function closeEditor(key) {
+    setEditMode({ calories: false, steps: false });
+    setInputValue('');
+    if (key === 'calories') {
+      caloriesInputRef.current?.blur();
+    } else if (key === 'steps') {
+      stepsInputRef.current?.blur();
+    }
+  }
+
   function handleSaveCalories() {
-    const increment = Number(tempInput);
-    if (!increment) {
-      setIsEditingCalories(false);
-      setTempInput('');
+    if (skipBlurSaveRef.current) {
+      skipBlurSaveRef.current = false;
+      closeEditor('calories');
       return;
     }
 
-    const nextCalories = calories + increment;
-    setCalories(nextCalories);
-    localStorage.setItem(CALORIES_KEY, String(nextCalories));
-    const nextStats = { calories: nextCalories, steps };
-    saveTodayStats(nextStats);
+    if (inputValue.trim() === '' || Number.isNaN(Number(inputValue))) {
+      closeEditor('calories');
+      return;
+    }
+
+    const increment = parseInt(inputValue, 10);
+    if (!Number.isFinite(increment) || increment <= 0) {
+      closeEditor('calories');
+      return;
+    }
+
+    setCalories((prev) => {
+      const nextCalories = prev + increment;
+      localStorage.setItem(CALORIES_KEY, String(nextCalories));
+      saveTodayStats({ calories: nextCalories, steps });
+      return nextCalories;
+    });
+
     triggerFeedback('calories', increment, 'kcal');
-    setIsEditingCalories(false);
-    setTempInput('');
+    closeEditor('calories');
   }
 
   function handleSaveSteps() {
-    const increment = Number(tempInput);
-    if (!increment) {
-      setIsEditingSteps(false);
-      setTempInput('');
+    if (skipBlurSaveRef.current) {
+      skipBlurSaveRef.current = false;
+      closeEditor('steps');
       return;
     }
 
-    const nextSteps = steps + increment;
-    setSteps(nextSteps);
-    localStorage.setItem(STEPS_KEY, String(nextSteps));
-    const nextStats = { calories, steps: nextSteps };
-    saveTodayStats(nextStats);
+    if (inputValue.trim() === '' || Number.isNaN(Number(inputValue))) {
+      closeEditor('steps');
+      return;
+    }
+
+    const increment = parseInt(inputValue, 10);
+    if (!Number.isFinite(increment) || increment <= 0) {
+      closeEditor('steps');
+      return;
+    }
+
+    setSteps((prev) => {
+      const nextSteps = prev + increment;
+      localStorage.setItem(STEPS_KEY, String(nextSteps));
+      saveTodayStats({ calories, steps: nextSteps });
+      return nextSteps;
+    });
+
     triggerFeedback('steps', increment, 'steg');
-    setIsEditingSteps(false);
-    setTempInput('');
+    closeEditor('steps');
   }
 
   return (
     <div className={styles.grid}>
       <TodayCard
+        cardKey="calories"
         label="Kalorier"
         unit="KCAL"
         value={calories}
         target={kcalGoal}
-        isEditing={isEditingCalories}
-        inputValue={tempInput}
+        isEditing={editMode.calories}
+        inputValue={inputValue}
         feedback={feedback.calories}
+        inputRef={caloriesInputRef}
         onEditStart={() => {
-          setIsEditingSteps(false);
-          setTempInput('');
-          setIsEditingCalories(true);
+          setEditMode({ calories: true, steps: false });
+          setInputValue('');
         }}
-        onInputChange={setTempInput}
+        onInputChange={setInputValue}
         onInputSubmit={handleSaveCalories}
+        onInputCancel={() => {
+          skipBlurSaveRef.current = true;
+          closeEditor('calories');
+        }}
         onInputBlur={handleSaveCalories}
       />
       <TodayCard
+        cardKey="steps"
         label="Steg"
         unit="STEG"
         value={steps}
         target={stepGoal}
-        isEditing={isEditingSteps}
-        inputValue={tempInput}
+        isEditing={editMode.steps}
+        inputValue={inputValue}
         feedback={feedback.steps}
+        inputRef={stepsInputRef}
         onEditStart={() => {
-          setIsEditingCalories(false);
-          setTempInput('');
-          setIsEditingSteps(true);
+          setEditMode({ calories: false, steps: true });
+          setInputValue('');
         }}
-        onInputChange={setTempInput}
+        onInputChange={setInputValue}
         onInputSubmit={handleSaveSteps}
+        onInputCancel={() => {
+          skipBlurSaveRef.current = true;
+          closeEditor('steps');
+        }}
         onInputBlur={handleSaveSteps}
       />
     </div>
