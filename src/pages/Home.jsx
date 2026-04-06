@@ -683,10 +683,14 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
 
 function WeekRhythmCard({ dailyEntries, pulseKey = 0 }) {
   const days = buildWeekRhythm(dailyEntries);
+  const weeklyGoal = getWeeklyGoalProgress(dailyEntries);
 
   return (
     <section className={styles.trendCard} aria-label="Veckans rytm">
-      <p className={styles.sectionEyebrow}>Veckans rytm</p>
+      <div className={styles.trendHeader}>
+        <p className={styles.sectionEyebrow}>Veckans rytm</p>
+        <span className={styles.trendGoalValue}>{weeklyGoal.completed} / {weeklyGoal.target}</span>
+      </div>
       <div className={styles.rhythmRow}>
         {days.map((day) => (
           <div key={day.date} className={styles.rhythmDay}>
@@ -701,6 +705,12 @@ function WeekRhythmCard({ dailyEntries, pulseKey = 0 }) {
             />
           </div>
         ))}
+      </div>
+      <div className={styles.trendGoalTrack} aria-hidden="true">
+        <div
+          className={[styles.trendGoalFill, pulseKey > 0 ? styles.trendGoalFillActive : ''].join(' ')}
+          style={{ width: `${weeklyGoal.progress}%` }}
+        />
       </div>
     </section>
   );

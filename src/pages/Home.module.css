@@ -925,6 +925,20 @@
   transition: box-shadow 0.35s ease;
 }
 
+.trendHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.trendGoalValue {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .rhythmRow {
   margin-top: 1rem;
   display: grid;
@@ -965,6 +979,28 @@
 
 .rhythmDotPulse {
   animation: rhythmDotPulse 0.55s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+.trendGoalTrack {
+  margin-top: 1rem;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.trendGoalFill {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(52, 211, 153, 0.92);
+  transition: width 0.45s ease;
+}
+
+.trendGoalFillActive {
+  box-shadow:
+    0 0 0 4px rgba(52, 211, 153, 0.08),
+    0 0 18px rgba(52, 211, 153, 0.28);
+  animation: weekGoalPulse 0.55s cubic-bezier(0.2, 0.9, 0.2, 1);
 }
 
 .averageGrid {
