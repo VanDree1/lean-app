@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useProfile } from '../../hooks/useProfile';
+import { useStreak } from '../../hooks/useStreak';
 import styles from './MotivationTip.module.css';
 
 const CACHE_KEY_PREFIX = 'djur-i-juni:daily-quote';
@@ -69,6 +70,7 @@ function isFresh(cache) {
 
 export default function MotivationTip() {
   const { profile } = useProfile();
+  const { loggedToday } = useStreak();
   const goal = profile.goal || 'default';
   const [quote, setQuote] = useState(() => {
     const cached = readCachedQuote(goal);
@@ -123,7 +125,8 @@ export default function MotivationTip() {
     return () => controller.abort();
   }, [goal]);
 
-  const statusText = GOAL_LABELS[goal] || GOAL_LABELS.default;
+  const statusText = loggedToday ? 'Dag säkrad' : GOAL_LABELS[goal] || GOAL_LABELS.default;
+  const quoteLead = loggedToday ? 'Bra. Nu räcker det att hålla rytmen.' : 'Låt det här sätta tonen för resten av dagen.';
 
   return (
     <section className={styles.card} aria-label="Dagens citat">
@@ -132,6 +135,7 @@ export default function MotivationTip() {
         <span className={styles.status}>{statusText}</span>
       </div>
 
+      <p className={styles.lead}>{quoteLead}</p>
       <p className={styles.quote}>&ldquo;{quote.text}&rdquo;</p>
       <p className={styles.author}>{quote.author}</p>
     </section>

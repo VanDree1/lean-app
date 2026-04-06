@@ -34,6 +34,16 @@
   color: rgba(191, 232, 210, 0.72);
 }
 
+.lead {
+  margin: 0 0 0.6rem;
+  max-width: 24ch;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
 .quote {
   margin: 0;
   max-width: 26ch;

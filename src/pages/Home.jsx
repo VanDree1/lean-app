@@ -223,6 +223,22 @@ function buildCoachTip(goal, topic, sourceText) {
   };
 }
 
+function applyDailyCoachContext(tip, loggedToday) {
+  if (loggedToday) {
+    return {
+      title: 'Bra. Nu skyddar du rytmen',
+      text: `${tip.text} Du behöver inte jaga mer i dag, bara hålla det lugnt och konsekvent.`,
+      status: 'Dag säkrad',
+    };
+  }
+
+  return {
+    title: tip.title,
+    text: tip.text,
+    status: 'Nästa drag',
+  };
+}
+
 function loadDashboardProfile() {
   try {
     const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
@@ -484,21 +500,22 @@ function WeightJourney({ onOpen }) {
 
 function CoachTipCard() {
   const { profile } = useProfile();
+  const { loggedToday } = useStreak();
   const goal = profile.goal || 'default';
   const [tip, setTip] = useState(() => {
     const cached = readCachedHealthFact(goal);
     if (cached) {
-      return buildCoachTip(goal, cached, cached.text);
+      return applyDailyCoachContext(buildCoachTip(goal, cached, cached.text), loggedToday);
     }
 
     const topic = getHealthTopicForToday(goal);
-    return buildCoachTip(goal, topic, topic.fallback);
+    return applyDailyCoachContext(buildCoachTip(goal, topic, topic.fallback), loggedToday);
   });
 
   useEffect(() => {
     const cached = readCachedHealthFact(goal);
     if (isFreshFact(cached)) {
-      setTip(buildCoachTip(goal, cached, cached.text));
+      setTip(applyDailyCoachContext(buildCoachTip(goal, cached, cached.text), loggedToday));
       return undefined;
     }
 
@@ -529,7 +546,7 @@ function CoachTipCard() {
         };
 
         localStorage.setItem(getHealthFactCacheKey(goal), JSON.stringify(nextFact));
-        setTip(buildCoachTip(goal, nextFact, text));
+        setTip(applyDailyCoachContext(buildCoachTip(goal, nextFact, text), loggedToday));
       } catch (error) {
         if (error.name === 'AbortError') {
           return;
@@ -543,20 +560,20 @@ function CoachTipCard() {
           fetchedAt: Date.now(),
         };
 
-        setTip(buildCoachTip(goal, fallbackFact, fallbackFact.text));
+        setTip(applyDailyCoachContext(buildCoachTip(goal, fallbackFact, fallbackFact.text), loggedToday));
       }
     }
 
     loadFact();
 
     return () => controller.abort();
-  }, [goal]);
+  }, [goal, loggedToday]);
 
   return (
     <section className={styles.noteCard}>
       <div className={styles.noteHeader}>
         <p className={styles.sectionEyebrow}>Tips från coachen</p>
-        <span className={styles.noteSource}>Anpassat</span>
+        <span className={styles.noteSource}>{tip.status}</span>
       </div>
       <h3 className={styles.noteTitle}>{tip.title}</h3>
       <p className={styles.noteText}>{tip.text}</p>
