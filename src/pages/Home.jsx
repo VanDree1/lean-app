@@ -172,27 +172,19 @@ function buildCoachTip(goal, topic, sourceText) {
     default: 'Håll det enkelt',
   };
 
-  const TOPIC_INTROS = {
-    'Mättnad': 'Låg mättnad gör allt svårare.',
+  const ONE_LINERS = {
+    'Mättnad': 'Bygg måltider som håller dig lugn längre.',
     'Basalomsättning': 'Mycket energi går åt redan i vila.',
     'Brunt fett': 'Allt kroppsfett beter sig inte likadant.',
-    'Muskelhypertrofi': 'Muskler byggs av jämn belastning.',
+    'Muskelhypertrofi': 'Muskler byggs bäst av jämn belastning.',
     'Kreatin': 'Kreatin hjälper vid korta, hårda insatser.',
     'Glykogen': 'När energin dippar är glykogen ofta med i bilden.',
-    'Dygnsrytm': 'Bra rytm slår ofta mer vilja.',
-  };
-
-  const GOAL_OUTROS = {
-    fat_loss: 'Bygg måltider som håller dig lugn.',
-    muscle: 'Fokusera på protein och återhämtning.',
-    energy: 'Jämn rytm räcker långt.',
-    target: 'Det lugna du kan upprepa vinner.',
-    default: 'Välj det som håller.',
+    'Dygnsrytm': 'Bra rytm gör resten av dagen lättare.',
   };
 
   return {
     title: COACH_TITLES[goal] || COACH_TITLES.default,
-    text: `${TOPIC_INTROS[topic.title] || trimFactText(sourceText || topic.fallback)} ${GOAL_OUTROS[goal] || GOAL_OUTROS.default}`.trim(),
+    text: ONE_LINERS[topic.title] || trimFactText(sourceText || topic.fallback),
   };
 }
 
@@ -235,36 +227,75 @@ function ProgressRing({ progress }) {
   );
 }
 
-function DailyFocusCard({ onLogWeight }) {
+function DailyFocusCard({ onOpenHistory }) {
   const { loggedToday } = useStreak();
   const { profile, kcalGoal, proteinGoal } = useProfile();
+  const { current, addEntry } = useWeightLog();
+  const [inputVal, setInputVal] = useState('');
+  const [saved, setSaved] = useState(false);
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  function handleLog() {
+    const w = parseFloat(inputVal.replace(',', '.'));
+    if (!w || w < 20 || w > 500) return;
+    addEntry(today, w);
+    setInputVal('');
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+    if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+      navigator.vibrate(18);
+    }
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter') handleLog();
+  }
 
   const focusText = profile.goal === 'muscle'
-    ? `Ditt proteinmål är ${proteinGoal} g. Bygg dagen runt det.`
+    ? `Proteinmål: ${proteinGoal} g. Bygg dagen runt det.`
     : profile.goal === 'energy'
-      ? `Håll dig inom ${kcalGoal} kcal så att energin håller hela dagen.`
-      : `Ditt dagliga mål: ${kcalGoal} kcal och ${proteinGoal} g protein.`;
+      ? `Håll dig inom ${kcalGoal} kcal idag.`
+      : `Mål: ${kcalGoal} kcal · ${proteinGoal} g protein.`;
 
   return (
     <section className={styles.focusCard} aria-labelledby="today-title">
       <div className={styles.focusText}>
         <p className={styles.sectionEyebrow}>Idag</p>
-        <h2 id="today-title" className={styles.focusTitle}>Håll dagen enkel</h2>
+        <h2 id="today-title" className={styles.focusTitle}>
+          {loggedToday ? 'Loggad ✓' : 'Logga dagens vikt'}
+        </h2>
         <p className={styles.focusBody}>{focusText}</p>
 
-        <div className={styles.focusMetrics}>
-          <div className={styles.metricPill}>
-            <span className={styles.metricLabel}>Kalorigräns</span>
-            <span className={styles.metricValue}>{kcalGoal} kcal</span>
+        {saved ? (
+          <div className={styles.quickLogSaved}>✓ Sparat!</div>
+        ) : (
+          <div className={styles.quickLog}>
+            <input
+              className={styles.quickLogInput}
+              type="number"
+              inputMode="decimal"
+              placeholder={current ? String(current) : 'kg'}
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              onKeyDown={handleKey}
+              min="20"
+              max="500"
+              aria-label="Vikt i kg"
+            />
+            <button
+              type="button"
+              className={styles.quickLogBtn}
+              onClick={handleLog}
+              disabled={!inputVal}
+            >
+              Logga
+            </button>
           </div>
-          <div className={styles.metricPill}>
-            <span className={styles.metricLabel}>Proteinmål</span>
-            <span className={styles.metricValue}>{proteinGoal} g</span>
-          </div>
-        </div>
+        )}
 
-        <button type="button" className={styles.primaryAction} onClick={onLogWeight}>
-          Logga dagens vikt
+        <button type="button" className={styles.historyLink} onClick={onOpenHistory}>
+          Visa historik →
         </button>
       </div>
 
@@ -413,7 +444,7 @@ export default function Home() {
     <main className={styles.main}>
       <div className={styles.stack}>
         <HeroCard />
-        <DailyFocusCard onLogWeight={() => setModal('weight')} />
+        <DailyFocusCard onOpenHistory={() => setModal('weight')} />
         <div className={styles.twoColumn}>
           <StreakBanner />
           <WeightJourney onOpen={() => setModal('weight')} />

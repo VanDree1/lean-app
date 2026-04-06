@@ -504,19 +504,19 @@
 
 .noteTitle {
   margin-top: 0.35rem;
-  font-size: 1.05rem;
-  line-height: 1.16;
+  font-size: 1rem;
+  line-height: 1.12;
   letter-spacing: -0.03em;
-  max-width: 15ch;
+  max-width: 14ch;
   text-wrap: balance;
 }
 
 .noteText {
-  margin-top: 0.45rem;
+  margin-top: 0.35rem;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 0.82rem;
-  line-height: 1.5;
-  max-width: 24ch;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  max-width: 22ch;
   text-wrap: balance;
 }
 
