@@ -205,31 +205,8 @@ function applyDailyCoachContext(tip, loggedToday) {
 }
 
 
-function ProgressRing({ progress }) {
-  const radius = 52;
-  const circumference = 2 * Math.PI * radius;
-  const dashoffset = circumference - (circumference * progress) / 100;
-
-  return (
-    <div className={styles.ringWrap}>
-      <svg viewBox="0 0 128 128" className={styles.ring} aria-hidden="true">
-        <circle className={styles.ringTrack} cx="64" cy="64" r={radius} />
-        <circle
-          className={styles.ringFill}
-          cx="64"
-          cy="64"
-          r={radius}
-          strokeDasharray={circumference}
-          strokeDashoffset={dashoffset}
-        />
-      </svg>
-    </div>
-  );
-}
-
 function DailyFocusCard({ onOpenHistory }) {
   const { loggedToday } = useStreak();
-  const { profile, kcalGoal, proteinGoal } = useProfile();
   const { current, addEntry } = useWeightLog();
   const [inputVal, setInputVal] = useState('');
   const [saved, setSaved] = useState(false);
@@ -252,20 +229,13 @@ function DailyFocusCard({ onOpenHistory }) {
     if (e.key === 'Enter') handleLog();
   }
 
-  const focusText = profile.goal === 'muscle'
-    ? `Proteinmål: ${proteinGoal} g. Bygg dagen runt det.`
-    : profile.goal === 'energy'
-      ? `Håll dig inom ${kcalGoal} kcal idag.`
-      : `Mål: ${kcalGoal} kcal · ${proteinGoal} g protein.`;
-
   return (
     <section className={styles.focusCard} aria-labelledby="today-title">
-      <div className={styles.focusText}>
+      <div className={styles.focusMain}>
         <p className={styles.sectionEyebrow}>Idag</p>
         <h2 id="today-title" className={styles.focusTitle}>
-          {loggedToday ? 'Loggad ✓' : 'Logga dagens vikt'}
+          {loggedToday ? 'Dagens vikt' : 'Logga dagens vikt'}
         </h2>
-        <p className={styles.focusBody}>{focusText}</p>
 
         {saved ? (
           <div className={styles.quickLogSaved}>✓ Sparat!</div>
@@ -297,14 +267,6 @@ function DailyFocusCard({ onOpenHistory }) {
         <button type="button" className={styles.historyLink} onClick={onOpenHistory}>
           Visa historik →
         </button>
-      </div>
-
-      <div className={styles.focusVisual}>
-        <ProgressRing progress={loggedToday ? 100 : 0} />
-        <div className={styles.ringCenter}>
-          <span className={styles.ringValue}>{loggedToday ? '✓' : '–'}</span>
-          <span className={styles.ringLabel}>{loggedToday ? 'loggad' : 'idag'}</span>
-        </div>
       </div>
     </section>
   );
