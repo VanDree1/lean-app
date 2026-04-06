@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Activity, Bike, Check, Dumbbell, Flower2, Footprints } from 'lucide-react';
 import AnimatedNumber from '../components/AnimatedNumber/AnimatedNumber';
 import HeroCard from '../components/HeroCard/HeroCard';
@@ -25,6 +25,30 @@ const WORKOUTS = {
   cycle: { name: 'Cykling', met: 7.5, Icon: Bike },
   other: { name: 'Annat', met: 5.0, Icon: Activity },
 };
+
+function isSameDayAsToday(value) {
+  if (!value) return false;
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayText = new Date().toDateString();
+
+  if (value === todayIso || value === todayText) return true;
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return false;
+
+  return parsed.toISOString().slice(0, 10) === todayIso;
+}
+
+function readIsDayLocked() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(DAILY_CHECKIN_KEY) || 'null');
+    const lockedDate = localStorage.getItem(LAST_LOGGED_DATE_KEY);
+    return isSameDayAsToday(lockedDate) && isSameDayAsToday(stored?.date);
+  } catch {
+    return false;
+  }
+}
 
 function formatHistoryLabel(dateString) {
   const today = new Date().toISOString().slice(0, 10);
@@ -71,7 +95,6 @@ function saveBurnedCalories(burned) {
 
 function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, setLocked }) {
   const weight = Number(latestWeight) || 100;
-  const [lastLoggedDate, setLastLoggedDate] = useState(() => localStorage.getItem(LAST_LOGGED_DATE_KEY) || null);
   const [isCompleting, setIsCompleting] = useState(false);
   const [showActionPicker, setShowActionPicker] = useState(false);
   const [caloriesInput, setCaloriesInput] = useState('');
@@ -79,15 +102,15 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   const [activeWorkoutKey, setActiveWorkoutKey] = useState(null);
   const [duration, setDuration] = useState(30);
   const todayString = new Date().toDateString();
-  const todayCheckin = useMemo(() => {
+  const todayCheckin = (() => {
     try {
       const stored = JSON.parse(localStorage.getItem(DAILY_CHECKIN_KEY) || 'null');
-      if (stored?.date === todayString) return stored;
+      if (isSameDayAsToday(stored?.date)) return stored;
       return null;
     } catch {
       return null;
     }
-  }, [todayString]);
+  })();
   const isLoggedToday = locked && Boolean(todayCheckin);
   const activeWorkout = activeWorkoutKey ? WORKOUTS[activeWorkoutKey] : null;
   const estimatedCalories = activeWorkout
@@ -117,7 +140,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     if (!Number.isFinite(parsedCalories) || parsedCalories < 0) return;
     if (!Number.isFinite(parsedSleep) || parsedSleep <= 0 || parsedSleep > 24) return;
 
-    const alreadyLogged = lastLoggedDate === todayString || Boolean(todayCheckin);
+    const alreadyLogged = readIsDayLocked() || Boolean(todayCheckin);
     const currentStreak = Number(localStorage.getItem(STREAK_KEY)) || 0;
     const nextStreak = alreadyLogged ? currentStreak : currentStreak + 1;
     const workoutBurn = activeWorkout ? estimatedCalories : 0;
@@ -134,7 +157,6 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     };
 
     setIsCompleting(true);
-    setLastLoggedDate(todayString);
     setLocked(true);
     setShowActionPicker(false);
     setEaten(parsedCalories);
@@ -154,7 +176,6 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
 
   function handleUnlock(event) {
     event.stopPropagation();
-    setLastLoggedDate(null);
     setLocked(false);
     localStorage.removeItem(LAST_LOGGED_DATE_KEY);
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
@@ -166,8 +187,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
 
   return (
     <>
-      <button
-        type="button"
+      <section
         className={[
           styles.focusCard,
           styles.focusCheckin,
@@ -175,7 +195,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
           isLoggedToday ? styles.focusCardLogged : styles.focusCardTodo,
         ].join(' ')}
         aria-labelledby="today-title"
-        onClick={isLoggedToday ? undefined : handleCheckIn}
+        role="group"
       >
         <div className={styles.focusContent}>
           <div className={styles.focusMain}>
@@ -202,7 +222,9 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 </button>
               </>
             ) : (
-              <p className={styles.focusMeta}>Tryck för att fylla i dagen.</p>
+              <button type="button" className={styles.focusOpenLink} onClick={handleCheckIn}>
+                Logga idag
+              </button>
             )}
           </div>
         </div>
@@ -216,7 +238,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
             <span className={styles.focusPulseDot} />
           )}
         </div>
-      </button>
+      </section>
       {showActionPicker && (
         <div className={styles.focusSheetOverlay} onClick={(event) => event.target === event.currentTarget && setShowActionPicker(false)}>
           <div className={styles.focusSheet} role="dialog" aria-modal="true" aria-label="Fyll i dagens insats">
@@ -444,35 +466,25 @@ export default function Home({ profile }) {
   const [modal, setModal] = useState(null);
   const [eaten, setEaten] = useState(() => parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
   const [burned, setBurned] = useState(() => parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0);
-  const [isDayLocked, setIsDayLocked] = useState(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem(DAILY_CHECKIN_KEY) || 'null');
-      return localStorage.getItem(LAST_LOGGED_DATE_KEY) === new Date().toDateString() && Boolean(stored?.date === new Date().toDateString());
-    } catch {
-      return false;
-    }
-  });
+  const [isDayLocked, setIsDayLocked] = useState(() => readIsDayLocked());
 
   useEffect(() => {
     function syncCalories() {
       setEaten(parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
       setBurned(parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0);
-      try {
-        const stored = JSON.parse(localStorage.getItem(DAILY_CHECKIN_KEY) || 'null');
-        setIsDayLocked(localStorage.getItem(LAST_LOGGED_DATE_KEY) === new Date().toDateString() && Boolean(stored?.date === new Date().toDateString()));
-      } catch {
-        setIsDayLocked(false);
-      }
+      setIsDayLocked(readIsDayLocked());
     }
 
     window.addEventListener('storage', syncCalories);
     window.addEventListener('focus', syncCalories);
     window.addEventListener('djur-i-juni:today-stats-updated', syncCalories);
+    window.addEventListener('djur-i-juni:daily-logic-updated', syncCalories);
 
     return () => {
       window.removeEventListener('storage', syncCalories);
       window.removeEventListener('focus', syncCalories);
       window.removeEventListener('djur-i-juni:today-stats-updated', syncCalories);
+      window.removeEventListener('djur-i-juni:daily-logic-updated', syncCalories);
     };
   }, []);
 

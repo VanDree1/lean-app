@@ -381,6 +381,26 @@
   color: rgba(255, 255, 255, 0.72);
 }
 
+.focusOpenLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.9rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.74);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.focusOpenLink:hover {
+  color: #ffffff;
+}
+
 .focusStatus {
   flex-shrink: 0;
   display: flex;
