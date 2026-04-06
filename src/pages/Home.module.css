@@ -507,12 +507,6 @@
   transform: scale(0.985);
 }
 
-.focusWeekWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
 .focusPulseDot {
   width: 0.5rem;
   height: 0.5rem;
@@ -946,49 +940,6 @@
 
 .workoutLogButton:active {
   transform: scale(0.95);
-}
-
-.workoutWeek {
-  margin-top: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem;
-}
-
-.workoutDay {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.38rem;
-  min-width: 0;
-}
-
-.workoutDot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.workoutDotActive {
-  background: #34d399;
-  box-shadow: 0 0 10px rgba(52, 211, 153, 0.32);
-}
-
-.workoutDayToday .workoutDayLabel {
-  color: rgba(255, 255, 255, 0.74);
-}
-
-.workoutDotToday {
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
-}
-
-.workoutDayLabel {
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.42);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 @keyframes workoutDetailIn {

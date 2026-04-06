@@ -10,8 +10,6 @@ import styles from './Home.module.css';
 const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
 const STREAK_KEY = 'djur_juni_streak';
 const DAILY_CHECKIN_KEY = 'djur_juni_daily_checkin';
-const WORKOUTS_WEEK_KEY = 'djur_juni_week';
-const WORKOUTS_WEEK_STAMP_KEY = 'djur_juni_week_stamp';
 const CALORIES_KEY = 'djur_juni_cal';
 const BURNED_KEY = 'djur_juni_burned';
 const TODAY_STATS_KEYS = [
@@ -26,17 +24,6 @@ const WORKOUTS = {
   cycle: { name: 'Cykling', met: 7.5, Icon: Bike },
   other: { name: 'Annat', met: 5.0, Icon: Activity },
 };
-const WEEKDAY_LABELS = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
-
-function getCurrentWeekStamp() {
-  const now = new Date();
-  const day = now.getDay();
-  const diffToMonday = day === 0 ? -6 : 1 - day;
-  const monday = new Date(now);
-  monday.setHours(0, 0, 0, 0);
-  monday.setDate(now.getDate() + diffToMonday);
-  return monday.toISOString().slice(0, 10);
-}
 
 function readTodaySteps() {
   try {
@@ -81,18 +68,6 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
   const [sleepHours, setSleepHours] = useState('8');
   const [activeWorkoutKey, setActiveWorkoutKey] = useState(null);
   const [duration, setDuration] = useState(30);
-  const [weekHistory, setWeekHistory] = useState(() => {
-    try {
-      if (localStorage.getItem(WORKOUTS_WEEK_STAMP_KEY) !== getCurrentWeekStamp()) {
-        localStorage.setItem(WORKOUTS_WEEK_STAMP_KEY, getCurrentWeekStamp());
-        localStorage.setItem(WORKOUTS_WEEK_KEY, JSON.stringify([false, false, false, false, false, false, false]));
-        return [false, false, false, false, false, false, false];
-      }
-      return JSON.parse(localStorage.getItem(WORKOUTS_WEEK_KEY)) || [false, false, false, false, false, false, false];
-    } catch {
-      return [false, false, false, false, false, false, false];
-    }
-  });
   const todayString = new Date().toDateString();
   const todayCheckin = useMemo(() => {
     try {
@@ -109,10 +84,6 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
   const estimatedCalories = activeWorkout
     ? Math.round(activeWorkout.met * weight * (duration / 60))
     : 0;
-  const todayWeekIndex = (() => {
-    const nativeDay = new Date().getDay();
-    return nativeDay === 0 ? 6 : nativeDay - 1;
-  })();
   const summaryItems = isLoggedToday
     ? [
         `${todayCheckin?.calories ?? eaten} kcal`,
@@ -151,8 +122,6 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
       burned: workoutBurn,
       sleepHours: parsedSleep,
     };
-    const nextWeekHistory = [...weekHistory];
-    nextWeekHistory[todayWeekIndex] = Boolean(activeWorkoutKey);
 
     setIsCompleting(true);
     setLastLoggedDate(todayString);
@@ -160,14 +129,11 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
     setShowActionPicker(false);
     setEaten(parsedCalories);
     setBurned(nextBurnedTotal);
-    setWeekHistory(nextWeekHistory);
     saveTodayCalories(parsedCalories);
     saveBurnedCalories(nextBurnedTotal);
     localStorage.setItem(DAILY_CHECKIN_KEY, JSON.stringify(nextCheckin));
     localStorage.setItem(LAST_LOGGED_DATE_KEY, todayString);
     localStorage.setItem(STREAK_KEY, String(nextStreak));
-    localStorage.setItem(WORKOUTS_WEEK_KEY, JSON.stringify(nextWeekHistory));
-    localStorage.setItem(WORKOUTS_WEEK_STAMP_KEY, getCurrentWeekStamp());
 
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
       navigator.vibrate([18, 24, 28]);
@@ -318,20 +284,6 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
                 )}
               </div>
 
-              <div className={styles.focusWeekWrap}>
-                <div className={styles.focusFieldHeader}>
-                  <span className={styles.focusFieldLabel}>Veckorytm</span>
-                  <span className={styles.focusFieldHint}>{weekHistory.filter(Boolean).length}/7</span>
-                </div>
-                <div className={styles.workoutWeek}>
-                  {WEEKDAY_LABELS.map((label, index) => (
-                    <div key={`${label}-${index}`} className={[styles.workoutDay, index === todayWeekIndex ? styles.workoutDayToday : ''].join(' ')}>
-                      <span className={[styles.workoutDot, weekHistory[index] ? styles.workoutDotActive : '', index === todayWeekIndex ? styles.workoutDotToday : ''].join(' ')} />
-                      <span className={styles.workoutDayLabel}>{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
             <div className={styles.focusSheetActions}>
               <button
