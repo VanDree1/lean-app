@@ -38,6 +38,13 @@
     0 0 24px rgba(199, 221, 207, 0.08);
 }
 
+.cardLocked {
+  opacity: 0.58;
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: none;
+}
+
 .addButton {
   position: absolute;
   top: 1rem;
@@ -54,6 +61,11 @@
   color: rgba(255, 255, 255, 0.3);
   cursor: pointer;
   transition: color 0.18s ease, transform 0.18s ease, background-color 0.18s ease;
+}
+
+.addButton:disabled {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .addButton:hover {

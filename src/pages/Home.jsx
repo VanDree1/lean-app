@@ -58,7 +58,7 @@ function saveBurnedCalories(burned) {
   window.dispatchEvent(new Event('djur-i-juni:today-stats-updated'));
 }
 
-function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned }) {
+function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, setLocked }) {
   const weight = Number(latestWeight) || 100;
   const [lastLoggedDate, setLastLoggedDate] = useState(() => localStorage.getItem(LAST_LOGGED_DATE_KEY) || null);
   const [streak, setStreak] = useState(() => Number(localStorage.getItem(STREAK_KEY)) || 0);
@@ -78,7 +78,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned }) {
       return null;
     }
   }, [todayString]);
-  const isLoggedToday = lastLoggedDate === todayString && Boolean(todayCheckin);
+  const isLoggedToday = locked && Boolean(todayCheckin);
   const activeWorkout = activeWorkoutKey ? WORKOUTS[activeWorkoutKey] : null;
   const estimatedCalories = activeWorkout
     ? Math.round(activeWorkout.met * weight * (duration / 60))
@@ -107,7 +107,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned }) {
     if (!Number.isFinite(parsedCalories) || parsedCalories < 0) return;
     if (!Number.isFinite(parsedSleep) || parsedSleep <= 0 || parsedSleep > 24) return;
 
-    const alreadyLogged = lastLoggedDate === todayString;
+    const alreadyLogged = lastLoggedDate === todayString || Boolean(todayCheckin);
     const nextStreak = alreadyLogged ? streak : streak + 1;
     const workoutBurn = activeWorkout ? estimatedCalories : 0;
     const previousBurn = Number(todayCheckin?.burned) || 0;
@@ -124,6 +124,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned }) {
 
     setIsCompleting(true);
     setLastLoggedDate(todayString);
+    setLocked(true);
     setStreak(nextStreak);
     setShowActionPicker(false);
     setEaten(parsedCalories);
@@ -141,6 +142,18 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned }) {
     window.setTimeout(() => setIsCompleting(false), 850);
   }
 
+  function handleUnlock(event) {
+    event.stopPropagation();
+    setLastLoggedDate(null);
+    setLocked(false);
+    localStorage.removeItem(LAST_LOGGED_DATE_KEY);
+    setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
+    setSleepHours(String(todayCheckin?.sleepHours ?? 8));
+    setActiveWorkoutKey(todayCheckin?.workoutKey ?? null);
+    setDuration(Number(todayCheckin?.duration) || 30);
+    setShowActionPicker(true);
+  }
+
   return (
     <>
       <button
@@ -152,7 +165,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned }) {
           isLoggedToday ? styles.focusCardLogged : styles.focusCardTodo,
         ].join(' ')}
         aria-labelledby="today-title"
-        onClick={handleCheckIn}
+        onClick={isLoggedToday ? undefined : handleCheckIn}
       >
         <div className={styles.focusContent}>
           <div className={styles.focusMain}>
@@ -174,7 +187,9 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned }) {
                     </span>
                   ))}
                 </div>
-                <span className={styles.focusEditLink}>Ändra</span>
+                <button type="button" className={styles.focusEditLink} onClick={handleUnlock}>
+                  Ångra
+                </button>
               </>
             ) : (
               <p className={styles.focusMeta}>Tryck för att fylla i dagen.</p>
@@ -369,11 +384,25 @@ export default function Home({ profile }) {
   const [modal, setModal] = useState(null);
   const [eaten, setEaten] = useState(() => parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
   const [burned, setBurned] = useState(() => parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0);
+  const [isDayLocked, setIsDayLocked] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(DAILY_CHECKIN_KEY) || 'null');
+      return localStorage.getItem(LAST_LOGGED_DATE_KEY) === new Date().toDateString() && Boolean(stored?.date === new Date().toDateString());
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     function syncCalories() {
       setEaten(parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
       setBurned(parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0);
+      try {
+        const stored = JSON.parse(localStorage.getItem(DAILY_CHECKIN_KEY) || 'null');
+        setIsDayLocked(localStorage.getItem(LAST_LOGGED_DATE_KEY) === new Date().toDateString() && Boolean(stored?.date === new Date().toDateString()));
+      } catch {
+        setIsDayLocked(false);
+      }
     }
 
     window.addEventListener('storage', syncCalories);
@@ -391,7 +420,15 @@ export default function Home({ profile }) {
     <main className={styles.main}>
       <div className={styles.stack}>
         <HeroCard profile={profile} />
-        <DailyFocusCard latestWeight={latestWeight} eaten={eaten} setEaten={setEaten} burned={burned} setBurned={setBurned} />
+        <DailyFocusCard
+          latestWeight={latestWeight}
+          eaten={eaten}
+          setEaten={setEaten}
+          burned={burned}
+          setBurned={setBurned}
+          locked={isDayLocked}
+          setLocked={setIsDayLocked}
+        />
         <div className={styles.logSection}>
         <div className={styles.logSectionHeader}>
           <p className={styles.sectionEyebrow}>Logga idag</p>
@@ -399,7 +436,14 @@ export default function Home({ profile }) {
           <p className={styles.logSectionBody}>Träningen ligger nu i Dagens insats. Här håller du bara vikten och kaloribudgeten ren.</p>
           </div>
         <WeightJourney profile={profile} onOpen={() => setModal('weight')} />
-        <QuickStats profile={profile} eaten={eaten} burned={burned} setEaten={setEaten} />
+        <QuickStats
+          key={isDayLocked ? 'quickstats-locked' : 'quickstats-open'}
+          profile={profile}
+          eaten={eaten}
+          burned={burned}
+          setEaten={setEaten}
+          locked={isDayLocked}
+        />
         </div>
       </div>
 

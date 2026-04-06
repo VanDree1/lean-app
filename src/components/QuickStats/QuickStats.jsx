@@ -75,12 +75,13 @@ function StepsCard({
   onInputSubmit,
   onInputCancel,
   onInputBlur,
+  locked,
 }) {
   const progress = Math.max(0, Math.min(100, target > 0 ? (value / target) * 100 : 0));
 
   return (
-    <section className={[styles.card, feedback ? styles.cardSaved : ''].join(' ')} aria-label={label}>
-      <button type="button" className={styles.addButton} onClick={onEditStart} aria-label={`Lägg till ${label.toLowerCase()}`}>
+    <section className={[styles.card, feedback ? styles.cardSaved : '', locked ? styles.cardLocked : ''].join(' ')} aria-label={label}>
+      <button type="button" className={styles.addButton} onClick={onEditStart} aria-label={`Lägg till ${label.toLowerCase()}`} disabled={locked}>
         <Plus size={16} strokeWidth={1.5} />
       </button>
 
@@ -147,14 +148,15 @@ function CaloriesCard({
   onInputSubmit,
   onInputCancel,
   onInputBlur,
+  locked,
 }) {
   const remaining = goal - eaten + burned;
   const netEaten = eaten - burned;
   const progress = Math.max(0, Math.min(100, goal > 0 ? (netEaten / goal) * 100 : 0));
 
   return (
-    <section className={[styles.card, feedback ? styles.cardSaved : ''].join(' ')} aria-label="Kalorier">
-      <button type="button" className={styles.addButton} onClick={onEditStart} aria-label="Lägg till kalorier">
+    <section className={[styles.card, feedback ? styles.cardSaved : '', locked ? styles.cardLocked : ''].join(' ')} aria-label="Kalorier">
+      <button type="button" className={styles.addButton} onClick={onEditStart} aria-label="Lägg till kalorier" disabled={locked}>
         <Plus size={16} strokeWidth={1.5} />
       </button>
 
@@ -211,7 +213,7 @@ function CaloriesCard({
   );
 }
 
-export default function QuickStats({ profile = {}, eaten, burned, setEaten }) {
+export default function QuickStats({ profile = {}, eaten, burned, setEaten, locked = false }) {
   const [steps, setSteps] = useState(() => readInitialSteps());
   const [editMode, setEditMode] = useState({ calories: false, steps: false });
   const [inputValue, setInputValue] = useState('');
@@ -274,6 +276,10 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten }) {
   }
 
   function handleSaveCalories() {
+    if (locked) {
+      closeEditor('calories');
+      return;
+    }
     if (skipBlurSaveRef.current) {
       skipBlurSaveRef.current = false;
       closeEditor('calories');
@@ -303,6 +309,10 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten }) {
   }
 
   function handleSaveSteps() {
+    if (locked) {
+      closeEditor('steps');
+      return;
+    }
     if (skipBlurSaveRef.current) {
       skipBlurSaveRef.current = false;
       closeEditor('steps');
@@ -342,6 +352,7 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten }) {
         feedback={feedback.calories}
         inputRef={caloriesInputRef}
         onEditStart={() => {
+          if (locked) return;
           setEditMode({ calories: true, steps: false });
           setInputValue('');
         }}
@@ -352,6 +363,7 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten }) {
           closeEditor('calories');
         }}
         onInputBlur={handleSaveCalories}
+        locked={locked}
       />
       <StepsCard
         cardKey="steps"
@@ -364,6 +376,7 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten }) {
         feedback={feedback.steps}
         inputRef={stepsInputRef}
         onEditStart={() => {
+          if (locked) return;
           setEditMode({ calories: false, steps: true });
           setInputValue('');
         }}
@@ -374,6 +387,7 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten }) {
           closeEditor('steps');
         }}
         onInputBlur={handleSaveSteps}
+        locked={locked}
       />
     </div>
   );
