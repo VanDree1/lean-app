@@ -63,7 +63,7 @@ function getStatusTone(entry, goal) {
   return 'steady';
 }
 
-export default function Journal() {
+export default function Journal({ onClose = null }) {
   const { state } = useAppStore();
   const goal = state.profile?.caloriesGoal || 3150;
 
@@ -73,7 +73,7 @@ export default function Journal() {
       .sort((a, b) => b.date.localeCompare(a.date));
   }, [state.daily.dailyEntries]);
 
-  return (
+  const content = (
     <main className={styles.main}>
       <div className={styles.stack}>
         <section className={styles.hero}>
@@ -130,5 +130,26 @@ export default function Journal() {
         )}
       </div>
     </main>
+  );
+
+  if (!onClose) {
+    return content;
+  }
+
+  return (
+    <div className={styles.overlay} onClick={(event) => event.target === event.currentTarget && onClose()}>
+      <section className={styles.modal} role="dialog" aria-modal="true" aria-label="Journal">
+        <div className={styles.modalHeader}>
+          <div>
+            <p className={styles.eyebrow}>Journal</p>
+            <h2 className={styles.modalTitle}>Tidigare dagar</h2>
+          </div>
+          <button type="button" className={styles.close} onClick={onClose} aria-label="Stäng journal">✕</button>
+        </div>
+        <div className={styles.modalBody}>
+          {content}
+        </div>
+      </section>
+    </div>
   );
 }

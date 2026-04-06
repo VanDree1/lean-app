@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import WeightForm from './WeightForm';
 import WeightLog from './WeightLog';
 import { useWeightLog } from './useWeightLog';
+import Journal from '../../pages/Journal';
 import styles from './WeightModal.module.css';
 
 export default function WeightModal({ onClose }) {
@@ -9,6 +10,7 @@ export default function WeightModal({ onClose }) {
   const overlayRef = useRef(null);
   const [justSaved, setJustSaved] = useState(false);
   const [savedWeight, setSavedWeight] = useState(null);
+  const [showJournal, setShowJournal] = useState(false);
 
   useEffect(() => {
     function onKey(e) { if (e.key === 'Escape') onClose(); }
@@ -43,11 +45,16 @@ export default function WeightModal({ onClose }) {
           <p className={styles.footerLine}>
             {current.toFixed(1)} kg → mål {GOAL_WEIGHT} kg
           </p>
+          <button type="button" className={styles.historyButton} onClick={() => setShowJournal(true)}>
+            Öppna historik
+          </button>
           <p className={[styles.footerStatus, justSaved ? styles.footerStatusVisible : ''].join(' ')}>
             {savedWeight !== null ? `${savedWeight.toFixed(1)} kg tillagd` : 'Sparat'}
           </p>
         </div>
       </div>
+
+      {showJournal && <Journal onClose={() => setShowJournal(false)} />}
     </div>
   );
 }

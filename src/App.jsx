@@ -4,7 +4,6 @@ import Onboarding from './components/Onboarding/Onboarding';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
-import Journal from './pages/Journal';
 import Profile from './pages/Profile';
 import Recipes from './pages/Recipes';
 import { useAppStore } from './store/useAppStore';
@@ -49,7 +48,6 @@ export default function App() {
       <Header />
       <div className={[styles.viewShell, isViewVisible ? styles.viewVisible : styles.viewHidden].join(' ')}>
         {displayedView === 'hem' && <Home profile={state.profile} />}
-        {displayedView === 'journal' && <Journal />}
         {displayedView === 'recept' && <Recipes />}
         {displayedView === 'profil' && <Profile profile={state.profile} />}
       </div>

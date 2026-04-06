@@ -101,6 +101,23 @@
   color: var(--text-muted);
 }
 
+.historyButton {
+  align-self: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.64);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.historyButton:hover {
+  color: rgba(255, 255, 255, 0.86);
+}
+
 .footerStatus {
   min-height: 1rem;
   font-size: 0.75rem;

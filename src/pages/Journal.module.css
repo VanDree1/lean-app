@@ -1,3 +1,64 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.modal {
+  width: 100%;
+  max-width: 760px;
+  max-height: 92svh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 1.75rem 1.75rem 0 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(17, 17, 17, 0.92);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.1rem 0.85rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(17, 17, 17, 0.94);
+}
+
+.modalTitle {
+  margin-top: 0.35rem;
+  font-size: 1.1rem;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+}
+
+.close {
+  width: 2.2rem;
+  height: 2.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.72);
+  cursor: pointer;
+}
+
+.modalBody {
+  overflow-y: auto;
+}
+
 .main {
   flex: 1;
   width: 100%;
@@ -177,6 +238,10 @@
 }
 
 @media (max-width: 680px) {
+  .modal {
+    max-width: none;
+  }
+
   .row {
     grid-template-columns: 46px 16px minmax(0, 1fr);
     gap: 0.7rem;
@@ -190,5 +255,17 @@
   .emptyCard,
   .card {
     border-radius: 1.25rem;
+  }
+}
+
+@media (min-width: 680px) {
+  .overlay {
+    align-items: center;
+    padding: 1.5rem;
+  }
+
+  .modal {
+    border-radius: 1.75rem;
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.6);
   }
 }
