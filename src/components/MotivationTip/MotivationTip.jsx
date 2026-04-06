@@ -126,12 +126,12 @@ export default function MotivationTip() {
     return () => controller.abort();
   }, [goal]);
 
-  const statusText = loggedToday ? 'Dag säkrad' : GOAL_LABELS[goal] || GOAL_LABELS.default;
+  const statusText = loggedToday ? 'Klar' : GOAL_LABELS[goal] || GOAL_LABELS.default;
   const quoteLead = mode === 'ground'
-    ? 'Ta ett lugnt beslut och håll det.'
+    ? 'Håll det lugnt.'
     : loggedToday
-      ? 'Bra. Nu räcker det att hålla rytmen.'
-      : 'Låt det här sätta tonen för resten av dagen.';
+      ? 'Behåll rytmen.'
+      : 'Sätt tonen.';
 
   return (
     <section className={styles.card} aria-label="Dagens citat">

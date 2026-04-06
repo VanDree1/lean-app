@@ -4,7 +4,7 @@
     rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1.5rem;
-  padding: 1.5rem;
+  padding: 1.35rem 1.4rem;
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   box-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
@@ -14,8 +14,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
 }
 
 .eyebrow {
@@ -27,17 +27,17 @@
 }
 
 .status {
-  font-size: 0.7rem;
+  font-size: 0.66rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: rgba(191, 232, 210, 0.72);
+  color: rgba(255, 255, 255, 0.34);
 }
 
 .lead {
-  margin: 0 0 0.6rem;
-  max-width: 24ch;
-  font-size: 0.78rem;
+  margin: 0 0 0.45rem;
+  max-width: 18ch;
+  font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -46,17 +46,17 @@
 
 .quote {
   margin: 0;
-  max-width: 26ch;
-  font-size: 1.05rem;
-  line-height: 1.65;
+  max-width: 24ch;
+  font-size: 0.98rem;
+  line-height: 1.55;
   letter-spacing: -0.025em;
   color: #ffffff;
   text-wrap: balance;
 }
 
 .author {
-  margin: 1rem 0 0;
-  font-size: 0.8rem;
+  margin: 0.75rem 0 0;
+  font-size: 0.74rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
