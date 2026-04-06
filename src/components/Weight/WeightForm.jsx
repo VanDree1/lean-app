@@ -10,7 +10,7 @@ function isValid(value) {
   return !isNaN(kg) && kg >= 30 && kg <= 300;
 }
 
-export default function WeightForm({ onSave }) {
+export default function WeightForm({ onSave, onSaved }) {
   const [date, setDate] = useState(today);
   const [weight, setWeight] = useState('');
   const [saved, setSaved] = useState(false);
@@ -19,6 +19,7 @@ export default function WeightForm({ onSave }) {
     e.preventDefault();
     if (!isValid(weight)) return;
     onSave(date, parseFloat(weight));
+    onSaved?.(parseFloat(weight));
     setWeight('');
     setSaved(true);
     setTimeout(() => setSaved(false), 1500);

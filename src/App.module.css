@@ -1,0 +1,16 @@
+.viewShell {
+  min-height: 0;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.24s ease, transform 0.24s ease;
+}
+
+.viewHidden {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.viewVisible {
+  opacity: 1;
+  transform: translateY(0);
+}

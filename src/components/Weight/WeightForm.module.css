@@ -83,7 +83,8 @@
   font-family: var(--font-sans);
   margin-top: 0.25rem;
   box-shadow: 0 4px 16px var(--green-glow);
+  transition: opacity var(--transition), box-shadow var(--transition), transform 0.18s ease;
 }
 
 .btn:hover  { opacity: 0.9; box-shadow: 0 6px 20px var(--green-glow); }
-.btn:active { opacity: 0.75; }
+.btn:active { opacity: 0.75; transform: scale(0.97); }

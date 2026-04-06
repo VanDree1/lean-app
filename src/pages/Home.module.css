@@ -351,6 +351,11 @@
   padding: 1.5rem;
   cursor: pointer;
   overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.weightCard:active {
+  transform: scale(0.985);
 }
 
 .weightSparkline {
@@ -487,6 +492,15 @@
   color: rgba(255, 255, 255, 0.5);
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.weightCard:hover .weightLink {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.weightCard:active .weightLink {
+  transform: translateX(1px);
 }
 
 .noteCard {
