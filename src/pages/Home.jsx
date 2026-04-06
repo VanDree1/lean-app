@@ -14,8 +14,8 @@ const PROFILE_KEY = 'djur-i-juni:profile';
 const ONBOARDING_KEY = 'djur-i-juni:onboarding';
 const HEALTH_FACT_CACHE_KEY_PREFIX = 'djur-i-juni:health-fact';
 const HEALTH_FACT_TTL_MS = 1000 * 60 * 60 * 12;
-const LOGGED_TODAY_KEY = 'djur_i_juni_logged_today';
-const STREAK_KEY = 'djur_i_juni_streak';
+const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
+const STREAK_KEY = 'djur_juni_streak';
 const WEIGHT_TREND = [103.2, 102.5, 102.1, 101.8, 101.0, 100.5, 100.0];
 
 const HEALTH_TOPICS_BY_GOAL = {
@@ -209,18 +209,20 @@ function applyDailyCoachContext(tip, loggedToday) {
 
 
 function DailyFocusCard() {
-  const [isLoggedToday, setIsLoggedToday] = useState(() => localStorage.getItem(LOGGED_TODAY_KEY) === 'true');
+  const [lastLoggedDate, setLastLoggedDate] = useState(() => localStorage.getItem(LAST_LOGGED_DATE_KEY) || null);
   const [streak, setStreak] = useState(() => Number(localStorage.getItem(STREAK_KEY)) || 0);
   const [isCompleting, setIsCompleting] = useState(false);
+  const todayString = new Date().toDateString();
+  const isLoggedToday = lastLoggedDate === todayString;
 
   function handleCheckIn() {
     if (isLoggedToday) return;
 
     const nextStreak = streak + 1;
     setIsCompleting(true);
-    setIsLoggedToday(true);
+    setLastLoggedDate(todayString);
     setStreak(nextStreak);
-    localStorage.setItem(LOGGED_TODAY_KEY, 'true');
+    localStorage.setItem(LAST_LOGGED_DATE_KEY, todayString);
     localStorage.setItem(STREAK_KEY, String(nextStreak));
 
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
@@ -243,15 +245,17 @@ function DailyFocusCard() {
       onClick={handleCheckIn}
       disabled={isLoggedToday}
     >
-      <div className={styles.focusMain}>
-        <p className={styles.sectionEyebrow}>Idag</p>
-        <h2 id="today-title" className={styles.focusTitle}>
-          {isLoggedToday ? 'Dagens insats är loggad.' : 'Logga idag'}
-        </h2>
-        <p className={styles.focusBody}>
-          {isLoggedToday ? 'Bra jobbat. Vila nu.' : 'Tryck här när dagens insats är klar.'}
-        </p>
-        <p className={styles.focusMeta}>Streak {streak} dagar</p>
+      <div className={styles.focusContent}>
+        <div className={styles.focusMain}>
+          <p className={styles.sectionEyebrow}>Idag</p>
+          <h2 id="today-title" className={styles.focusTitle}>
+            {isLoggedToday ? 'Dagens insats är loggad.' : 'Logga idag för att behålla rytmen'}
+          </h2>
+          <p className={styles.focusBody}>
+            {isLoggedToday ? 'Bra jobbat. Vila nu.' : 'En lugn check-in räcker för att hålla dagen intakt.'}
+          </p>
+          <p className={styles.focusMeta}>Streak {streak} dagar</p>
+        </div>
       </div>
 
       <div className={styles.focusStatus} aria-hidden="true">

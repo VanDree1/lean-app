@@ -239,6 +239,13 @@
   min-width: 0;
 }
 
+.focusContent {
+  min-width: 0;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
 .focusCheckin {
   width: 100%;
   display: flex;
@@ -268,7 +275,7 @@
 .focusCardDone {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  opacity: 0.5;
+  opacity: 0.6;
   pointer-events: none;
   box-shadow: none;
 }
