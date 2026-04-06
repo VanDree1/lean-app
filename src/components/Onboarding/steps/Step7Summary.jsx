@@ -1,27 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { calcTargets } from '../../../hooks/useProfile';
 import s from '../Step.module.css';
 
-function formatDate(iso) {
-  if (!iso) return null;
-  return new Date(iso).toLocaleDateString('sv-SE', { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
 function makeConfetti() {
-  return Array.from({ length: 28 }, (_, i) => ({
+  return Array.from({ length: 32 }, (_, i) => ({
     id: i,
-    left: `${4 + (i / 28) * 92}%`,
-    hue: Math.floor(Math.random() * 360),
-    sz: 6 + Math.floor(Math.random() * 7),
-    dur: `${0.6 + Math.random() * 0.5}s`,
-    delay: `${Math.random() * 0.35}s`,
+    left: `${3 + (i / 32) * 94}%`,
+    hue: [140, 160, 200, 50, 30][i % 5],
+    sz: 5 + Math.floor(Math.random() * 8),
+    dur: `${0.55 + Math.random() * 0.6}s`,
+    delay: `${Math.random() * 0.4}s`,
   }));
 }
 
 const GOAL_LABELS = {
   fat_loss: 'Bränna fett',
-  muscle: 'Bygga muskler',
-  energy: 'Mer energi',
-  target: 'Nå målvikt',
+  muscle:   'Bygga muskler',
+  energy:   'Mer energi',
+  target:   'Nå målvikt',
 };
 
 const ACTIVITY_LABELS = {
@@ -30,26 +26,60 @@ const ACTIVITY_LABELS = {
   very_active: 'Mycket aktiv',
 };
 
-export default function Step7Summary({ data, onNext, submitLabel = 'Spara' }) {
+function CountUp({ target, duration = 900, suffix = '' }) {
+  const [val, setVal] = useState(0);
+
+  useEffect(() => {
+    if (!target) return;
+    const steps = 40;
+    const inc = target / steps;
+    let current = 0;
+    let frame = 0;
+    const id = setInterval(() => {
+      frame++;
+      current = Math.min(Math.round(inc * frame), target);
+      setVal(current);
+      if (current >= target) clearInterval(id);
+    }, duration / steps);
+    return () => clearInterval(id);
+  }, [target, duration]);
+
+  return <>{val}{suffix}</>;
+}
+
+export default function Step7Summary({ data, onNext, submitLabel = 'Spara & börja' }) {
   const [fired, setFired] = useState(false);
-  const [confetti] = useState(() => makeConfetti());
+  const [revealed, setRevealed] = useState(false);
+  const [confetti] = useState(makeConfetti);
 
   const firstName = data.name ? data.name.split(' ')[0] : 'du';
-  const diff = parseFloat(data.currentWeight) - parseFloat(data.goalWeight);
 
-  const badges = [
-    data.goal        && { key: 'Mål',        val: GOAL_LABELS[data.goal] ?? data.goal },
-    data.goalWeight  && { key: 'Målvikt',     val: `${data.goalWeight} kg`, accent: true },
-    data.pace        && { key: 'Takt',        val: `${String(data.pace).replace('.', ',')} kg/v` },
-    data.targetDate  && { key: 'Klart senast', val: formatDate(data.targetDate) },
-    data.diet        && { key: 'Kosttyp',     val: data.diet },
-    data.activity    && { key: 'Aktivitet',   val: ACTIVITY_LABELS[data.activity] ?? data.activity },
-    diff > 0         && { key: 'Att tappa',   val: `${diff.toFixed(1)} kg` },
-  ].filter(Boolean);
+  // Build a profile-shaped object for calcTargets
+  const profileForCalc = {
+    startWeight: parseFloat(data.currentWeight) || 90,
+    height:      parseFloat(data.height) || 175,
+    age:         parseFloat(data.age) || 30,
+    gender:      data.gender || null,
+    activity:    data.activity || 'light',
+    goal:        data.goal || 'fat_loss',
+  };
+  const { kcalGoal, proteinGoal } = calcTargets(profileForCalc);
+
+  const diff = parseFloat(data.currentWeight) - parseFloat(data.goalWeight);
+  const weightGoalLabel = data.weightGoal === 'maintain'
+    ? 'Hålla vikten'
+    : data.weightGoal === 'gain'
+      ? `+${Math.abs(diff).toFixed(1)} kg att bygga`
+      : `${diff > 0 ? diff.toFixed(1) : '–'} kg att tappa`;
+
+  useEffect(() => {
+    const t = setTimeout(() => setRevealed(true), 180);
+    return () => clearTimeout(t);
+  }, []);
 
   function handleStart() {
     setFired(true);
-    setTimeout(() => onNext({}), 1100);
+    setTimeout(() => onNext({}), 1200);
   }
 
   return (
@@ -60,13 +90,7 @@ export default function Step7Summary({ data, onNext, submitLabel = 'Spara' }) {
             <span
               key={c.id}
               className={s.confettiPiece}
-              style={{
-                left: c.left,
-                '--hue': c.hue,
-                '--sz': `${c.sz}px`,
-                '--dur': c.dur,
-                '--delay': c.delay,
-              }}
+              style={{ left: c.left, '--hue': c.hue, '--sz': `${c.sz}px`, '--dur': c.dur, '--delay': c.delay }}
             />
           ))}
         </div>
@@ -77,26 +101,74 @@ export default function Step7Summary({ data, onNext, submitLabel = 'Spara' }) {
         <div className={s.summaryCheckWrap}>
           <div className={s.summaryCheck}>✓</div>
         </div>
-        <p className={s.summaryHeroTitle}>Din plan är klar</p>
-        <p className={s.summaryHeroSub}>
-          Nu finns en tydlig riktning för dig, {firstName}.
-        </p>
-        <p className={s.summarySaveNote}>Spara planen och gå vidare till appen.</p>
+        <p className={s.summaryHeroTitle}>Din plan är klar, {firstName}.</p>
+        <p className={s.summaryHeroSub}>Baserat på din data — beräknat för dig.</p>
       </div>
 
+      {/* Big reveal — the satisfying numbers */}
+      <div className={[s.revealRow, revealed ? s.revealRowVisible : ''].join(' ')}>
+        <div className={s.revealCard}>
+          <span className={s.revealVal}>
+            {revealed ? <CountUp target={kcalGoal} duration={800} /> : '–'}
+          </span>
+          <span className={s.revealLabel}>kcal / dag</span>
+          <span className={s.revealHint}>Ditt dagliga mål</span>
+        </div>
+        <div className={s.revealCard}>
+          <span className={s.revealVal}>
+            {revealed ? <CountUp target={proteinGoal} duration={700} suffix="g" /> : '–'}
+          </span>
+          <span className={s.revealLabel}>protein / dag</span>
+          <span className={s.revealHint}>Optimerat för ditt mål</span>
+        </div>
+      </div>
+
+      {/* Supporting detail badges */}
       <div className={s.summaryBadges}>
-        {badges.map((b) => (
-          <div key={b.key} className={s.summaryBadge}>
-            <span className={s.summaryBadgeKey}>{b.key}</span>
-            <span className={[s.summaryBadgeVal, b.accent ? s.summaryBadgeAccent : ''].join(' ')}>
-              {b.val}
-            </span>
+        {data.goal && (
+          <div className={s.summaryBadge}>
+            <span className={s.summaryBadgeKey}>Fokus</span>
+            <span className={s.summaryBadgeVal}>{GOAL_LABELS[data.goal] ?? data.goal}</span>
           </div>
-        ))}
+        )}
+        {data.activity && (
+          <div className={s.summaryBadge}>
+            <span className={s.summaryBadgeKey}>Aktivitet</span>
+            <span className={s.summaryBadgeVal}>{ACTIVITY_LABELS[data.activity] ?? data.activity}</span>
+          </div>
+        )}
+        {(data.currentWeight && data.weightGoal) && (
+          <div className={s.summaryBadge}>
+            <span className={s.summaryBadgeKey}>Viktmål</span>
+            <span className={[s.summaryBadgeVal, s.summaryBadgeAccent].join(' ')}>{weightGoalLabel}</span>
+          </div>
+        )}
+        {data.goalWeight && data.weightGoal !== 'maintain' && (
+          <div className={s.summaryBadge}>
+            <span className={s.summaryBadgeKey}>Målvikt</span>
+            <span className={s.summaryBadgeVal}>{data.goalWeight} kg</span>
+          </div>
+        )}
+        {data.pace > 0 && (
+          <div className={s.summaryBadge}>
+            <span className={s.summaryBadgeKey}>Takt</span>
+            <span className={s.summaryBadgeVal}>{String(data.pace).replace('.', ',')} kg/v</span>
+          </div>
+        )}
+        {data.diet && (
+          <div className={s.summaryBadge}>
+            <span className={s.summaryBadgeKey}>Kost</span>
+            <span className={s.summaryBadgeVal}>{data.diet}</span>
+          </div>
+        )}
       </div>
 
-      <button className={[s.btnPrimary, fired ? s.summaryButtonDone : ''].join(' ')} onClick={handleStart} disabled={fired}>
-        {fired ? 'Klart...' : submitLabel}
+      <button
+        className={[s.btnPrimary, fired ? s.summaryButtonDone : ''].join(' ')}
+        onClick={handleStart}
+        disabled={fired}
+      >
+        {fired ? 'Startar...' : submitLabel}
       </button>
     </div>
   );

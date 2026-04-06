@@ -89,3 +89,22 @@
     font-size: 0.64rem;
   }
 }
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.22rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #0d1214;
+  font-size: 0.58rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  pointer-events: none;
+}

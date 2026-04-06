@@ -29,9 +29,9 @@ export default function StepGoal({ data, onNext, onChangeData, showFooter = true
 
   return (
     <div className={[s.step, !showFooter ? s.stepFooterless : ''].join(' ')}>
-      <p className={s.kicker}>Mål</p>
-      <h2 className={s.title}>Vad är ditt mål?</h2>
-      <p className={s.subtitle}>Välj den riktning som känns mest relevant just nu.</p>
+      <p className={s.kicker}>Varför gör du det här?</p>
+      <h2 className={s.title}>Vad driver dig?</h2>
+      <p className={s.subtitle}>Det här styr hur vi sätter dina dagliga mål.</p>
 
       <div className={s.hypeStack}>
         {GOALS.map((g) => {

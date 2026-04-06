@@ -1,3 +1,4 @@
+import { useAppStore } from '../store/useAppStore';
 import styles from './BottomNav.module.css';
 
 function HomeIcon({ active }) {
@@ -52,6 +53,9 @@ function ProfileIcon({ active }) {
 }
 
 export default function BottomNav({ active, onChange }) {
+  const { state } = useAppStore();
+  const shoppingBadge = state.shoppingList?.filter((i) => !i.checked).length ?? 0;
+
   return (
     <nav className={styles.nav} aria-label="Huvudnavigation">
       <button
@@ -74,6 +78,11 @@ export default function BottomNav({ active, onChange }) {
         <div className={styles.iconWrap}>
           <RecipesIcon active={active === 'recept'} />
           {active === 'recept' && <span className={styles.activePip} aria-hidden="true" />}
+          {shoppingBadge > 0 && (
+            <span className={styles.badge} aria-label={`${shoppingBadge} varor i handlingslistan`}>
+              {shoppingBadge}
+            </span>
+          )}
         </div>
         <span className={styles.label}>Recept</span>
       </button>

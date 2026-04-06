@@ -171,9 +171,15 @@ function reducer(state, action) {
             },
           }
         : state.daily.dailyEntries;
+      const nextWeightLog = state.weightLog.filter((entry) => entry.date !== date);
+      const newLatest = nextWeightLog[0]?.weight ?? null;
       return {
         ...state,
-        weightLog: state.weightLog.filter((entry) => entry.date !== date),
+        weightLog: nextWeightLog,
+        profile: {
+          ...state.profile,
+          currentWeight: newLatest,
+        },
         daily: {
           ...state.daily,
           dailyEntries: nextDailyEntries,

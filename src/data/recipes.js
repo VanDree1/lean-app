@@ -5,6 +5,60 @@
  * Meal: 'Frukost' | 'Lunch' | 'Middag'
  */
 
+// Unsplash image map keyed by recipe id.
+// All photos are served at 600px wide, 80% quality, cropped to 16:9.
+const BASE = 'https://images.unsplash.com/photo-';
+const Q    = '?w=600&h=340&q=80&fit=crop&auto=format';
+
+const IMAGE_MAP = {
+  1:  `${BASE}1532550907401-a500c9a57435${Q}`, // roast chicken
+  2:  `${BASE}1519708227418-c8fd9a32b7a2${Q}`, // salmon fillet
+  3:  `${BASE}1525351484163-7529414344d8${Q}`, // scrambled eggs
+  4:  `${BASE}1546069901-ba9599a7e63c${Q}`,    // veggie bowl / stew
+  5:  `${BASE}1529692236671-f1f6cf9683ba${Q}`, // grilled steak
+  6:  `${BASE}1534422298391-e4f8c172dddb${Q}`, // asian stir fry
+  7:  `${BASE}1547592166-23ac45744acd${Q}`,    // warm soup
+  8:  `${BASE}1533089860892-a7c6f0a88666${Q}`, // bacon & eggs breakfast
+  9:  `${BASE}1473093226795-af9932fe5856${Q}`, // pasta
+  10: `${BASE}1532550907401-a500c9a57435${Q}`, // chicken thighs
+  11: `${BASE}1571748982800-fa51082c2224${Q}`, // oatmeal with berries
+  12: `${BASE}1574484284002-952d92456975${Q}`, // pork tenderloin
+  13: `${BASE}1484980972926-edee96e0960d${Q}`, // white fish fillet
+  14: `${BASE}1529692236671-f1f6cf9683ba${Q}`, // lamb chops (steak pan)
+  15: `${BASE}1511690656952-34342bb7c2f2${Q}`, // roasted vegetables
+  16: `${BASE}1551183053-bf91798d43e2${Q}`,    // beef patties
+  17: `${BASE}1547592166-23ac45744acd${Q}`,    // carrot soup
+  18: `${BASE}1561043433-aaf687c4cf04${Q}`,    // chicken wrap
+  19: `${BASE}1547592166-23ac45744acd${Q}`,    // broccoli soup
+  20: `${BASE}1551183053-bf91798d43e2${Q}`,    // parmesan beef patties
+  21: `${BASE}1505253716362-afaea1d3d1af${Q}`, // quark / yogurt
+  22: `${BASE}1525351484163-7529414344d8${Q}`, // egg snack
+  23: `${BASE}1546069901-ba9599a7e63c${Q}`,    // hummus & veggies
+  24: `${BASE}1517093157656-b9eccef91cb1${Q}`, // nuts & dark chocolate
+  25: `${BASE}1505252585461-04db1eb84625${Q}`, // protein smoothie
+  26: `${BASE}1505253716362-afaea1d3d1af${Q}`, // skyr & granola
+  27: `${BASE}1571748982800-fa51082c2224${Q}`, // oatmeal berries
+  28: `${BASE}1541519227354-08fa5d50c820${Q}`, // avocado toast
+  29: `${BASE}1571748982800-fa51082c2224${Q}`, // overnight oats
+  30: `${BASE}1440985961273-93f6ac73e1a7${Q}`, // smoothie bowl
+  31: `${BASE}1525351484163-7529414344d8${Q}`, // scrambled eggs & spinach
+  32: `${BASE}1547592166-23ac45744acd${Q}`,    // red lentil soup
+  33: `${BASE}1561043433-aaf687c4cf04${Q}`,    // falafel wrap
+  34: `${BASE}1504544750208-a8eb79ddc4f2${Q}`, // halloumi quinoa bowl
+  35: `${BASE}1547592166-23ac45744acd${Q}`,    // miso noodle soup
+  36: `${BASE}1561043433-aaf687c4cf04${Q}`,    // black bean burrito
+  37: `${BASE}1512621776951-a57141f2eefd${Q}`, // chickpea salad
+  38: `${BASE}1455619452474-9cac9d44ca79${Q}`, // thai red curry
+  39: `${BASE}1547592166-23ac45744acd${Q}`,    // dahl lentils
+  40: `${BASE}1473093226795-af9932fe5856${Q}`, // pasta spinach
+  41: `${BASE}1511690656952-34342bb7c2f2${Q}`, // aubergine parmigiana
+  42: `${BASE}1546069901-ba9599a7e63c${Q}`,    // chickpea coconut stew
+  43: `${BASE}1534422298391-e4f8c172dddb${Q}`, // vegetable wok
+  44: `${BASE}1534422298391-e4f8c172dddb${Q}`, // edamame
+  45: `${BASE}1541519227354-08fa5d50c820${Q}`, // rice cake avocado
+  46: `${BASE}1517093157656-b9eccef91cb1${Q}`, // dates & almond butter
+};
+
 const recipes = [
   {
     id: 1,
@@ -1286,4 +1340,4 @@ const recipes = [
   },
 ];
 
-export default recipes;
+export default recipes.map((r) => ({ ...r, imageUrl: IMAGE_MAP[r.id] || null }));

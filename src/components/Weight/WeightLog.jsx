@@ -5,17 +5,26 @@ function formatDate(iso) {
   return `${d}/${m}/${y.slice(2)}`;
 }
 
-export default function WeightLog({ entries }) {
+export default function WeightLog({ entries, onRemove }) {
   if (entries.length === 0) {
     return <p className={styles.empty}>Inga loggningar än.</p>;
   }
 
   return (
     <ul className={styles.list}>
-      {entries.slice(0, 5).map((entry) => (
+      {entries.slice(0, 7).map((entry) => (
         <li key={entry.date} className={styles.item}>
           <span className={styles.date}>{formatDate(entry.date)}</span>
           <span className={styles.weight}>{entry.weight.toFixed(1)} kg</span>
+          {onRemove && (
+            <button
+              className={styles.removeBtn}
+              onClick={() => onRemove(entry.date)}
+              aria-label={`Ta bort ${formatDate(entry.date)}`}
+            >
+              ✕
+            </button>
+          )}
         </li>
       ))}
     </ul>

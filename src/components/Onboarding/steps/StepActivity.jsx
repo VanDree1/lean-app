@@ -27,9 +27,9 @@ export default function StepActivity({ data, onNext, onChangeData, showFooter = 
 
   return (
     <div className={[s.step, !showFooter ? s.stepFooterless : ''].join(' ')}>
-      <p className={s.kicker}>Aktivitet</p>
-      <h2 className={s.title}>Hur aktiv är du?</h2>
-      <p className={s.subtitle}>Din nivå hjälper oss sätta rätt ram för dagen.</p>
+      <p className={s.kicker}>Din vardag</p>
+      <h2 className={s.title}>Hur ser din vardag ut?</h2>
+      <p className={s.subtitle}>Avgör hur mycket energi din kropp behöver dagligen.</p>
 
       <div className={s.hypeStack}>
         {LEVELS.map((l) => {

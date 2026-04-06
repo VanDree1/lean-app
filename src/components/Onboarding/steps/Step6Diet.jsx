@@ -45,9 +45,9 @@ export default function Step6Diet({ data, onNext, onChangeData, showFooter = tru
 
   return (
     <div className={[s.step, !showFooter ? s.stepFooterless : ''].join(' ')}>
-      <p className={s.kicker}>Nutrition Style</p>
+      <p className={s.kicker}>Hur äter du?</p>
       <h2 className={s.title}>Vilken kost passar dig?</h2>
-      <p className={s.subtitle}>Välj det som ligger närmast hur du redan äter.</p>
+      <p className={s.subtitle}>Vi anpassar recepten och tipsen efter ditt val.</p>
 
       <div className={s.hypeStack}>
         {DIETS.map((d) => {

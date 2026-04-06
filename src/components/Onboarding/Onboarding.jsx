@@ -24,23 +24,22 @@ const INITIAL_DATA = {
  * Always called with the *current* data so we can skip steps correctly.
  */
 function buildSteps(data) {
+  // Narrative order: who → where now → where going → why → how → diet → reveal
   const steps = [
     Step1Welcome,
-    StepGoal,
-    StepActivity,
-    Step2Profile,
-    Step3CurrentWeight,
-    StepWeightGoal,
+    Step2Profile,       // Namn, ålder, längd, kön
+    Step3CurrentWeight, // Nuläge
+    StepWeightGoal,     // Riktning: gå ner / hålla / gå upp
   ];
 
-  if (data.weightGoal === 'maintain') {
-    // Skip goal-weight/pace step — we'll set goalWeight = currentWeight automatically
-  } else {
-    steps.push(Step4GoalWeight);
+  if (data.weightGoal !== 'maintain') {
+    steps.push(Step4GoalWeight); // Destination + takt
   }
 
-  steps.push(Step6Diet);
-  steps.push(Step7Summary);
+  steps.push(StepGoal);     // Motivation / varför
+  steps.push(StepActivity); // Livsstil
+  steps.push(Step6Diet);    // Kost
+  steps.push(Step7Summary); // Reveal
   return steps;
 }
 

@@ -41,6 +41,7 @@ function getInitials(name) {
 
 const FIELDS = {
   caloriesGoal:  { key: 'caloriesGoal',  label: 'Kalorimål',      type: 'number',  placeholder: 'kcal', min: 800,  max: 6000, hint: 'Ditt dagliga kaloriintag i kcal' },
+  proteinGoal:   { key: 'proteinGoal',   label: 'Proteinmål',     type: 'number',  placeholder: 'g',    min: 20,   max: 400,  hint: 'Ditt dagliga proteinintag i gram' },
   goalWeight:    { key: 'goalWeight',    label: 'Viktmål',         type: 'number',  placeholder: 'kg',   min: 30,   max: 300,  hint: 'I kilo' },
   currentWeight: { key: 'currentWeight', label: 'Nuv. vikt',       type: 'number',  placeholder: 'kg',   min: 30,   max: 300,  hint: 'I kilo' },
   name:          { key: 'name',          label: 'Namn',            type: 'text',    placeholder: 'Ditt förnamn' },
@@ -217,7 +218,7 @@ export default function Profile({ profile }) {
           <ProfileRow
             label="Proteinmål"
             value={proteinGoal ? `${proteinGoal} g` : null}
-            onEdit={() => setEditing('caloriesGoal')}
+            onEdit={() => setEditing('proteinGoal')}
           />
           <ProfileRow
             label="Nuv. vikt"

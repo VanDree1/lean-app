@@ -42,14 +42,26 @@ function HeartIcon({ filled }) {
   );
 }
 
-function RecipeCard({ recipe, isFavorite, onToggleFavorite, onClick }) {
+function PlusIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function RecipeCard({ recipe, isFavorite, onToggleFavorite, onClick, onLog, logged }) {
   return (
     <button type="button" className={styles.card} onClick={() => onClick(recipe)}>
-      <div className={styles.cardTop}>
-        <div className={styles.cardMeta}>
-          <span className={styles.mealTag}>{recipe.meal}</span>
-          <span className={styles.dietTag}>{getPrimaryDiet(recipe.diets)}</span>
-          <span className={styles.prepTime}>{recipe.prepTime} min</span>
+      {recipe.imageUrl && (
+        <div className={styles.cardImg}>
+          <img
+            src={recipe.imageUrl}
+            alt={recipe.title}
+            className={styles.cardImgEl}
+            loading="lazy"
+            decoding="async"
+          />
           <button
             type="button"
             className={isFavorite ? styles.heartActive : styles.heart}
@@ -59,9 +71,34 @@ function RecipeCard({ recipe, isFavorite, onToggleFavorite, onClick }) {
             <HeartIcon filled={isFavorite} />
           </button>
         </div>
+      )}
+      <div className={styles.cardTop}>
+        {!recipe.imageUrl && (
+          <button
+            type="button"
+            className={isFavorite ? styles.heartActive : styles.heart}
+            aria-label={isFavorite ? 'Ta bort favorit' : 'Spara som favorit'}
+            onClick={(e) => { e.stopPropagation(); onToggleFavorite(recipe.id); }}
+          >
+            <HeartIcon filled={isFavorite} />
+          </button>
+        )}
+        <div className={styles.cardMeta}>
+          <span className={styles.mealTag}>{recipe.meal}</span>
+          <span className={styles.dietTag}>{getPrimaryDiet(recipe.diets)}</span>
+          <span className={styles.prepTime}>{recipe.prepTime} min</span>
+        </div>
         <h3 className={styles.cardTitle}>{recipe.title}</h3>
         <p className={styles.cardDesc}>{recipe.description}</p>
       </div>
+      <button
+        type="button"
+        className={logged ? styles.logBtnLogged : styles.logBtn}
+        aria-label={logged ? 'Loggad' : 'Logga rätten'}
+        onClick={(e) => { e.stopPropagation(); if (!logged) onLog(recipe); }}
+      >
+        {logged ? '✓ Loggad' : <><PlusIcon /> Logga</>}
+      </button>
       <div className={styles.cardMacros}>
         <div className={styles.macro}>
           <span className={styles.macroVal}>{recipe.kcal}</span>
@@ -189,18 +226,36 @@ function RecipeModal({ recipe, onClose, onAddToList }) {
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
-          <div>
-            <div className={styles.cardMeta}>
-              <span className={styles.mealTag}>{recipe.meal}</span>
-              <span className={styles.prepTime}>{recipe.prepTime} min</span>
-              <span className={styles.difficulty}>{recipe.difficulty}</span>
+        {recipe.imageUrl ? (
+          <div className={styles.modalHero}>
+            <img src={recipe.imageUrl} alt={recipe.title} className={styles.modalHeroImg} />
+            <div className={styles.modalHeroOverlay}>
+              <div className={styles.cardMeta}>
+                <span className={styles.mealTag}>{recipe.meal}</span>
+                <span className={styles.prepTime}>{recipe.prepTime} min</span>
+                <span className={styles.difficulty}>{recipe.difficulty}</span>
+              </div>
+              <h2 className={styles.modalHeroTitle}>{recipe.title}</h2>
             </div>
-            <h2 className={styles.modalTitle}>{recipe.title}</h2>
-            <p className={styles.cardDesc}>{recipe.description}</p>
+            <button className={styles.closeBtn} onClick={onClose} aria-label="Stäng">✕</button>
           </div>
-          <button className={styles.closeBtn} onClick={onClose} aria-label="Stäng">✕</button>
-        </div>
+        ) : (
+          <div className={styles.modalHeader}>
+            <div>
+              <div className={styles.cardMeta}>
+                <span className={styles.mealTag}>{recipe.meal}</span>
+                <span className={styles.prepTime}>{recipe.prepTime} min</span>
+                <span className={styles.difficulty}>{recipe.difficulty}</span>
+              </div>
+              <h2 className={styles.modalTitle}>{recipe.title}</h2>
+            </div>
+            <button className={styles.closeBtn} onClick={onClose} aria-label="Stäng">✕</button>
+          </div>
+        )}
+        <div className={styles.modalBody}>
+        {recipe.imageUrl && (
+          <p className={styles.modalSubDesc}>{recipe.description}</p>
+        )}
 
         <div className={styles.portionRow}>
           <span className={styles.portionLabel}>Portioner</span>
@@ -269,13 +324,14 @@ function RecipeModal({ recipe, onClose, onAddToList }) {
           <CartIcon />
           {added ? 'Tillagt!' : 'Lägg till i handlingslistan'}
         </button>
+        </div>{/* end modalBody */}
       </div>
     </div>
   );
 }
 
 export default function Recipes() {
-  const { state, toggleRecipeFavorite, setRecipeFilters } = useAppStore();
+  const { state, toggleRecipeFavorite, setRecipeFilters, setDailyValues } = useAppStore();
   const userDiet = state.profile?.diet || null;
   const activeDiet = state.recipes.filters?.diet ?? userDiet ?? 'Alla';
   const activeMeal = state.recipes.filters?.meal ?? 'Alla';
@@ -284,12 +340,24 @@ export default function Recipes() {
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(null);
   const [showList, setShowList] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [loggedIds, setLoggedIds] = useState(new Set());
   const favorites = new Set(state.recipes.favorites);
   const { items, addFromRecipe, toggle, clearChecked, clearAll, uncheckedCount } = useShoppingList();
 
   const toggleFavorite = useCallback((id) => {
     toggleRecipeFavorite(id);
   }, [toggleRecipeFavorite]);
+
+  const handleLog = useCallback((recipe) => {
+    setDailyValues({
+      calories: (state.daily.calories || 0) + recipe.kcal,
+      protein: (state.daily.protein || 0) + recipe.protein,
+    });
+    setLoggedIds((prev) => new Set([...prev, recipe.id]));
+    setToast(recipe.title);
+    setTimeout(() => setToast(null), 2500);
+  }, [setDailyValues, state.daily.calories, state.daily.protein]);
 
   const q = query.trim().toLowerCase();
   const filtered = recipes
@@ -298,7 +366,6 @@ export default function Recipes() {
     .filter((r) => !showFavoritesOnly || favorites.has(r.id))
     .filter((r) => !q || r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q) || r.ingredients.some((i) => i.toLowerCase().includes(q)));
 
-  const dietFilters = ['Alla', ...ALL_DIETS];
   const mealFilters = ['Alla', ...ALL_MEALS];
 
   return (
@@ -307,9 +374,19 @@ export default function Recipes() {
         <div className={styles.hero}>
           <p className={styles.eyebrow}>Recept</p>
           <h2 className={styles.title}>Enkla recept som håller ramen</h2>
-          {userDiet && (
+          {activeDiet !== 'Alla' && (
             <p className={styles.subtitle}>
-              Visar recept som passar din kost: <strong>{userDiet}</strong>
+              Filtrerat för <strong>{activeDiet}</strong>
+              {userDiet && activeDiet === userDiet && ' · från din profil'}
+              {activeDiet !== userDiet && (
+                <button
+                  type="button"
+                  className={styles.subtitleReset}
+                  onClick={() => setRecipeFilters({ diet: userDiet ?? 'Alla' })}
+                >
+                  Återställ
+                </button>
+              )}
             </p>
           )}
         </div>
@@ -359,22 +436,6 @@ export default function Recipes() {
           </div>
         </div>
 
-        <div className={styles.filterGroup}>
-          <span className={styles.filterGroupLabel}>Kost</span>
-          <div className={styles.filterScroll}>
-            {dietFilters.map((f) => (
-              <button
-                key={f}
-                type="button"
-                className={activeDiet === f ? styles.filterActive : styles.filter}
-                onClick={() => setRecipeFilters({ diet: f })}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {filtered.length === 0 ? (
           <div className={styles.empty}>
             <p className={styles.emptyTitle}>
@@ -392,6 +453,8 @@ export default function Recipes() {
                 isFavorite={favorites.has(r.id)}
                 onToggleFavorite={toggleFavorite}
                 onClick={setSelected}
+                onLog={handleLog}
+                logged={loggedIds.has(r.id)}
               />
             ))}
           </div>
@@ -414,6 +477,12 @@ export default function Recipes() {
           onClearAll={clearAll}
           onClose={() => setShowList(false)}
         />
+      )}
+
+      {toast && (
+        <div className={styles.toast} aria-live="polite">
+          ✓ {toast} loggad
+        </div>
       )}
     </main>
   );

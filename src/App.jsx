@@ -45,7 +45,7 @@ export default function App() {
 
   return (
     <>
-      <Header />
+      {displayedView !== 'recept' && <Header />}
       <div className={[styles.viewShell, isViewVisible ? styles.viewVisible : styles.viewHidden].join(' ')}>
         {displayedView === 'hem' && <Home profile={state.profile} />}
         {displayedView === 'recept' && <Recipes />}

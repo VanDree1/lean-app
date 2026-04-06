@@ -32,8 +32,9 @@ export default function StepWeightGoal({ data, onNext, submitLabel = 'Nästa' })
 
   return (
     <div className={s.step}>
-      <h2 className={s.title}>Vad är ditt viktmål?</h2>
-      <p className={s.subtitle}>Välj den riktning du vill hålla över tid.</p>
+      <p className={s.kicker}>Vart är du på väg?</p>
+      <h2 className={s.title}>Vad vill du uppnå?</h2>
+      <p className={s.subtitle}>Välj riktningen — vi räknar ut resten.</p>
 
       <div className={s.hypeStack}>
         {OPTIONS.map((o) => {
