@@ -300,9 +300,9 @@
 }
 
 .focusCardLogged {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  opacity: 0.82;
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  opacity: 0.72;
   box-shadow: none;
 }
 
@@ -351,21 +351,32 @@
   min-height: 2rem;
   padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
   font-size: 0.74rem;
   line-height: 1;
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.66);
   letter-spacing: 0.01em;
 }
 
 .focusEditLink {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-top: 0.9rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
   font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.56);
+  color: rgba(255, 255, 255, 0.5);
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.focusEditLink:hover {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .focusStatus {
@@ -504,15 +515,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 1.8rem;
+  height: 1.8rem;
   border-radius: 999px;
-  background: rgba(199, 221, 207, 0.08);
+  background: rgba(199, 221, 207, 0.06);
   animation: checkPop 0.45s cubic-bezier(0.2, 0.9, 0.2, 1);
 }
 
 .focusCheckIcon {
-  color: rgba(52, 211, 153, 0.5);
+  color: rgba(52, 211, 153, 0.42);
 }
 
 @keyframes pulse {

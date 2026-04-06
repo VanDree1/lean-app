@@ -188,7 +188,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                   ))}
                 </div>
                 <button type="button" className={styles.focusEditLink} onClick={handleUnlock}>
-                  Ångra
+                  Lås upp
                 </button>
               </>
             ) : (
