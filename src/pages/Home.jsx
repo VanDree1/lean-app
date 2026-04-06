@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Activity, Bike, Check, Dumbbell, Flower2, Footprints } from 'lucide-react';
 import AnimatedNumber from '../components/AnimatedNumber/AnimatedNumber';
 import HeroCard from '../components/HeroCard/HeroCard';
@@ -90,6 +90,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   const [sleepHours, setSleepHours] = useState('8');
   const [activeWorkoutKey, setActiveWorkoutKey] = useState(null);
   const [duration, setDuration] = useState(30);
+  const caloriesInputRef = useRef(null);
   const todayString = new Date().toDateString();
   const todayCheckin = (() => {
     try {
@@ -114,6 +115,16 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
         `${todayCheckin?.sleepHours ?? 0} h sömn`,
       ]
     : [];
+
+  useEffect(() => {
+    if (!showActionPicker) return;
+    const timer = window.setTimeout(() => {
+      caloriesInputRef.current?.focus();
+      caloriesInputRef.current?.select();
+    }, 40);
+
+    return () => window.clearTimeout(timer);
+  }, [showActionPicker]);
 
   function handleCheckIn() {
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
@@ -227,8 +238,8 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
             <div className={styles.focusMain}>
               <p className={styles.sectionEyebrow}>Idag</p>
               <h2 id="today-title" className={styles.focusTitle}>Logga dagen</h2>
-              <p className={styles.focusBody}>Kalorier, träning och sömn på ett ställe.</p>
-              <p className={styles.focusMeta}>Tryck för att fylla i dagen.</p>
+              <p className={styles.focusBody}>Kalorier, träning och sömn.</p>
+              <p className={styles.focusMeta}>Tryck för att fylla i.</p>
             </div>
           </div>
 
@@ -240,12 +251,25 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
       {showActionPicker && (
         <section className={styles.focusInlineSheet} role="dialog" aria-label="Fyll i dagens insats">
           <div className={styles.focusSheetHeader}>
-            <p className={styles.sectionEyebrow}>Dagens insats</p>
+            <div>
+              <p className={styles.sectionEyebrow}>Dagens insats</p>
+              <h3 className={styles.focusSheetTitle}>Fyll i dagen</h3>
+            </div>
+            <button
+              type="button"
+              className={styles.focusSheetClose}
+              onClick={() => setShowActionPicker(false)}
+              aria-label="Stäng dagens insats"
+            >
+              ✕
+            </button>
           </div>
           <div className={styles.focusForm}>
+            <div className={styles.focusTopFields}>
             <label className={styles.focusField}>
               <span className={styles.focusFieldLabel}>Kalorier ätit</span>
               <input
+                ref={caloriesInputRef}
                 type="number"
                 inputMode="numeric"
                 className={styles.focusInput}
@@ -269,6 +293,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 placeholder="Till exempel 8"
               />
             </label>
+            </div>
 
             <div className={[styles.focusField, !activeWorkout ? styles.focusFieldMuted : ''].join(' ')}>
               <div className={styles.focusFieldHeader}>
