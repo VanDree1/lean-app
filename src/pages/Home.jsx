@@ -106,6 +106,14 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   const estimatedCalories = activeWorkout
     ? Math.round(activeWorkout.met * weight * (duration / 60))
     : 0;
+  const parsedCalories = parseInt(caloriesInput, 10);
+  const parsedSleep = Number(sleepHours);
+  const canSave =
+    Number.isFinite(parsedCalories) &&
+    parsedCalories >= 0 &&
+    Number.isFinite(parsedSleep) &&
+    parsedSleep > 0 &&
+    parsedSleep <= 24;
   const summaryItems = isLoggedToday
     ? [
         `${todayCheckin?.calories ?? eaten} kcal`,
@@ -135,8 +143,6 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   }
 
   function completeCheckIn() {
-    const parsedCalories = parseInt(caloriesInput, 10);
-    const parsedSleep = Number(sleepHours);
     if (!Number.isFinite(parsedCalories) || parsedCalories < 0) return;
     if (!Number.isFinite(parsedSleep) || parsedSleep <= 0 || parsedSleep > 24) return;
 
@@ -276,6 +282,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 value={caloriesInput}
                 onChange={(event) => setCaloriesInput(event.target.value)}
                 placeholder="Till exempel 1850"
+                min="0"
               />
             </label>
 
@@ -355,6 +362,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
               type="button"
               className={styles.focusSheetPrimary}
               onClick={completeCheckIn}
+              disabled={!canSave}
             >
               Spara dagens insats
             </button>

@@ -547,9 +547,21 @@
   color: #ffffff;
 }
 
+.focusSheetPrimary:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.46);
+}
+
 .focusSheetSecondary:active,
 .focusSheetPrimary:active {
   transform: scale(0.985);
+}
+
+.focusSheetPrimary:disabled:active {
+  transform: none;
 }
 
 .focusPulseDot {
