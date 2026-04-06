@@ -944,47 +944,6 @@
   color: rgba(199, 221, 207, 0.92);
 }
 
-.sleepSlider {
-  width: 100%;
-  margin-top: 1rem;
-  appearance: none;
-  -webkit-appearance: none;
-  height: 2px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
-  outline: none;
-}
-
-.sleepSlider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: #ffffff;
-  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.04);
-}
-
-.sleepSlider::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: #ffffff;
-  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.04);
-}
-
-.sleepScale {
-  margin-top: 0.55rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.38);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .contextHeader {
   display: flex;
   align-items: center;
@@ -1007,6 +966,14 @@
   line-height: 1.65;
   color: rgba(255, 255, 255, 0.72);
   text-wrap: balance;
+}
+
+.contextMeta {
+  margin-top: 0.9rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.34);
 }
 
 .workoutGrid {

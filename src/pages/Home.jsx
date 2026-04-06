@@ -58,6 +58,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   const [isEditingToday, setIsEditingToday] = useState(false);
   const [caloriesInput, setCaloriesInput] = useState('');
   const [sleepHours, setSleepHours] = useState(String(sleepHoursToday || 8));
+  const [stepsInput, setStepsInput] = useState(String(state.daily.steps || 0));
   const [activeWorkoutKey, setActiveWorkoutKey] = useState(null);
   const [duration, setDuration] = useState(30);
   const [comment, setComment] = useState('');
@@ -96,15 +97,19 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     : 0;
   const parsedCalories = parseInt(caloriesInput, 10);
   const parsedSleep = Number(sleepHours);
+  const parsedSteps = parseInt(stepsInput, 10);
   const canSave =
     Number.isFinite(parsedCalories) &&
     parsedCalories >= 0 &&
     Number.isFinite(parsedSleep) &&
     parsedSleep > 0 &&
-    parsedSleep <= 24;
+    parsedSleep <= 24 &&
+    Number.isFinite(parsedSteps) &&
+    parsedSteps >= 0;
   const summaryItems = isLoggedToday
     ? [
         `${todayCheckin?.calories ?? eaten} kcal`,
+        `${todayCheckin?.steps ?? state.daily.steps ?? 0} steg`,
         todayCheckin?.workoutName
           ? `${todayCheckin.workoutName}${todayCheckin?.duration ? ` ${todayCheckin.duration} min` : ''}`
           : 'Ingen träning',
@@ -126,6 +131,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     setIsEditingToday(false);
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
     setSleepHours(String(todayCheckin?.sleepHours ?? sleepHoursToday ?? 8));
+    setStepsInput(String(todayCheckin?.steps ?? state.daily.steps ?? 0));
     setActiveWorkoutKey(todayCheckin?.workoutKey ?? null);
     setDuration(Number(todayCheckin?.duration) || 30);
     setComment(todayCheckin?.comment ?? '');
@@ -135,6 +141,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   function completeCheckIn() {
     if (!Number.isFinite(parsedCalories) || parsedCalories < 0) return;
     if (!Number.isFinite(parsedSleep) || parsedSleep <= 0 || parsedSleep > 24) return;
+    if (!Number.isFinite(parsedSteps) || parsedSteps < 0) return;
 
     const alreadyLogged = locked || Boolean(todayCheckin);
     const currentStreak = state.daily.streak || 0;
@@ -149,6 +156,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
       workoutName: activeWorkout?.name ?? '',
       duration,
       burned: workoutBurn,
+      steps: parsedSteps,
       sleepHours: parsedSleep,
       comment: comment.trim(),
     };
@@ -161,6 +169,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     completeDailyCheckin({
       calories: parsedCalories,
       burned: nextBurnedTotal,
+      steps: parsedSteps,
       sleepHours: parsedSleep,
       checkin: nextCheckin,
       lastLoggedDate: todayString,
@@ -193,6 +202,23 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     }
 
     if (field === 'sleep') {
+      const next = document.getElementById('daily-steps-input');
+      if (next) {
+        next.focus();
+        next.select?.();
+        return;
+      }
+
+      if (!activeWorkoutKey) {
+        if (canSave) completeCheckIn();
+        return;
+      }
+
+      workoutSectionRef.current?.focus();
+      return;
+    }
+
+    if (field === 'steps') {
       if (!activeWorkoutKey) {
         if (canSave) completeCheckIn();
         return;
@@ -212,6 +238,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     unlockDailyCheckin();
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
     setSleepHours(String(todayCheckin?.sleepHours ?? sleepHoursToday ?? 8));
+    setStepsInput(String(todayCheckin?.steps ?? state.daily.steps ?? 0));
     setActiveWorkoutKey(todayCheckin?.workoutKey ?? null);
     setDuration(Number(todayCheckin?.duration) || 30);
     setComment(todayCheckin?.comment ?? '');
@@ -346,6 +373,22 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 placeholder="Till exempel 8"
               />
             </label>
+
+            <label className={styles.focusField}>
+              <span className={styles.focusFieldLabel}>Steg</span>
+              <input
+                id="daily-steps-input"
+                type="number"
+                inputMode="numeric"
+                className={styles.focusInput}
+                value={stepsInput}
+                onChange={(event) => setStepsInput(event.target.value)}
+                onKeyDown={(event) => handleFormKeyDown(event, 'steps')}
+                onWheel={preventWheelValueChange}
+                placeholder="Till exempel 7800"
+                min="0"
+              />
+            </label>
             </div>
 
             <label className={styles.focusField}>
@@ -462,7 +505,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   );
 }
 
-function SleepRecoveryCard({ sleepHoursToday, setSleepHoursToday, lowEnergyMode, tone }) {
+function SleepRecoveryCard({ sleepHoursToday, lowEnergyMode, tone }) {
   return (
     <section className={styles.noteCard} aria-label={tone.recovery.sleepTitle}>
       <div className={styles.contextHeader}>
@@ -480,24 +523,8 @@ function SleepRecoveryCard({ sleepHoursToday, setSleepHoursToday, lowEnergyMode,
           {lowEnergyMode ? 'Låg energi' : 'Stabil'}
         </span>
       </div>
-      <input
-        className={styles.sleepSlider}
-        type="range"
-        min="3"
-        max="10"
-        step="0.5"
-        value={sleepHoursToday}
-        onChange={(event) => {
-          const next = Number(event.target.value);
-          setSleepHoursToday(next);
-        }}
-        aria-label="Sömn i timmar"
-      />
-      <div className={styles.sleepScale}>
-        <span>3 h</span>
-        <span>10 h</span>
-      </div>
       <p className={styles.contextBody}>{tone.recovery.sleepBody}</p>
+      <p className={styles.contextMeta}>Loggas i Dagens insats</p>
     </section>
   );
 }
@@ -639,7 +666,6 @@ export default function Home({ profile }) {
         />
         <SleepRecoveryCard
           sleepHoursToday={sleepHoursToday}
-          setSleepHoursToday={setSleepHoursToday}
           lowEnergyMode={lowEnergyMode}
           tone={tone}
         />
