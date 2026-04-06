@@ -99,6 +99,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   const [isCompleting, setIsCompleting] = useState(false);
   const [showSavedState, setShowSavedState] = useState(false);
   const [showActionPicker, setShowActionPicker] = useState(false);
+  const [isEditingToday, setIsEditingToday] = useState(false);
   const [caloriesInput, setCaloriesInput] = useState('');
   const [sleepHours, setSleepHours] = useState('8');
   const [activeWorkoutKey, setActiveWorkoutKey] = useState(null);
@@ -151,6 +152,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   }, [showActionPicker]);
 
   function handleCheckIn() {
+    setIsEditingToday(false);
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
     setSleepHours(String(todayCheckin?.sleepHours ?? 8));
     setActiveWorkoutKey(todayCheckin?.workoutKey ?? null);
@@ -229,6 +231,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
 
   function handleUnlock(event) {
     event.stopPropagation();
+    setIsEditingToday(true);
     setLocked(false);
     localStorage.removeItem(LAST_LOGGED_DATE_KEY);
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
@@ -307,12 +310,20 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
           <div className={styles.focusSheetHeader}>
             <div>
               <p className={styles.sectionEyebrow}>Dagens insats</p>
-              <h3 className={styles.focusSheetTitle}>Fyll i dagen</h3>
+              <h3 className={styles.focusSheetTitle}>
+                {isEditingToday ? 'Justera dagen' : 'Fyll i dagen'}
+              </h3>
+              {isEditingToday ? (
+                <p className={styles.focusSheetSubtitle}>Dagens värden är redan ifyllda.</p>
+              ) : null}
             </div>
             <button
               type="button"
               className={styles.focusSheetClose}
-              onClick={() => setShowActionPicker(false)}
+              onClick={() => {
+                setShowActionPicker(false);
+                setIsEditingToday(false);
+              }}
               aria-label="Stäng dagens insats"
             >
               ✕
@@ -416,21 +427,24 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 <span className={styles.focusSavedText}>Dagen är sparad</span>
               </div>
             ) : null}
-            <button
-              type="button"
-              className={styles.focusSheetSecondary}
-              onClick={() => setShowActionPicker(false)}
-              disabled={showSavedState}
-            >
-              Avbryt
-            </button>
+              <button
+                type="button"
+                className={styles.focusSheetSecondary}
+                onClick={() => {
+                  setShowActionPicker(false);
+                  setIsEditingToday(false);
+                }}
+                disabled={showSavedState}
+              >
+                Avbryt
+              </button>
             <button
               type="button"
               className={styles.focusSheetPrimary}
               onClick={completeCheckIn}
               disabled={!canSave || showSavedState}
             >
-              {showSavedState ? 'Sparat' : 'Spara dagens insats'}
+              {showSavedState ? 'Sparat' : isEditingToday ? 'Uppdatera dagen' : 'Spara dagens insats'}
             </button>
           </div>
         </section>

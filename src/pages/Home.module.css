@@ -444,6 +444,13 @@
   color: #ffffff;
 }
 
+.focusSheetSubtitle {
+  margin-top: 0.45rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.46);
+}
+
 .focusSheetClose {
   width: 2.25rem;
   height: 2.25rem;
