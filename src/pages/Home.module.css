@@ -30,7 +30,8 @@
 .focusCard,
 .profileCard,
 .weightCard,
-.noteCard {
+.noteCard,
+.workoutCard {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 1.5rem;
@@ -44,7 +45,8 @@
 .focusCard:hover,
 .profileCard:hover,
 .weightCard:hover,
-.noteCard:hover {
+.noteCard:hover,
+.workoutCard:hover {
   transform: translateY(-2px);
   border-color: var(--border-strong);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
@@ -616,6 +618,82 @@
   padding: 1.35rem 1.4rem;
 }
 
+.workoutCard {
+  padding: 1.35rem 1.4rem;
+}
+
+.workoutHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.workoutGrid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.workoutOption {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 5rem;
+  padding: 0.75rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition:
+    color 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.workoutOption:hover {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.workoutOption:active {
+  transform: scale(0.9);
+}
+
+.workoutOptionActive {
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.3);
+  background: rgba(52, 211, 153, 0.1);
+  box-shadow: 0 0 15px rgba(52, 211, 153, 0.1);
+}
+
+.workoutLabel {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  color: inherit;
+}
+
+.workoutFeedback {
+  margin-top: 0.95rem;
+  min-height: 1.2rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.38);
+  opacity: 0.72;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.workoutFeedbackVisible {
+  color: rgba(199, 221, 207, 0.92);
+  opacity: 1;
+}
+
 .noteHeader {
   display: flex;
   align-items: flex-start;
@@ -684,6 +762,10 @@
 
   .focusVisual {
     justify-content: flex-start;
+  }
+
+  .workoutGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

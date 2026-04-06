@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Activity, Bike, Check, Dumbbell, Flower2, Footprints } from 'lucide-react';
 import AnimatedNumber from '../components/AnimatedNumber/AnimatedNumber';
 import HeroCard from '../components/HeroCard/HeroCard';
 import QuickStats from '../components/QuickStats/QuickStats';
@@ -16,12 +16,21 @@ const HEALTH_FACT_TTL_MS = 1000 * 60 * 60 * 12;
 const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
 const LAST_LOGGED_ACTION_KEY = 'djur_juni_last_action';
 const STREAK_KEY = 'djur_juni_streak';
+const WORKOUTS_KEY = 'djur_juni_workouts';
+const WORKOUTS_DATE_KEY = 'djur_juni_workouts_date';
 const WEIGHT_TREND = [103.2, 102.5, 102.1, 101.8, 101.0, 100.5, 100.0];
 const DAILY_ACTIONS = [
   { value: 'weight', label: 'Jag vägde mig', desc: 'Dagens vikt är registrerad' },
   { value: 'food', label: 'Jag höll kosten', desc: 'Maten satt som den skulle' },
   { value: 'training', label: 'Jag tränade', desc: 'Passet eller rörelsen är gjort' },
   { value: 'routine', label: 'Jag höll rutinen', desc: 'Jag gjorde det viktigaste idag' },
+];
+const WORKOUT_OPTIONS = [
+  { value: 'gym', label: 'Gym', Icon: Dumbbell },
+  { value: 'running', label: 'Löpning', Icon: Footprints },
+  { value: 'yoga', label: 'Yoga', Icon: Flower2 },
+  { value: 'cycling', label: 'Cykling', Icon: Bike },
+  { value: 'other', label: 'Annat', Icon: Activity },
 ];
 
 const HEALTH_TOPICS_BY_GOAL = {
@@ -331,6 +340,66 @@ function DailyFocusCard() {
   );
 }
 
+function WorkoutCard() {
+  const todayString = new Date().toDateString();
+  const [selectedWorkouts, setSelectedWorkouts] = useState(() => {
+    try {
+      const storedDate = localStorage.getItem(WORKOUTS_DATE_KEY);
+      if (storedDate !== todayString) return [];
+      return JSON.parse(localStorage.getItem(WORKOUTS_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [feedback, setFeedback] = useState(() => (selectedWorkouts.length > 0 ? 'Grym insats! +300 kcal uppskattat.' : ''));
+
+  function toggleWorkout(workout) {
+    setSelectedWorkouts((prev) => {
+      const alreadySelected = prev.includes(workout);
+      const next = alreadySelected ? prev.filter((item) => item !== workout) : [...prev, workout];
+      localStorage.setItem(WORKOUTS_KEY, JSON.stringify(next));
+      localStorage.setItem(WORKOUTS_DATE_KEY, todayString);
+
+      if (!alreadySelected && prev.length === 0) {
+        setFeedback('Grym insats! +300 kcal uppskattat.');
+      } else if (next.length === 0) {
+        setFeedback('');
+      }
+
+      return next;
+    });
+  }
+
+  return (
+    <section className={styles.workoutCard} aria-labelledby="workout-title">
+      <div className={styles.workoutHeader}>
+        <p id="workout-title" className={styles.sectionEyebrow}>Dagens träning</p>
+      </div>
+      <div className={styles.workoutGrid}>
+        {WORKOUT_OPTIONS.map((option) => {
+          const active = selectedWorkouts.includes(option.value);
+          return (
+            <button
+              key={option.value}
+              type="button"
+              className={[styles.workoutOption, active ? styles.workoutOptionActive : ''].join(' ')}
+              onClick={() => toggleWorkout(option.value)}
+              aria-pressed={active}
+              aria-label={option.label}
+            >
+              <option.Icon size={24} strokeWidth={1.5} />
+              <span className={styles.workoutLabel}>{option.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      <p className={[styles.workoutFeedback, feedback ? styles.workoutFeedbackVisible : ''].join(' ')}>
+        {feedback || 'Välj det som blev gjort idag.'}
+      </p>
+    </section>
+  );
+}
+
 function WeightJourney({ onOpen, profile }) {
   const { recent, current } = useWeightLog();
   const startWeight = profile.startWeight ?? profile.weight ?? profile.currentWeight ?? 100;
@@ -486,6 +555,7 @@ export default function Home({ profile }) {
           <WeightJourney profile={profile} onOpen={() => setModal('weight')} />
         </div>
         <QuickStats profile={profile} />
+        <WorkoutCard />
         <CoachTipCard profile={profile} />
       </div>
 
