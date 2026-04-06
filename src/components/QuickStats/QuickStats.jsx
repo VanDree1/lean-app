@@ -4,6 +4,8 @@ import AnimatedNumber from '../AnimatedNumber/AnimatedNumber';
 import { useProfile } from '../../hooks/useProfile';
 import styles from './QuickStats.module.css';
 
+const CALORIES_KEY = 'djur_i_juni_calories';
+const STEPS_KEY = 'djur_i_juni_steps';
 const TODAY_STATS_KEYS = [
   'djur-i-juni:today-stats',
   'djur-i-juni:daily-summary',
@@ -40,6 +42,18 @@ function readTodayStats() {
   return { calories: 0, steps: 0 };
 }
 
+function readInitialCalories() {
+  const direct = Number(localStorage.getItem(CALORIES_KEY));
+  if (Number.isFinite(direct) && direct > 0) return direct;
+  return readTodayStats().calories;
+}
+
+function readInitialSteps() {
+  const direct = Number(localStorage.getItem(STEPS_KEY));
+  if (Number.isFinite(direct) && direct > 0) return direct;
+  return readTodayStats().steps;
+}
+
 function saveTodayStats(nextStats) {
   const payload = {
     date: todayString(),
@@ -52,7 +66,18 @@ function saveTodayStats(nextStats) {
   }
 }
 
-function TodayCard({ label, unit, value, target, isEditing, inputValue, onEditStart, onInputChange, onInputSubmit }) {
+function TodayCard({
+  label,
+  unit,
+  value,
+  target,
+  isEditing,
+  inputValue,
+  onEditStart,
+  onInputChange,
+  onInputSubmit,
+  onInputBlur,
+}) {
   const progress = Math.max(0, Math.min(100, target > 0 ? (value / target) * 100 : 0));
 
   return (
@@ -77,6 +102,7 @@ function TodayCard({ label, unit, value, target, isEditing, inputValue, onEditSt
                 onInputSubmit();
               }
             }}
+            onBlur={onInputBlur}
             aria-label={`${label} input`}
           />
         ) : (
@@ -100,15 +126,16 @@ function TodayCard({ label, unit, value, target, isEditing, inputValue, onEditSt
 
 export default function QuickStats() {
   const { profile, kcalGoal } = useProfile();
-  const [stats, setStats] = useState(readTodayStats);
+  const [calories, setCalories] = useState(() => readInitialCalories());
+  const [steps, setSteps] = useState(() => readInitialSteps());
   const [isEditingCalories, setIsEditingCalories] = useState(false);
   const [isEditingSteps, setIsEditingSteps] = useState(false);
-  const [calorieInput, setCalorieInput] = useState('');
-  const [stepInput, setStepInput] = useState('');
+  const [tempInput, setTempInput] = useState('');
 
   useEffect(() => {
     function syncStats() {
-      setStats(readTodayStats());
+      setCalories(readInitialCalories());
+      setSteps(readInitialSteps());
     }
 
     window.addEventListener('storage', syncStats);
@@ -122,34 +149,38 @@ export default function QuickStats() {
 
   const stepGoal = STEP_GOALS[profile.activity] || STEP_GOALS.light;
 
-  function submitCalories() {
-    const increment = Number(calorieInput);
+  function handleSaveCalories() {
+    const increment = Number(tempInput);
     if (!increment) {
       setIsEditingCalories(false);
-      setCalorieInput('');
+      setTempInput('');
       return;
     }
 
-    const nextStats = { ...stats, calories: stats.calories + increment };
-    setStats(nextStats);
+    const nextCalories = calories + increment;
+    setCalories(nextCalories);
+    localStorage.setItem(CALORIES_KEY, String(nextCalories));
+    const nextStats = { calories: nextCalories, steps };
     saveTodayStats(nextStats);
     setIsEditingCalories(false);
-    setCalorieInput('');
+    setTempInput('');
   }
 
-  function submitSteps() {
-    const increment = Number(stepInput);
+  function handleSaveSteps() {
+    const increment = Number(tempInput);
     if (!increment) {
       setIsEditingSteps(false);
-      setStepInput('');
+      setTempInput('');
       return;
     }
 
-    const nextStats = { ...stats, steps: stats.steps + increment };
-    setStats(nextStats);
+    const nextSteps = steps + increment;
+    setSteps(nextSteps);
+    localStorage.setItem(STEPS_KEY, String(nextSteps));
+    const nextStats = { calories, steps: nextSteps };
     saveTodayStats(nextStats);
     setIsEditingSteps(false);
-    setStepInput('');
+    setTempInput('');
   }
 
   return (
@@ -157,32 +188,34 @@ export default function QuickStats() {
       <TodayCard
         label="Kalorier"
         unit="KCAL"
-        value={stats.calories}
+        value={calories}
         target={kcalGoal}
         isEditing={isEditingCalories}
-        inputValue={calorieInput}
+        inputValue={tempInput}
         onEditStart={() => {
           setIsEditingSteps(false);
-          setStepInput('');
+          setTempInput('');
           setIsEditingCalories(true);
         }}
-        onInputChange={setCalorieInput}
-        onInputSubmit={submitCalories}
+        onInputChange={setTempInput}
+        onInputSubmit={handleSaveCalories}
+        onInputBlur={handleSaveCalories}
       />
       <TodayCard
         label="Steg"
         unit="STEG"
-        value={stats.steps}
+        value={steps}
         target={stepGoal}
         isEditing={isEditingSteps}
-        inputValue={stepInput}
+        inputValue={tempInput}
         onEditStart={() => {
           setIsEditingCalories(false);
-          setCalorieInput('');
+          setTempInput('');
           setIsEditingSteps(true);
         }}
-        onInputChange={setStepInput}
-        onInputSubmit={submitSteps}
+        onInputChange={setTempInput}
+        onInputSubmit={handleSaveSteps}
+        onInputBlur={handleSaveSteps}
       />
     </div>
   );
