@@ -188,6 +188,41 @@ function trimFactText(text) {
   return selected.length > 220 ? `${selected.slice(0, 217).trim()}...` : selected;
 }
 
+function buildCoachTip(goal, topic, sourceText) {
+  const text = trimFactText(sourceText || topic.fallback);
+
+  const COACH_TITLES = {
+    fat_loss: 'Håll hungern på din sida',
+    muscle: 'Bygg runt det som faktiskt driver resultat',
+    energy: 'Skydda energin tidigt på dagen',
+    target: 'Gör målet lätt att hålla',
+    default: 'Håll det smart och enkelt',
+  };
+
+  const TOPIC_INTROS = {
+    'Mättnad': 'Om mättnaden är låg blir resten av dagen ofta onödigt tung.',
+    'Basalomsättning': 'Allt handlar inte om träning. Kroppen använder mycket energi även i vila.',
+    'Brunt fett': 'Allt kroppsfett beter sig inte likadant.',
+    'Muskelhypertrofi': 'Muskler byggs bättre av jämn belastning över tid än av enstaka maxpass.',
+    'Kreatin': 'Kreatin är intressant för att det hjälper vid korta, intensiva insatser.',
+    'Glykogen': 'När energin dippar är det ofta relevant hur kroppen lagrar och använder glykogen.',
+    'Dygnsrytm': 'Bra rytm slår ofta mer vilja.',
+  };
+
+  const GOAL_OUTROS = {
+    fat_loss: 'Bygg måltider som gör det lättare att hålla riktningen, inte svårare.',
+    muscle: 'Lägg fokus på saker som går att upprepa varje vecka: protein, progression och återhämtning.',
+    energy: 'Ju jämnare rytm du har, desto mindre behöver du lösa dagen med ren disciplin.',
+    target: 'Det du kan upprepa lugnt vinner nästan alltid över det som bara ser bra ut på papper.',
+    default: 'Ta det som gör dagen enklare att upprepa i morgon också.',
+  };
+
+  return {
+    title: COACH_TITLES[goal] || COACH_TITLES.default,
+    text: `${TOPIC_INTROS[topic.title] || 'Det finns ofta en enklare hävstång än man tror.'} ${text} ${GOAL_OUTROS[goal] || GOAL_OUTROS.default}`.trim(),
+  };
+}
+
 function loadDashboardProfile() {
   try {
     const profile = JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}');
@@ -450,23 +485,20 @@ function WeightJourney({ onOpen }) {
 function CoachTipCard() {
   const { profile } = useProfile();
   const goal = profile.goal || 'default';
-  const [fact, setFact] = useState(() => {
+  const [tip, setTip] = useState(() => {
     const cached = readCachedHealthFact(goal);
-    if (cached) return cached;
+    if (cached) {
+      return buildCoachTip(goal, cached, cached.text);
+    }
 
     const topic = getHealthTopicForToday(goal);
-    return {
-      title: topic.title,
-      text: topic.fallback,
-      sourceLabel: 'Arkiv',
-      sourceUrl: topic.sourceUrl,
-    };
+    return buildCoachTip(goal, topic, topic.fallback);
   });
 
   useEffect(() => {
     const cached = readCachedHealthFact(goal);
     if (isFreshFact(cached)) {
-      setFact(cached);
+      setTip(buildCoachTip(goal, cached, cached.text));
       return undefined;
     }
 
@@ -492,13 +524,12 @@ function CoachTipCard() {
         const nextFact = {
           title: topic.title,
           text,
-          sourceLabel: 'Wikipedia',
           sourceUrl: data.content_urls?.desktop?.page || topic.sourceUrl,
           fetchedAt: Date.now(),
         };
 
         localStorage.setItem(getHealthFactCacheKey(goal), JSON.stringify(nextFact));
-        setFact(nextFact);
+        setTip(buildCoachTip(goal, nextFact, text));
       } catch (error) {
         if (error.name === 'AbortError') {
           return;
@@ -512,7 +543,7 @@ function CoachTipCard() {
           fetchedAt: Date.now(),
         };
 
-        setFact(fallbackFact);
+        setTip(buildCoachTip(goal, fallbackFact, fallbackFact.text));
       }
     }
 
@@ -527,16 +558,8 @@ function CoachTipCard() {
         <p className={styles.sectionEyebrow}>Tips från coachen</p>
         <span className={styles.noteSource}>Anpassat</span>
       </div>
-      <h3 className={styles.noteTitle}>{fact.title}</h3>
-      <p className={styles.noteText}>{fact.text}</p>
-      <a
-        className={styles.noteLink}
-        href={fact.sourceUrl}
-        target="_blank"
-        rel="noreferrer"
-      >
-        Läs källa
-      </a>
+      <h3 className={styles.noteTitle}>{tip.title}</h3>
+      <p className={styles.noteText}>{tip.text}</p>
     </section>
   );
 }
