@@ -643,6 +643,13 @@
   gap: 0.75rem;
 }
 
+.workoutSubtle {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.42);
+}
+
 .workoutGrid {
   margin-top: 1rem;
   display: grid;
@@ -714,6 +721,7 @@
   border-radius: 1.1rem;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.035);
+  animation: workoutDetailIn 0.2s ease;
 }
 
 .workoutDetailHeader {
@@ -726,6 +734,14 @@
 .workoutDetailName {
   font-size: 0.92rem;
   color: #ffffff;
+}
+
+.workoutDetailMeta {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.42);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .workoutDuration {
@@ -765,6 +781,17 @@
   box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.04);
 }
 
+.workoutScale {
+  margin-top: 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.38);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .workoutEstimateRow {
   margin-top: 1rem;
   display: flex;
@@ -787,6 +814,33 @@
   cursor: pointer;
   transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
   -webkit-tap-highlight-color: transparent;
+}
+
+.workoutActionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.workoutCancelButton {
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
+  cursor: pointer;
+  transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.workoutCancelButton:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.workoutCancelButton:active {
+  transform: scale(0.95);
 }
 
 .workoutLogButton:hover {
@@ -831,6 +885,11 @@
   color: rgba(255, 255, 255, 0.42);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+@keyframes workoutDetailIn {
+  0% { opacity: 0; transform: translateY(6px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .noteHeader {
@@ -912,8 +971,13 @@
     flex-direction: column;
   }
 
-  .workoutLogButton {
+  .workoutActionRow {
     width: 100%;
+  }
+
+  .workoutCancelButton,
+  .workoutLogButton {
+    flex: 1;
   }
 }
 

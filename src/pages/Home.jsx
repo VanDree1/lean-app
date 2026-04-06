@@ -17,6 +17,7 @@ const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
 const LAST_LOGGED_ACTION_KEY = 'djur_juni_last_action';
 const STREAK_KEY = 'djur_juni_streak';
 const WORKOUTS_WEEK_KEY = 'djur_juni_week';
+const WORKOUTS_WEEK_STAMP_KEY = 'djur_juni_week_stamp';
 const CALORIES_KEY = 'djur_juni_cal';
 const TODAY_STATS_KEYS = [
   'djur-i-juni:today-stats',
@@ -37,6 +38,16 @@ const WORKOUTS = {
   other: { name: 'Annat', met: 5.0, Icon: Activity },
 };
 const WEEKDAY_LABELS = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
+
+function getCurrentWeekStamp() {
+  const now = new Date();
+  const day = now.getDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now);
+  monday.setHours(0, 0, 0, 0);
+  monday.setDate(now.getDate() + diffToMonday);
+  return monday.toISOString().slice(0, 10);
+}
 
 function todayStatsDate() {
   return new Date().toISOString().slice(0, 10);
@@ -385,6 +396,11 @@ function WorkoutCard({ profile }) {
   const [duration, setDuration] = useState(30);
   const [weekHistory, setWeekHistory] = useState(() => {
     try {
+      if (localStorage.getItem(WORKOUTS_WEEK_STAMP_KEY) !== getCurrentWeekStamp()) {
+        localStorage.setItem(WORKOUTS_WEEK_STAMP_KEY, getCurrentWeekStamp());
+        localStorage.setItem(WORKOUTS_WEEK_KEY, JSON.stringify([false, false, false, false, false, false, false]));
+        return [false, false, false, false, false, false, false];
+      }
       return JSON.parse(localStorage.getItem(WORKOUTS_WEEK_KEY)) || [false, false, false, false, false, false, false];
     } catch {
       return [false, false, false, false, false, false, false];
@@ -409,6 +425,7 @@ function WorkoutCard({ profile }) {
       const firstWorkoutToday = !next[dayIndex];
       next[dayIndex] = true;
       localStorage.setItem(WORKOUTS_WEEK_KEY, JSON.stringify(next));
+      localStorage.setItem(WORKOUTS_WEEK_STAMP_KEY, getCurrentWeekStamp());
       setFeedback(firstWorkoutToday ? `Grym insats! +${estimatedCalories} kcal uppskattat.` : `Uppdaterat: +${estimatedCalories} kcal.`);
       return next;
     });
@@ -420,7 +437,10 @@ function WorkoutCard({ profile }) {
   return (
     <section className={styles.workoutCard} aria-labelledby="workout-title">
       <div className={styles.workoutHeader}>
-        <p id="workout-title" className={styles.sectionEyebrow}>Dagens träning</p>
+        <div>
+          <p id="workout-title" className={styles.sectionEyebrow}>Dagens träning</p>
+          <p className={styles.workoutSubtle}>Välj pass och justera tiden lugnt.</p>
+        </div>
       </div>
       <div className={styles.workoutGrid}>
         {Object.entries(WORKOUTS).map(([key, workout]) => {
@@ -430,7 +450,7 @@ function WorkoutCard({ profile }) {
               key={key}
               type="button"
               className={[styles.workoutOption, active ? styles.workoutOptionActive : ''].join(' ')}
-              onClick={() => setActiveWorkout({ key, ...workout })}
+              onClick={() => setActiveWorkout(active ? null : { key, ...workout })}
               aria-pressed={active}
               aria-label={workout.name}
             >
@@ -444,7 +464,10 @@ function WorkoutCard({ profile }) {
       {activeWorkout && (
         <div className={styles.workoutDetail}>
           <div className={styles.workoutDetailHeader}>
-            <span className={styles.workoutDetailName}>{activeWorkout.name}</span>
+            <div>
+              <span className={styles.workoutDetailName}>{activeWorkout.name}</span>
+              <p className={styles.workoutDetailMeta}>{weight} kg kroppsvikt</p>
+            </div>
             <span className={styles.workoutDuration}>{duration} min</span>
           </div>
           <input
@@ -457,11 +480,20 @@ function WorkoutCard({ profile }) {
             onChange={(event) => setDuration(Number(event.target.value))}
             aria-label="Träningslängd i minuter"
           />
+          <div className={styles.workoutScale}>
+            <span>10 min</span>
+            <span>120 min</span>
+          </div>
           <div className={styles.workoutEstimateRow}>
             <p className={styles.workoutEstimate}>Uppskattning: +{estimatedCalories} kcal</p>
-            <button type="button" className={styles.workoutLogButton} onClick={handleSaveWorkout}>
-              Logga
-            </button>
+            <div className={styles.workoutActionRow}>
+              <button type="button" className={styles.workoutCancelButton} onClick={() => setActiveWorkout(null)}>
+                Avbryt
+              </button>
+              <button type="button" className={styles.workoutLogButton} onClick={handleSaveWorkout}>
+                Logga
+              </button>
+            </div>
           </div>
         </div>
       )}
