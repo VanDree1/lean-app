@@ -334,7 +334,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
           <div className={styles.focusForm}>
             <div className={styles.focusTopFields}>
             <label className={styles.focusField}>
-              <span className={styles.focusFieldLabel}>Kalorier ätit</span>
+              <span className={styles.focusFieldLabel}>{tone.daily.primaryFieldLabel}</span>
               <input
                 ref={caloriesInputRef}
                 type="number"
@@ -349,7 +349,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
             </label>
 
             <label className={styles.focusField}>
-              <span className={styles.focusFieldLabel}>Sömn</span>
+              <span className={styles.focusFieldLabel}>{tone.daily.secondaryFieldLabel}</span>
               <input
                 type="number"
                 inputMode="decimal"
@@ -373,9 +373,10 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
               onKeyDown={(event) => handleFormKeyDown(event, 'workout')}
             >
               <div className={styles.focusFieldHeader}>
-                <span className={styles.focusFieldLabel}>Dagens träning</span>
+                <span className={styles.focusFieldLabel}>{tone.daily.workoutLabel}</span>
                 {activeWorkout ? <span className={styles.focusFieldHint}>+{estimatedCalories} kcal</span> : null}
               </div>
+              {!activeWorkout ? <p className={styles.focusFieldCopy}>{tone.daily.workoutHint}</p> : null}
               <div className={styles.workoutGrid}>
                 {Object.entries(WORKOUTS).map(([key, workout]) => {
                   const active = activeWorkoutKey === key;

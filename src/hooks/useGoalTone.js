@@ -9,6 +9,10 @@ const GOAL_TONES = {
     daily: {
       body: 'Kalorier, rörelse och sömn på ett ställe.',
       meta: 'Håll dagen enkel.',
+      primaryFieldLabel: 'Kalorier ätit',
+      secondaryFieldLabel: 'Sömn',
+      workoutLabel: 'Dagens träning',
+      workoutHint: 'Rörelse hjälper underskottet utan att allt behöver bli hårt.',
     },
     log: {
       title: 'Vikt och aktivitet',
@@ -42,6 +46,10 @@ const GOAL_TONES = {
     daily: {
       body: 'Mat, träning och sömn i samma rytm.',
       meta: 'Bygg runt återhämtning.',
+      primaryFieldLabel: 'Kalorier ätit',
+      secondaryFieldLabel: 'Sömn',
+      workoutLabel: 'Dagens träning',
+      workoutHint: 'Träning och sömn ska stötta återhämtning, inte bara kännas hårda.',
     },
     log: {
       title: 'Protein och vikt',
@@ -75,6 +83,10 @@ const GOAL_TONES = {
     daily: {
       body: 'Fånga sömn, mat och rörelse utan extra friktion.',
       meta: 'Håll energin jämn.',
+      primaryFieldLabel: 'Kalorier ätit',
+      secondaryFieldLabel: 'Sömn',
+      workoutLabel: 'Dagens träning',
+      workoutHint: 'Håll träningsdelen lätt om energin är låg. Jämnhet först.',
     },
     log: {
       title: 'Sömn och rytm',
@@ -108,6 +120,10 @@ const GOAL_TONES = {
     daily: {
       body: 'Logga det viktigaste och håll kursen tydlig.',
       meta: 'Små justeringar räcker.',
+      primaryFieldLabel: 'Kalorier ätit',
+      secondaryFieldLabel: 'Sömn',
+      workoutLabel: 'Dagens träning',
+      workoutHint: 'Rena loggar gör det lättare att se om riktningen faktiskt håller.',
     },
     log: {
       title: 'Målvikt och riktning',
