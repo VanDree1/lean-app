@@ -14,7 +14,7 @@ import styles from './Home.module.css';
 
 const PROFILE_KEY = 'djur-i-juni:profile';
 const ONBOARDING_KEY = 'djur-i-juni:onboarding';
-const HEALTH_FACT_CACHE_KEY = 'djur-i-juni:health-fact';
+const HEALTH_FACT_CACHE_KEY_PREFIX = 'djur-i-juni:health-fact';
 const HEALTH_FACT_TTL_MS = 1000 * 60 * 60 * 12;
 
 const GOAL_LABELS = {
@@ -40,58 +40,121 @@ const PROFILE_FIELD_LABELS = {
   goalWeight: 'målvikt',
 };
 
-const HEALTH_TOPICS = [
-  {
-    title: 'Glykogen',
-    queryTitle: 'Glykogen',
-    sourceUrl: 'https://sv.wikipedia.org/wiki/Glykogen',
-    fallback: 'Glykogen är kroppens lagrade form av glukos och finns främst i levern och musklerna, där det fungerar som snabb energi.',
-  },
-  {
-    title: 'Basalomsättning',
-    queryTitle: 'Basalomsättning',
-    sourceUrl: 'https://sv.wikipedia.org/wiki/Basaloms%C3%A4ttning',
-    fallback: 'Basalomsättningen är den energi kroppen använder i vila för att hålla igång grundläggande funktioner som andning, temperatur och cirkulation.',
-  },
-  {
-    title: 'Dygnsrytm',
-    queryTitle: 'Dygnsrytm',
-    sourceUrl: 'https://sv.wikipedia.org/wiki/Dygnsrytm',
-    fallback: 'Dygnsrytmen påverkar bland annat sömn, hormoner, kroppstemperatur och när kroppen känns mest vaken eller trött.',
-  },
-  {
-    title: 'Muskelhypertrofi',
-    queryTitle: 'Muskelhypertrofi',
-    sourceUrl: 'https://sv.wikipedia.org/wiki/Muskelhypertrofi',
-    fallback: 'Muskelhypertrofi innebär att muskelfibrerna ökar i storlek, vilket är en central del av hur muskler byggs över tid.',
-  },
-  {
-    title: 'Kreatin',
-    queryTitle: 'Kreatin',
-    sourceUrl: 'https://sv.wikipedia.org/wiki/Kreatin',
-    fallback: 'Kreatin hjälper till att snabbt återbilda ATP, vilket gör det särskilt relevant vid korta och intensiva arbetsinsatser.',
-  },
-  {
-    title: 'Brunt fett',
-    queryTitle: 'Brunt_fett',
-    sourceUrl: 'https://sv.wikipedia.org/wiki/Brunt_fett',
-    fallback: 'Brunt fett skiljer sig från vanligt fett genom att det är mer specialiserat på värmeproduktion än energilagring.',
-  },
-  {
-    title: 'Mättnad',
-    queryTitle: 'Mättnad',
-    sourceUrl: 'https://sv.wikipedia.org/wiki/M%C3%A4ttnad',
-    fallback: 'Mättnad styrs inte bara av kalorier, utan också av volym, protein, fibrer och hur snabbt maten äts.',
-  },
-];
+const HEALTH_TOPICS_BY_GOAL = {
+  fat_loss: [
+    {
+      title: 'Mättnad',
+      queryTitle: 'Mättnad',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/M%C3%A4ttnad',
+      fallback: 'Mättnad styrs inte bara av kalorier, utan också av volym, protein, fibrer och hur snabbt maten äts.',
+    },
+    {
+      title: 'Basalomsättning',
+      queryTitle: 'Basalomsättning',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/Basaloms%C3%A4ttning',
+      fallback: 'Basalomsättningen är den energi kroppen använder i vila för att hålla igång grundläggande funktioner som andning, temperatur och cirkulation.',
+    },
+    {
+      title: 'Brunt fett',
+      queryTitle: 'Brunt_fett',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/Brunt_fett',
+      fallback: 'Brunt fett skiljer sig från vanligt fett genom att det är mer specialiserat på värmeproduktion än energilagring.',
+    },
+  ],
+  muscle: [
+    {
+      title: 'Muskelhypertrofi',
+      queryTitle: 'Muskelhypertrofi',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/Muskelhypertrofi',
+      fallback: 'Muskelhypertrofi innebär att muskelfibrerna ökar i storlek, vilket är en central del av hur muskler byggs över tid.',
+    },
+    {
+      title: 'Kreatin',
+      queryTitle: 'Kreatin',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/Kreatin',
+      fallback: 'Kreatin hjälper till att snabbt återbilda ATP, vilket gör det särskilt relevant vid korta och intensiva arbetsinsatser.',
+    },
+    {
+      title: 'Glykogen',
+      queryTitle: 'Glykogen',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/Glykogen',
+      fallback: 'Glykogen är kroppens lagrade form av glukos och finns främst i levern och musklerna, där det fungerar som snabb energi.',
+    },
+  ],
+  energy: [
+    {
+      title: 'Dygnsrytm',
+      queryTitle: 'Dygnsrytm',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/Dygnsrytm',
+      fallback: 'Dygnsrytmen påverkar bland annat sömn, hormoner, kroppstemperatur och när kroppen känns mest vaken eller trött.',
+    },
+    {
+      title: 'Glykogen',
+      queryTitle: 'Glykogen',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/Glykogen',
+      fallback: 'Glykogen är kroppens lagrade form av glukos och finns främst i levern och musklerna, där det fungerar som snabb energi.',
+    },
+    {
+      title: 'Basalomsättning',
+      queryTitle: 'Basalomsättning',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/Basaloms%C3%A4ttning',
+      fallback: 'Basalomsättningen är den energi kroppen använder i vila för att hålla igång grundläggande funktioner som andning, temperatur och cirkulation.',
+    },
+  ],
+  target: [
+    {
+      title: 'Mättnad',
+      queryTitle: 'Mättnad',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/M%C3%A4ttnad',
+      fallback: 'Mättnad styrs inte bara av kalorier, utan också av volym, protein, fibrer och hur snabbt maten äts.',
+    },
+    {
+      title: 'Dygnsrytm',
+      queryTitle: 'Dygnsrytm',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/Dygnsrytm',
+      fallback: 'Dygnsrytmen påverkar bland annat sömn, hormoner, kroppstemperatur och när kroppen känns mest vaken eller trött.',
+    },
+    {
+      title: 'Glykogen',
+      queryTitle: 'Glykogen',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/Glykogen',
+      fallback: 'Glykogen är kroppens lagrade form av glukos och finns främst i levern och musklerna, där det fungerar som snabb energi.',
+    },
+  ],
+  default: [
+    {
+      title: 'Dygnsrytm',
+      queryTitle: 'Dygnsrytm',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/Dygnsrytm',
+      fallback: 'Dygnsrytmen påverkar bland annat sömn, hormoner, kroppstemperatur och när kroppen känns mest vaken eller trött.',
+    },
+    {
+      title: 'Mättnad',
+      queryTitle: 'Mättnad',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/M%C3%A4ttnad',
+      fallback: 'Mättnad styrs inte bara av kalorier, utan också av volym, protein, fibrer och hur snabbt maten äts.',
+    },
+    {
+      title: 'Kreatin',
+      queryTitle: 'Kreatin',
+      sourceUrl: 'https://sv.wikipedia.org/wiki/Kreatin',
+      fallback: 'Kreatin hjälper till att snabbt återbilda ATP, vilket gör det särskilt relevant vid korta och intensiva arbetsinsatser.',
+    },
+  ],
+};
 
-function getHealthTopicForToday() {
-  return HEALTH_TOPICS[Math.floor(Date.now() / 86_400_000) % HEALTH_TOPICS.length];
+function getHealthTopicForToday(goal) {
+  const topics = HEALTH_TOPICS_BY_GOAL[goal] || HEALTH_TOPICS_BY_GOAL.default;
+  return topics[Math.floor(Date.now() / 86_400_000) % topics.length];
 }
 
-function readCachedHealthFact() {
+function getHealthFactCacheKey(goal) {
+  return `${HEALTH_FACT_CACHE_KEY_PREFIX}:${goal || 'default'}`;
+}
+
+function readCachedHealthFact(goal) {
   try {
-    const raw = localStorage.getItem(HEALTH_FACT_CACHE_KEY);
+    const raw = localStorage.getItem(getHealthFactCacheKey(goal));
     if (!raw) return null;
     const parsed = JSON.parse(raw);
 
@@ -385,11 +448,13 @@ function WeightJourney({ onOpen }) {
 }
 
 function DidYouKnowCard() {
+  const { profile } = useProfile();
+  const goal = profile.goal || 'default';
   const [fact, setFact] = useState(() => {
-    const cached = readCachedHealthFact();
+    const cached = readCachedHealthFact(goal);
     if (cached) return cached;
 
-    const topic = getHealthTopicForToday();
+    const topic = getHealthTopicForToday(goal);
     return {
       title: topic.title,
       text: topic.fallback,
@@ -399,13 +464,13 @@ function DidYouKnowCard() {
   });
 
   useEffect(() => {
-    const cached = readCachedHealthFact();
+    const cached = readCachedHealthFact(goal);
     if (isFreshFact(cached)) {
       setFact(cached);
       return undefined;
     }
 
-    const topic = getHealthTopicForToday();
+    const topic = getHealthTopicForToday(goal);
     const controller = new AbortController();
 
     async function loadFact() {
@@ -432,7 +497,7 @@ function DidYouKnowCard() {
           fetchedAt: Date.now(),
         };
 
-        localStorage.setItem(HEALTH_FACT_CACHE_KEY, JSON.stringify(nextFact));
+        localStorage.setItem(getHealthFactCacheKey(goal), JSON.stringify(nextFact));
         setFact(nextFact);
       } catch (error) {
         if (error.name === 'AbortError') {
@@ -454,7 +519,7 @@ function DidYouKnowCard() {
     loadFact();
 
     return () => controller.abort();
-  }, []);
+  }, [goal]);
 
   return (
     <section className={styles.noteCard}>
