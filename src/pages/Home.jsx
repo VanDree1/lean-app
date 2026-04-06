@@ -177,58 +177,67 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
 
   return (
     <>
-      <section
-        className={[
-          styles.focusCard,
-          styles.focusCheckin,
-          isCompleting ? styles.focusCardCompleting : '',
-          isLoggedToday ? styles.focusCardLogged : styles.focusCardTodo,
-        ].join(' ')}
-        aria-labelledby="today-title"
-        role="group"
-      >
-        <div className={styles.focusContent}>
-          <div className={styles.focusMain}>
-            <p className={styles.sectionEyebrow}>Idag</p>
-            <h2 id="today-title" className={styles.focusTitle}>
-              {isLoggedToday ? 'Dagens insats är klar.' : 'Logga dagen'}
-            </h2>
-            <p className={styles.focusBody}>
-              {isLoggedToday
-                ? 'Kalorier, träning och sömn är sparat.'
-                : 'Kalorier, träning och sömn på ett ställe.'}
-            </p>
-            {isLoggedToday ? (
-              <>
-                <div className={styles.focusSummaryRow}>
-                  {summaryItems.map((item) => (
-                    <span key={item} className={styles.focusSummaryPill}>
-                      {item}
-                    </span>
-                  ))}
-                </div>
-                <button type="button" className={styles.focusEditLink} onClick={handleUnlock}>
-                  Lås upp
-                </button>
-              </>
-            ) : (
-              <button type="button" className={styles.focusOpenLink} onClick={handleCheckIn}>
-                Logga idag
+      {isLoggedToday ? (
+        <section
+          className={[
+            styles.focusCard,
+            styles.focusCheckin,
+            isCompleting ? styles.focusCardCompleting : '',
+            styles.focusCardLogged,
+          ].join(' ')}
+          aria-labelledby="today-title"
+          role="group"
+        >
+          <div className={styles.focusContent}>
+            <div className={styles.focusMain}>
+              <p className={styles.sectionEyebrow}>Idag</p>
+              <h2 id="today-title" className={styles.focusTitle}>Dagens insats är klar.</h2>
+              <p className={styles.focusBody}>Kalorier, träning och sömn är sparat.</p>
+              <div className={styles.focusSummaryRow}>
+                {summaryItems.map((item) => (
+                  <span key={item} className={styles.focusSummaryPill}>
+                    {item}
+                  </span>
+                ))}
+              </div>
+              <button type="button" className={styles.focusEditLink} onClick={handleUnlock}>
+                Lås upp
               </button>
-            )}
+            </div>
           </div>
-        </div>
 
-        <div className={styles.focusStatus} aria-hidden="true">
-          {isLoggedToday ? (
+          <div className={styles.focusStatus} aria-hidden="true">
             <span className={styles.focusCheckWrap}>
               <Check size={18} strokeWidth={1.8} className={styles.focusCheckIcon} />
             </span>
-          ) : (
+          </div>
+        </section>
+      ) : (
+        <button
+          type="button"
+          className={[
+            styles.focusCard,
+            styles.focusCheckin,
+            isCompleting ? styles.focusCardCompleting : '',
+            styles.focusCardTodo,
+          ].join(' ')}
+          aria-labelledby="today-title"
+          onClick={handleCheckIn}
+        >
+          <div className={styles.focusContent}>
+            <div className={styles.focusMain}>
+              <p className={styles.sectionEyebrow}>Idag</p>
+              <h2 id="today-title" className={styles.focusTitle}>Logga dagen</h2>
+              <p className={styles.focusBody}>Kalorier, träning och sömn på ett ställe.</p>
+              <p className={styles.focusMeta}>Tryck för att fylla i dagen.</p>
+            </div>
+          </div>
+
+          <div className={styles.focusStatus} aria-hidden="true">
             <span className={styles.focusPulseDot} />
-          )}
-        </div>
-      </section>
+          </div>
+        </button>
+      )}
       {showActionPicker && (
         <div className={styles.focusSheetOverlay} onClick={(event) => event.target === event.currentTarget && setShowActionPicker(false)}>
           <div className={styles.focusSheet} role="dialog" aria-modal="true" aria-label="Fyll i dagens insats">
