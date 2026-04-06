@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Activity, Bike, Check, Dumbbell, Flower2, Footprints } from 'lucide-react';
 import AnimatedNumber from '../components/AnimatedNumber/AnimatedNumber';
 import HeroCard from '../components/HeroCard/HeroCard';
@@ -8,8 +8,8 @@ import { useWeightLog } from '../components/Weight/useWeightLog';
 import styles from './Home.module.css';
 
 const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
-const LAST_LOGGED_ACTION_KEY = 'djur_juni_last_action';
 const STREAK_KEY = 'djur_juni_streak';
+const DAILY_CHECKIN_KEY = 'djur_juni_daily_checkin';
 const WORKOUTS_WEEK_KEY = 'djur_juni_week';
 const WORKOUTS_WEEK_STAMP_KEY = 'djur_juni_week_stamp';
 const CALORIES_KEY = 'djur_juni_cal';
@@ -19,12 +19,6 @@ const TODAY_STATS_KEYS = [
   'djur-i-juni:daily-summary',
 ];
 const WEIGHT_TREND = [103.2, 102.5, 102.1, 101.8, 101.0, 100.5, 100.0];
-const DAILY_ACTIONS = [
-  { value: 'weight', label: 'Jag vägde mig', desc: 'Dagens vikt är registrerad' },
-  { value: 'food', label: 'Jag höll kosten', desc: 'Maten satt som den skulle' },
-  { value: 'training', label: 'Jag tränade', desc: 'Passet eller rörelsen är gjort' },
-  { value: 'routine', label: 'Jag höll rutinen', desc: 'Jag gjorde det viktigaste idag' },
-];
 const WORKOUTS = {
   gym: { name: 'Gym', met: 6.0, Icon: Dumbbell },
   run: { name: 'Löpning', met: 9.8, Icon: Footprints },
@@ -44,6 +38,34 @@ function getCurrentWeekStamp() {
   return monday.toISOString().slice(0, 10);
 }
 
+function readTodaySteps() {
+  try {
+    for (const key of TODAY_STATS_KEYS) {
+      const parsed = JSON.parse(localStorage.getItem(key) || 'null');
+      if (parsed?.date === new Date().toISOString().slice(0, 10)) {
+        return Number(parsed.steps) || 0;
+      }
+    }
+  } catch {
+    return 0;
+  }
+
+  return 0;
+}
+
+function saveTodayCalories(calories) {
+  localStorage.setItem(CALORIES_KEY, String(calories));
+  const payload = {
+    date: new Date().toISOString().slice(0, 10),
+    calories,
+    steps: readTodaySteps(),
+  };
+  for (const key of TODAY_STATS_KEYS) {
+    localStorage.setItem(key, JSON.stringify(payload));
+  }
+  window.dispatchEvent(new Event('djur-i-juni:today-stats-updated'));
+}
+
 function saveWorkoutCalories(estimatedCalories) {
   const currentBurned = parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0;
   const nextBurned = currentBurned + estimatedCalories;
@@ -52,32 +74,57 @@ function saveWorkoutCalories(estimatedCalories) {
   return nextBurned;
 }
 
-function DailyFocusCard() {
+function DailyFocusCard({ eaten, setEaten, burned }) {
   const [lastLoggedDate, setLastLoggedDate] = useState(() => localStorage.getItem(LAST_LOGGED_DATE_KEY) || null);
-  const [lastLoggedAction, setLastLoggedAction] = useState(() => localStorage.getItem(LAST_LOGGED_ACTION_KEY) || '');
   const [streak, setStreak] = useState(() => Number(localStorage.getItem(STREAK_KEY)) || 0);
   const [isCompleting, setIsCompleting] = useState(false);
   const [showActionPicker, setShowActionPicker] = useState(false);
+  const [caloriesInput, setCaloriesInput] = useState('');
+  const [trainedToday, setTrainedToday] = useState(false);
+  const [sleepHours, setSleepHours] = useState('8');
   const todayString = new Date().toDateString();
-  const isLoggedToday = lastLoggedDate === todayString && Boolean(lastLoggedAction);
+  const todayCheckin = useMemo(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem(DAILY_CHECKIN_KEY) || 'null');
+      if (stored?.date === todayString) return stored;
+      return null;
+    } catch {
+      return null;
+    }
+  }, [todayString]);
+  const isLoggedToday = lastLoggedDate === todayString && Boolean(todayCheckin);
   const streakLabel = `${streak} ${streak === 1 ? 'dag' : 'dagar'}`;
 
   function handleCheckIn() {
-    if (isLoggedToday) return;
+    setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
+    setTrainedToday(Boolean(todayCheckin?.trained ?? burned > 0));
+    setSleepHours(String(todayCheckin?.sleepHours ?? 8));
     setShowActionPicker(true);
   }
 
-  function completeCheckIn(action) {
-    if (!action) return;
+  function completeCheckIn() {
+    const parsedCalories = parseInt(caloriesInput, 10);
+    const parsedSleep = Number(sleepHours);
+    if (!Number.isFinite(parsedCalories) || parsedCalories < 0) return;
+    if (!Number.isFinite(parsedSleep) || parsedSleep <= 0 || parsedSleep > 24) return;
 
-    const nextStreak = streak + 1;
+    const alreadyLogged = lastLoggedDate === todayString;
+    const nextStreak = alreadyLogged ? streak : streak + 1;
+    const nextCheckin = {
+      date: todayString,
+      calories: parsedCalories,
+      trained: trainedToday,
+      sleepHours: parsedSleep,
+    };
+
     setIsCompleting(true);
     setLastLoggedDate(todayString);
-    setLastLoggedAction(action);
     setStreak(nextStreak);
     setShowActionPicker(false);
+    setEaten(parsedCalories);
+    saveTodayCalories(parsedCalories);
+    localStorage.setItem(DAILY_CHECKIN_KEY, JSON.stringify(nextCheckin));
     localStorage.setItem(LAST_LOGGED_DATE_KEY, todayString);
-    localStorage.setItem(LAST_LOGGED_ACTION_KEY, action);
     localStorage.setItem(STREAK_KEY, String(nextStreak));
 
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
@@ -109,12 +156,12 @@ function DailyFocusCard() {
             </h2>
             <p className={styles.focusBody}>
               {isLoggedToday
-                ? 'Bra jobbat. Vila nu.'
-                : 'Tryck här och välj vad du faktiskt fick gjort idag.'}
+                ? 'Kalorier, träning och sömn är registrerat för idag.'
+                : 'Tryck här och fyll i kalorier, träning och sömn för dagen.'}
             </p>
             <p className={styles.focusMeta}>
               {isLoggedToday
-                ? `${DAILY_ACTIONS.find((item) => item.value === lastLoggedAction)?.label || 'Insats'} · ${streakLabel}`
+                ? `${todayCheckin?.calories ?? eaten} kcal · ${todayCheckin?.trained ? 'Tränat' : 'Ingen träning'} · ${todayCheckin?.sleepHours ?? 0} h sömn`
                 : `Streak ${streakLabel}`}
             </p>
           </div>
@@ -130,39 +177,83 @@ function DailyFocusCard() {
           )}
         </div>
       </button>
-      {showActionPicker && !isLoggedToday && (
+      {showActionPicker && (
         <div className={styles.focusSheetOverlay} onClick={(event) => event.target === event.currentTarget && setShowActionPicker(false)}>
-          <div className={styles.focusSheet} role="dialog" aria-modal="true" aria-label="Välj dagens insats">
+          <div className={styles.focusSheet} role="dialog" aria-modal="true" aria-label="Fyll i dagens insats">
             <div className={styles.focusSheetHeader}>
               <p className={styles.sectionEyebrow}>Dagens insats</p>
-              <h3 className={styles.focusSheetTitle}>Vad vill du markera som klart?</h3>
+              <h3 className={styles.focusSheetTitle}>Fyll i hur dagen faktiskt såg ut</h3>
             </div>
-            <div className={styles.focusOptionList}>
-              {DAILY_ACTIONS.map((action) => (
-                <button
-                  key={action.value}
-                  type="button"
-                  className={styles.focusOption}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    completeCheckIn(action.value);
-                  }}
-                >
-                  <span className={styles.focusOptionLabel}>{action.label}</span>
-                  <span className={styles.focusOptionDesc}>{action.desc}</span>
-                </button>
-              ))}
+            <div className={styles.focusForm}>
+              <label className={styles.focusField}>
+                <span className={styles.focusFieldLabel}>Kalorier ätit</span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  className={styles.focusInput}
+                  value={caloriesInput}
+                  onChange={(event) => setCaloriesInput(event.target.value)}
+                  placeholder="Till exempel 1850"
+                />
+              </label>
+
+              <div className={styles.focusField}>
+                <span className={styles.focusFieldLabel}>Träning</span>
+                <div className={styles.focusToggleRow}>
+                  <button
+                    type="button"
+                    className={[styles.focusToggle, trainedToday ? styles.focusToggleActive : ''].join(' ')}
+                    onClick={() => setTrainedToday(true)}
+                  >
+                    Ja
+                  </button>
+                  <button
+                    type="button"
+                    className={[styles.focusToggle, !trainedToday ? styles.focusToggleActive : ''].join(' ')}
+                    onClick={() => setTrainedToday(false)}
+                  >
+                    Nej
+                  </button>
+                </div>
+              </div>
+
+              <label className={styles.focusField}>
+                <span className={styles.focusFieldLabel}>Sömn</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.5"
+                  min="0"
+                  max="24"
+                  className={styles.focusInput}
+                  value={sleepHours}
+                  onChange={(event) => setSleepHours(event.target.value)}
+                  placeholder="Till exempel 8"
+                />
+              </label>
             </div>
-            <button
-              type="button"
-              className={styles.focusSheetClose}
-              onClick={(event) => {
-                event.stopPropagation();
-                setShowActionPicker(false);
-              }}
-            >
-              Avbryt
-            </button>
+            <div className={styles.focusSheetActions}>
+              <button
+                type="button"
+                className={styles.focusSheetSecondary}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setShowActionPicker(false);
+                }}
+              >
+                Avbryt
+              </button>
+              <button
+                type="button"
+                className={styles.focusSheetPrimary}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  completeCheckIn();
+                }}
+              >
+                Spara dagens insats
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -381,7 +472,7 @@ export default function Home({ profile }) {
     <main className={styles.main}>
       <div className={styles.stack}>
         <HeroCard profile={profile} />
-        <DailyFocusCard />
+        <DailyFocusCard eaten={eaten} setEaten={setEaten} burned={burned} />
         <div className={styles.logSection}>
         <div className={styles.logSectionHeader}>
           <p className={styles.sectionEyebrow}>Logga idag</p>

@@ -428,6 +428,101 @@
   color: rgba(255, 255, 255, 0.48);
 }
 
+.focusForm {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.focusField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.focusFieldLabel {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.focusInput {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #ffffff;
+  font: inherit;
+  outline: none;
+  transition: border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.focusInput:focus {
+  border-color: rgba(199, 221, 207, 0.28);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.focusToggleRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.focusToggle {
+  padding: 0.9rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.62);
+  cursor: pointer;
+  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.focusToggle:active {
+  transform: scale(0.985);
+}
+
+.focusToggleActive {
+  border-color: rgba(199, 221, 207, 0.28);
+  background: rgba(199, 221, 207, 0.1);
+  color: #ffffff;
+}
+
+.focusSheetActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 0.65rem;
+  margin-top: 0.95rem;
+}
+
+.focusSheetSecondary,
+.focusSheetPrimary {
+  padding: 0.95rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.focusSheetSecondary {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.focusSheetPrimary {
+  border: 1px solid rgba(199, 221, 207, 0.18);
+  background: rgba(199, 221, 207, 0.12);
+  color: #ffffff;
+}
+
+.focusSheetSecondary:active,
+.focusSheetPrimary:active {
+  transform: scale(0.985);
+}
+
 .focusSheetClose {
   width: 100%;
   margin-top: 0.8rem;
@@ -493,6 +588,10 @@
   .focusSheet {
     max-width: 100%;
     max-height: min(68vh, 32rem);
+  }
+
+  .focusSheetActions {
+    grid-template-columns: 1fr;
   }
 }
 
