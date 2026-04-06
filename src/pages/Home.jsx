@@ -319,7 +319,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   );
 }
 
-function WeightJourney({ onOpen, profile }) {
+function WeightJourney({ onOpen, profile, locked }) {
   const { recent, current } = useWeightLog();
   const startWeight = profile.startWeight ?? profile.weight ?? profile.currentWeight ?? 100;
   const goalWeight = profile.goalWeight ?? 90;
@@ -340,7 +340,17 @@ function WeightJourney({ onOpen, profile }) {
   }).join(' ');
 
   return (
-    <section className={styles.weightCard} role="button" tabIndex={0} onClick={onOpen} onKeyDown={(event) => event.key === 'Enter' && onOpen()}>
+    <section
+      className={[styles.weightCard, locked ? styles.weightCardLocked : ''].join(' ')}
+      role="button"
+      tabIndex={locked ? -1 : 0}
+      onClick={locked ? undefined : onOpen}
+      onKeyDown={(event) => {
+        if (locked) return;
+        if (event.key === 'Enter') onOpen();
+      }}
+      aria-disabled={locked}
+    >
       <div className={styles.weightSparkline} aria-hidden="true">
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={styles.weightSparklineSvg}>
           <path d={trendPath} className={styles.weightSparklinePath} />
@@ -371,8 +381,14 @@ function WeightJourney({ onOpen, profile }) {
       </div>
 
       <div className={styles.weightFooter}>
-        <p className={styles.weightMessage}>{isLowest ? 'Nytt lägsta. Fortsätt registrera vikten lugnt.' : 'Tryck här för att logga eller justera dagens vikt.'}</p>
-        <span className={styles.weightLink}>Logga vikt</span>
+        <p className={styles.weightMessage}>
+          {locked
+            ? 'Dagens vikt är stängd.'
+            : isLowest
+              ? 'Nytt lägsta. Fortsätt registrera vikten lugnt.'
+              : 'Tryck här för att logga eller justera dagens vikt.'}
+        </p>
+        <span className={styles.weightLink}>{locked ? 'Låst' : 'Logga vikt'}</span>
       </div>
       </div>
     </section>
@@ -435,7 +451,7 @@ export default function Home({ profile }) {
           <h2 className={styles.logSectionTitle}>Vikt och kalorier</h2>
           <p className={styles.logSectionBody}>Träningen ligger nu i Dagens insats. Här håller du bara vikten och kaloribudgeten ren.</p>
           </div>
-        <WeightJourney profile={profile} onOpen={() => setModal('weight')} />
+        <WeightJourney profile={profile} locked={isDayLocked} onOpen={() => setModal('weight')} />
         <QuickStats
           key={isDayLocked ? 'quickstats-locked' : 'quickstats-open'}
           profile={profile}

@@ -554,8 +554,20 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+.weightCardLocked {
+  opacity: 0.58;
+  cursor: default;
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: none;
+}
+
 .weightCard:active {
   transform: scale(0.985);
+}
+
+.weightCardLocked:active {
+  transform: none;
 }
 
 .weightSparkline {
@@ -699,8 +711,16 @@
   color: rgba(255, 255, 255, 0.78);
 }
 
+.weightCardLocked:hover .weightLink {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .weightCard:active .weightLink {
   transform: translateX(1px);
+}
+
+.weightCardLocked:active .weightLink {
+  transform: none;
 }
 
 .noteCard {
