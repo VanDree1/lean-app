@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import AnimatedNumber from '../AnimatedNumber/AnimatedNumber';
 import { calcTargets } from '../../hooks/useProfile';
 import { getGoalTone } from '../../hooks/useGoalTone';
@@ -8,10 +8,23 @@ import styles from './QuickStats.module.css';
 const CALORIES_KEY = 'djur_juni_cal';
 const STEPS_KEY = 'djur_juni_steps';
 const PROTEIN_KEY = 'djur_juni_protein';
+const DAILY_ENTRIES_KEY = 'djur_juni_daily_entries';
 const TODAY_STATS_KEYS = [
   'djur-i-juni:today-stats',
   'djur-i-juni:daily-summary',
 ];
+const MEAL_SLOTS = [
+  { key: 'breakfast', label: 'Frukost', ratio: 0.22 },
+  { key: 'lunch', label: 'Lunch', ratio: 0.3 },
+  { key: 'dinner', label: 'Middag', ratio: 0.32 },
+  { key: 'snack', label: 'Snack', ratio: 0.16 },
+];
+const SIZE_CONFIG = [
+  { key: 'light', label: 'Lätt', multiplier: 0.72 },
+  { key: 'standard', label: 'Standard', multiplier: 1 },
+  { key: 'heavy', label: 'Tung', multiplier: 1.28 },
+];
+const EXTRA_PROTEIN_KCAL = 120;
 
 const STEP_GOALS = {
   sedentary: 6000,
@@ -53,6 +66,82 @@ function readInitialSteps() {
 function readInitialProtein() {
   const direct = Number(localStorage.getItem(PROTEIN_KEY));
   return Number.isFinite(direct) && direct > 0 ? direct : 0;
+}
+
+function readDailyEntries() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(DAILY_ENTRIES_KEY) || '{}');
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveDailyEntries(entries) {
+  localStorage.setItem(DAILY_ENTRIES_KEY, JSON.stringify(entries));
+}
+
+function createEmptyMeals() {
+  return {
+    breakfast: null,
+    lunch: null,
+    dinner: null,
+    snack: null,
+  };
+}
+
+function normalizeMealEntry(entry) {
+  if (!entry) return null;
+  return {
+    calories: Number(entry.calories) || 0,
+    size: entry.size || 'exact',
+    label: entry.label || 'Exakt',
+    extraProtein: Boolean(entry.extraProtein),
+  };
+}
+
+function readMealsForToday(fallbackCalories = 0) {
+  const entries = readDailyEntries();
+  const today = todayString();
+  const storedMeals = entries[today]?.meals;
+
+  if (storedMeals && typeof storedMeals === 'object') {
+    return {
+      breakfast: normalizeMealEntry(storedMeals.breakfast),
+      lunch: normalizeMealEntry(storedMeals.lunch),
+      dinner: normalizeMealEntry(storedMeals.dinner),
+      snack: normalizeMealEntry(storedMeals.snack),
+    };
+  }
+
+  if (fallbackCalories > 0) {
+    return {
+      ...createEmptyMeals(),
+      snack: {
+        calories: fallbackCalories,
+        size: 'exact',
+        label: 'Exakt',
+        extraProtein: false,
+      },
+    };
+  }
+
+  return createEmptyMeals();
+}
+
+function sumMealCalories(meals) {
+  return Object.values(meals).reduce((sum, meal) => sum + (meal?.calories || 0), 0);
+}
+
+function roundMealCalories(value) {
+  return Math.max(100, Math.round(value / 25) * 25);
+}
+
+function getMealSizeCalories(goal, slotKey, sizeKey, extraProtein = false) {
+  const slot = MEAL_SLOTS.find((item) => item.key === slotKey) || MEAL_SLOTS[0];
+  const size = SIZE_CONFIG.find((item) => item.key === sizeKey) || SIZE_CONFIG[1];
+  const base = roundMealCalories(goal * slot.ratio);
+  return base + Math.round(base * (size.multiplier - 1)) + (extraProtein ? EXTRA_PROTEIN_KCAL : 0);
 }
 
 function saveTodayStats(nextStats) {
@@ -143,19 +232,119 @@ function MetricCard({
   );
 }
 
+function MealPickerModal({
+  slot,
+  goal,
+  onClose,
+  onSave,
+}) {
+  const [extraProtein, setExtraProtein] = useState(false);
+  const [showExactInput, setShowExactInput] = useState(false);
+  const [exactValue, setExactValue] = useState('');
+  const exactInputRef = useRef(null);
+
+  useEffect(() => {
+    if (!showExactInput) return;
+    const timer = window.setTimeout(() => {
+      exactInputRef.current?.focus();
+      exactInputRef.current?.select();
+    }, 40);
+    return () => window.clearTimeout(timer);
+  }, [showExactInput]);
+
+  function handleExactSave() {
+    const parsed = parseInt(exactValue, 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) return;
+    onSave({
+      calories: parsed,
+      size: 'exact',
+      label: 'Exakt',
+      extraProtein,
+    });
+  }
+
+  return (
+    <div className={styles.mealModalOverlay} onClick={(event) => event.target === event.currentTarget && onClose()}>
+      <div className={styles.mealModal} role="dialog" aria-modal="true" aria-label={`Logga ${slot.label.toLowerCase()}`}>
+        <div className={styles.mealModalHeader}>
+          <div>
+            <p className={styles.label}>{slot.label}</p>
+            <h3 className={styles.mealModalTitle}>Välj mängd</h3>
+          </div>
+          <button type="button" className={styles.mealClose} onClick={onClose} aria-label="Stäng måltidslogg">
+            <X size={16} strokeWidth={1.8} />
+          </button>
+        </div>
+
+        <div className={styles.mealSizeGrid}>
+          {SIZE_CONFIG.map((size) => {
+            const calories = getMealSizeCalories(goal, slot.key, size.key, extraProtein);
+            return (
+              <button
+                key={size.key}
+                type="button"
+                className={styles.mealSizeButton}
+                onClick={() => onSave({
+                  calories,
+                  size: size.key,
+                  label: size.label,
+                  extraProtein,
+                })}
+              >
+                <span className={styles.mealSizeTitle}>{size.label}</span>
+                <span className={styles.mealSizeValue}>~{calories} kcal</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          className={[styles.proteinToggle, extraProtein ? styles.proteinToggleActive : ''].join(' ')}
+          onClick={() => setExtraProtein((value) => !value)}
+          aria-pressed={extraProtein}
+        >
+          Extra protein
+        </button>
+
+        {!showExactInput ? (
+          <button type="button" className={styles.exactToggle} onClick={() => setShowExactInput(true)}>
+            Exakt värde
+          </button>
+        ) : (
+          <div className={styles.exactInputWrap}>
+            <input
+              ref={exactInputRef}
+              className={styles.exactInput}
+              type="number"
+              inputMode="numeric"
+              value={exactValue}
+              onChange={(event) => setExactValue(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  handleExactSave();
+                }
+              }}
+              placeholder="t.ex. 540"
+            />
+            <button type="button" className={styles.exactSave} onClick={handleExactSave}>
+              Spara
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function CaloriesCard({
   goal,
   eaten,
   burned,
-  isEditing,
-  inputValue,
   feedback,
-  inputRef,
-  onEditStart,
-  onInputChange,
-  onInputSubmit,
-  onInputCancel,
-  onInputBlur,
+  meals,
+  onMealOpen,
   locked,
 }) {
   const remaining = goal - eaten + burned;
@@ -164,42 +353,15 @@ function CaloriesCard({
 
   return (
     <section className={[styles.card, feedback ? styles.cardSaved : '', locked ? styles.cardLocked : ''].join(' ')} aria-label="Kalorier">
-      <button type="button" className={styles.addButton} onClick={onEditStart} aria-label="Lägg till kalorier" disabled={locked}>
-        <Plus size={16} strokeWidth={1.5} />
-      </button>
-
       <span className={styles.label}>Kalorier idag</span>
 
       <div className={styles.valueRow}>
-        {isEditing ? (
-          <input
-            ref={inputRef}
-            className={styles.inlineInput}
-            type="number"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            value={inputValue}
-            onChange={(event) => onInputChange(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') {
-                onInputCancel();
-                return;
-              }
-              if (event.key === 'Enter') {
-                onInputSubmit();
-              }
-            }}
-            onBlur={onInputBlur}
-            aria-label="Kalorier input"
-          />
-        ) : (
-          <>
-            <span className={[styles.value, remaining <= 0 ? styles.valueEmpty : ''].join(' ')}>
-              <AnimatedNumber value={remaining} duration={800} />
-            </span>
-            <span className={styles.unit}>kvar</span>
-          </>
-        )}
+        <>
+          <span className={[styles.value, remaining <= 0 ? styles.valueEmpty : ''].join(' ')}>
+            <AnimatedNumber value={remaining} duration={800} />
+          </span>
+          <span className={styles.unit}>kvar</span>
+        </>
       </div>
 
       <div className={styles.track}>
@@ -210,6 +372,26 @@ function CaloriesCard({
         <span className={styles.meta}>Mål {goal.toLocaleString('sv-SE')}</span>
         <span className={styles.meta}>Ätit -{eaten.toLocaleString('sv-SE')}</span>
         <span className={styles.meta}>Tränat +{burned.toLocaleString('sv-SE')}</span>
+      </div>
+
+      <div className={styles.mealSlots}>
+        {MEAL_SLOTS.map((slot) => {
+          const meal = meals[slot.key];
+          return (
+            <button
+              key={slot.key}
+              type="button"
+              className={styles.mealSlot}
+              onClick={() => onMealOpen(slot)}
+              disabled={locked}
+            >
+              <span className={styles.mealSlotLabel}>{slot.label}</span>
+              <span className={styles.mealSlotValue}>
+                {meal ? `${meal.label} · ${meal.calories} kcal` : 'Lägg till'}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div className={styles.footerRow}>
@@ -224,10 +406,11 @@ function CaloriesCard({
 export default function QuickStats({ profile = {}, eaten, burned, setEaten, locked = false }) {
   const [steps, setSteps] = useState(() => readInitialSteps());
   const [protein, setProtein] = useState(() => readInitialProtein());
-  const [editMode, setEditMode] = useState({ calories: false, steps: false });
+  const [meals, setMeals] = useState(() => readMealsForToday(Number(localStorage.getItem(CALORIES_KEY)) || 0));
+  const [activeMealSlot, setActiveMealSlot] = useState(null);
+  const [editMode, setEditMode] = useState({ steps: false });
   const [inputValue, setInputValue] = useState('');
   const [feedback, setFeedback] = useState({ calories: '', steps: '' });
-  const caloriesInputRef = useRef(null);
   const stepsInputRef = useRef(null);
   const skipBlurSaveRef = useRef(false);
 
@@ -235,6 +418,7 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
     function syncStats() {
       setSteps(readInitialSteps());
       setProtein(readInitialProtein());
+      setMeals(readMealsForToday(Number(localStorage.getItem(CALORIES_KEY)) || 0));
     }
 
     window.addEventListener('storage', syncStats);
@@ -249,11 +433,6 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
   }, []);
 
   useEffect(() => {
-    if (editMode.calories) {
-      caloriesInputRef.current?.focus();
-      caloriesInputRef.current?.select();
-    }
-
     if (editMode.steps) {
       stepsInputRef.current?.focus();
       stepsInputRef.current?.select();
@@ -282,46 +461,34 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
   }
 
   function closeEditor(key) {
-    setEditMode({ calories: false, steps: false });
+    setEditMode({ steps: false });
     setInputValue('');
-    if (key === 'calories') {
-      caloriesInputRef.current?.blur();
-    } else if (key === 'steps') {
+    if (key === 'steps') {
       stepsInputRef.current?.blur();
     }
   }
 
-  function handleSaveCalories() {
-    if (locked) {
-      closeEditor('calories');
-      return;
-    }
-    if (skipBlurSaveRef.current) {
-      skipBlurSaveRef.current = false;
-      closeEditor('calories');
-      return;
-    }
+  function handleMealSave(slotKey, mealData) {
+    const nextMeals = {
+      ...meals,
+      [slotKey]: mealData,
+    };
+    const nextCalories = sumMealCalories(nextMeals);
+    const entries = readDailyEntries();
+    const today = todayString();
+    entries[today] = {
+      ...(entries[today] || {}),
+      date: today,
+      meals: nextMeals,
+    };
 
-    if (inputValue.trim() === '' || Number.isNaN(Number(inputValue))) {
-      closeEditor('calories');
-      return;
-    }
-
-    const increment = parseInt(inputValue, 10);
-    if (!Number.isFinite(increment) || increment <= 0) {
-      closeEditor('calories');
-      return;
-    }
-
-    setEaten((prev) => {
-      const nextCalories = prev + increment;
-      localStorage.setItem(CALORIES_KEY, String(nextCalories));
-      saveTodayStats({ calories: nextCalories, steps });
-      return nextCalories;
-    });
-
-    triggerFeedback('calories', increment, 'kcal');
-    closeEditor('calories');
+    saveDailyEntries(entries);
+    localStorage.setItem(CALORIES_KEY, String(nextCalories));
+    saveTodayStats({ calories: nextCalories, steps });
+    setMeals(nextMeals);
+    setEaten(nextCalories);
+    setActiveMealSlot(null);
+    triggerFeedback('calories', mealData.calories, 'kcal');
   }
 
   function handleSaveSteps() {
@@ -395,22 +562,12 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
         goal={kcalGoal}
         eaten={eaten}
         burned={burned}
-        isEditing={editMode.calories}
-        inputValue={inputValue}
         feedback={feedback.calories}
-        inputRef={caloriesInputRef}
-        onEditStart={() => {
+        meals={meals}
+        onMealOpen={(slot) => {
           if (locked) return;
-          setEditMode({ calories: true, steps: false });
-          setInputValue('');
+          setActiveMealSlot(slot);
         }}
-        onInputChange={setInputValue}
-        onInputSubmit={handleSaveCalories}
-        onInputCancel={() => {
-          skipBlurSaveRef.current = true;
-          closeEditor('calories');
-        }}
-        onInputBlur={handleSaveCalories}
         locked={locked}
       />
       <MetricCard
@@ -425,7 +582,7 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
         inputRef={stepsInputRef}
         onEditStart={() => {
           if (locked) return;
-          setEditMode({ calories: false, steps: true });
+          setEditMode({ steps: true });
           setInputValue('');
         }}
         onInputChange={setInputValue}
@@ -438,6 +595,14 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
         locked={locked}
         priority={isProteinPriority}
       />
+      {activeMealSlot ? (
+        <MealPickerModal
+          slot={activeMealSlot}
+          goal={kcalGoal}
+          onClose={() => setActiveMealSlot(null)}
+          onSave={(mealData) => handleMealSave(activeMealSlot.key, mealData)}
+        />
+      ) : null}
     </div>
   );
 }
