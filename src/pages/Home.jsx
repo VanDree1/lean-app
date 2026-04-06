@@ -422,6 +422,9 @@ function DailyHistoryCard({ entries }) {
               <span className={styles.historyDateText}>{entry.date}</span>
             </div>
             <div className={styles.historyMetrics}>
+              <span className={styles.historyMetric}>
+                {entry.weight != null ? `${Number(entry.weight).toFixed(1)} kg` : 'Ingen vikt'}
+              </span>
               <span className={styles.historyMetric}>{entry.calories || 0} kcal</span>
               <span className={styles.historyMetric}>{entry.steps || 0} steg</span>
               <span className={[styles.historyState, entry.locked ? styles.historyStateDone : styles.historyStateMissed].join(' ')}>

@@ -45,6 +45,18 @@ function saveHistory(entries) {
   localStorage.setItem(DAILY_HISTORY_KEY, JSON.stringify(sorted));
 }
 
+export function upsertDailyHistoryEntry(entry) {
+  const history = loadHistory();
+  const next = history.filter((item) => item.date !== entry.date);
+  next.push(entry);
+  saveHistory(next);
+  window.dispatchEvent(new Event('djur-i-juni:daily-logic-updated'));
+}
+
+export function getDailyHistoryEntry(date) {
+  return loadHistory().find((entry) => entry.date === date) || null;
+}
+
 function readStatsPayload() {
   for (const key of TODAY_STATS_KEYS) {
     const parsed = loadJson(key, null);

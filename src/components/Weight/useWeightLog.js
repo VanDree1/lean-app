@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { getDailyHistoryEntry, upsertDailyHistoryEntry } from '../../hooks/useDailyLogic';
 
 const STORAGE_KEY = 'djur-i-juni:weight-log';
 const PROFILE_KEY = 'djur-i-juni:profile';
@@ -48,6 +49,34 @@ export function useWeightLog() {
       const next = [...filtered, { date, weight: parseFloat(weight) }]
         .sort((a, b) => b.date.localeCompare(a.date));
       saveLog(next);
+      const existing = getDailyHistoryEntry(date);
+      upsertDailyHistoryEntry({
+        date,
+        calories: existing?.calories || 0,
+        steps: existing?.steps || 0,
+        burned: existing?.burned || 0,
+        locked: existing?.locked || false,
+        sleepHours: existing?.sleepHours || 0,
+        workoutKey: existing?.workoutKey || '',
+        workoutName: existing?.workoutName || '',
+        duration: existing?.duration || 0,
+        weight: parseFloat(weight),
+      });
+      return next;
+    });
+  }, []);
+
+  const removeEntry = useCallback((date) => {
+    setEntries((prev) => {
+      const next = prev.filter((e) => e.date !== date);
+      saveLog(next);
+      const existing = getDailyHistoryEntry(date);
+      if (existing) {
+        upsertDailyHistoryEntry({
+          ...existing,
+          weight: null,
+        });
+      }
       return next;
     });
   }, []);
@@ -60,5 +89,5 @@ export function useWeightLog() {
     ? Math.min(100, Math.max(0, (lost / totalToLose) * 100))
     : 0;
 
-  return { recent, current, lost, progress, addEntry, GOAL_WEIGHT, START_WEIGHT };
+  return { recent, current, lost, progress, addEntry, removeEntry, GOAL_WEIGHT, START_WEIGHT };
 }
