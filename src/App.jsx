@@ -5,6 +5,7 @@ import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
+import Recipes from './pages/Recipes';
 import styles from './App.module.css';
 
 const SHARED_PROFILE_KEY = 'djur_juni_profile';
@@ -94,7 +95,7 @@ export default function App() {
       <Header />
       <div className={[styles.viewShell, isViewVisible ? styles.viewVisible : styles.viewHidden].join(' ')}>
         {displayedView === 'hem' && <Home profile={profile} />}
-        {displayedView === 'recept' && <div style={{ color: '#fff', padding: '1.5rem 1rem 7rem' }}>Recept kommer snart</div>}
+        {displayedView === 'recept' && <Recipes />}
         {displayedView === 'profil' && <Profile profile={profile} setProfile={setProfile} />}
       </div>
       <BottomNav active={currentView} onChange={handleViewChange} />
