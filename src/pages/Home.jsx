@@ -372,7 +372,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
           <div className={styles.focusContent}>
             <div className={styles.focusMain}>
               <p className={styles.sectionEyebrow}>Dagens insats</p>
-              <h2 id="today-title" className={styles.focusTitle}>Dag säkrad</h2>
+              <h2 id="today-title" className={styles.focusTitle}>Dagen sparad</h2>
               <div className={styles.focusSummaryRow}>
                 {summaryItems.map((item) => (
                   <span key={item} className={styles.focusSummaryPill}>
@@ -444,12 +444,12 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
         </button>
       )}
       {showActionPicker && (
-        <section className={styles.focusInlineSheet} role="dialog" aria-label="Fyll i dagens insats">
+        <section className={styles.focusInlineSheet} role="dialog" aria-label="Justera dagens insats">
           <div className={styles.focusSheetHeader}>
             <div>
               <p className={styles.sectionEyebrow}>Dagens insats</p>
               <h3 className={styles.focusSheetTitle}>
-                {isEditingToday ? 'Justera dagen' : 'Fyll i dagen'}
+                {isEditingToday ? 'Justera dagens insats' : 'Fyll i dagen'}
               </h3>
               {isEditingToday ? (
                 <p className={styles.focusSheetSubtitle}>Dagens värden är redan ifyllda.</p>
@@ -654,7 +654,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 <span className={styles.focusSavedCheck}>
                   <Check size={16} strokeWidth={1.9} />
                 </span>
-                <span className={styles.focusSavedText}>Dag säkrad</span>
+                <span className={styles.focusSavedText}>{isEditingToday ? 'Ändringar sparade' : 'Dag säkrad'}</span>
               </div>
             ) : null}
               <button
@@ -674,7 +674,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
               onClick={completeCheckIn}
               disabled={!canSave || showSavedState}
             >
-              {showSavedState ? 'Sparat' : isEditingToday ? 'Uppdatera dagen' : 'Spara dagens insats'}
+              {showSavedState ? 'Sparat' : isEditingToday ? 'Spara ändringar' : 'Spara dagens insats'}
             </button>
           </div>
         </section>
