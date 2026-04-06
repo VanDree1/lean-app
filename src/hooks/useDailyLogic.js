@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const LAST_SEEN_DATE_KEY = 'djur_juni_last_seen';
 const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
@@ -188,9 +188,12 @@ function syncDailyTimeline() {
 }
 
 export function useDailyLogic() {
+  const [history, setHistory] = useState(() => loadHistory());
+
   useEffect(() => {
     function handleSync() {
       syncDailyTimeline();
+      setHistory(loadHistory());
     }
 
     handleSync();
@@ -211,5 +214,6 @@ export function useDailyLogic() {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
-}
 
+  return { history };
+}
