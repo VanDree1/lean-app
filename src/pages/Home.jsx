@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import HeroCard from '../components/HeroCard/HeroCard';
 import QuickStats from '../components/QuickStats/QuickStats';
 import StreakBanner from '../components/StreakBanner/StreakBanner';
-import MotivationTip from '../components/MotivationTip/MotivationTip';
 import WeightModal from '../components/Weight/WeightModal';
 import { useWeightLog } from '../components/Weight/useWeightLog';
 import { useStreak } from '../hooks/useStreak';
@@ -409,7 +408,6 @@ function CoachTipCard() {
 
 export default function Home() {
   const [modal, setModal] = useState(null);
-  const { loggedToday } = useStreak();
 
   return (
     <main className={styles.main}>
@@ -421,10 +419,7 @@ export default function Home() {
           <WeightJourney onOpen={() => setModal('weight')} />
         </div>
         <QuickStats />
-        <div className={styles.bottomGrid}>
-          <CoachTipCard />
-          <MotivationTip mode={loggedToday ? 'ground' : 'reflect'} />
-        </div>
+        <CoachTipCard />
       </div>
 
       {modal === 'weight' && <WeightModal onClose={() => setModal(null)} />}
