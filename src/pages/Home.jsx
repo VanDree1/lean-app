@@ -5,7 +5,6 @@ import HeroCard from '../components/HeroCard/HeroCard';
 import QuickStats from '../components/QuickStats/QuickStats';
 import WeightModal from '../components/Weight/WeightModal';
 import { useWeightLog } from '../components/Weight/useWeightLog';
-import { useDailyLogic } from '../hooks/useDailyLogic';
 import styles from './Home.module.css';
 
 const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
@@ -427,7 +426,6 @@ function WeightJourney({ onOpen, profile, locked }) {
 }
 
 export default function Home({ profile }) {
-  useDailyLogic();
   const { current: latestWeight } = useWeightLog();
   const [modal, setModal] = useState(null);
   const [eaten, setEaten] = useState(() => parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
