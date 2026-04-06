@@ -247,13 +247,31 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
                 />
               </label>
 
-              <div className={styles.focusField}>
+              <label className={styles.focusField}>
+                <span className={styles.focusFieldLabel}>Sömn</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="0.5"
+                  min="0"
+                  max="24"
+                  className={styles.focusInput}
+                  value={sleepHours}
+                  onChange={(event) => setSleepHours(event.target.value)}
+                  placeholder="Till exempel 8"
+                />
+              </label>
+
+              <div className={[styles.focusField, !activeWorkout ? styles.focusFieldMuted : ''].join(' ')}>
                 <div className={styles.focusFieldHeader}>
                   <span className={styles.focusFieldLabel}>Dagens träning</span>
                   <span className={styles.focusFieldHint}>
                     {activeWorkout ? `+${estimatedCalories} kcal` : 'Valfritt'}
                   </span>
                 </div>
+                <p className={styles.focusFieldSubtle}>
+                  {activeWorkout ? 'Justerat pass för idag.' : 'Välj bara något här om du faktiskt tränade.'}
+                </p>
                 <div className={styles.workoutGrid}>
                   {Object.entries(WORKOUTS).map(([key, workout]) => {
                     const active = activeWorkoutKey === key;
@@ -299,21 +317,6 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
                   </div>
                 )}
               </div>
-
-              <label className={styles.focusField}>
-                <span className={styles.focusFieldLabel}>Sömn</span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  step="0.5"
-                  min="0"
-                  max="24"
-                  className={styles.focusInput}
-                  value={sleepHours}
-                  onChange={(event) => setSleepHours(event.target.value)}
-                  placeholder="Till exempel 8"
-                />
-              </label>
 
               <div className={styles.focusWeekWrap}>
                 <div className={styles.focusFieldHeader}>

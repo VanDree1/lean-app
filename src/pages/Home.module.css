@@ -425,6 +425,10 @@
   gap: 0.5rem;
 }
 
+.focusFieldMuted {
+  opacity: 0.82;
+}
+
 .focusFieldHeader {
   display: flex;
   align-items: center;
@@ -444,6 +448,13 @@
   color: rgba(199, 221, 207, 0.82);
   letter-spacing: 0.08em;
   white-space: nowrap;
+}
+
+.focusFieldSubtle {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .focusInput {
