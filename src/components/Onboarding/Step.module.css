@@ -37,6 +37,11 @@
   margin-bottom: 0.9rem;
 }
 
+.compactTitle {
+  font-size: 1.85rem;
+  margin-bottom: 0.65rem;
+}
+
 .subtitle {
   font-size: 0.9375rem;
   line-height: 1.72;
@@ -322,6 +327,11 @@
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 48%),
     rgba(255, 255, 255, 0.02);
+}
+
+.wheelCardCompact {
+  margin: 0.35rem 0 1.4rem;
+  padding: 1.1rem 1rem 1.2rem;
 }
 
 .wheelLabel {

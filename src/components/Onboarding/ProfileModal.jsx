@@ -22,6 +22,7 @@ const STEP_TITLES = [
 ];
 
 const EMPTY = {
+  goal: '', weightGoal: '',
   name: '', height: '', age: '', gender: '', activity: '',
   currentWeight: '', goalWeight: '', pace: 0.5, targetDate: '',
   diet: '', allergies: '',
@@ -29,6 +30,11 @@ const EMPTY = {
 
 function isPositiveNumber(value) {
   return Number(value) > 0;
+}
+
+function isValidWeight(value) {
+  const weight = Number(value);
+  return weight >= 30 && weight <= 300;
 }
 
 function buildGoalWeightPatch(data) {
@@ -73,7 +79,7 @@ function getStepPatch(step, data) {
       };
     case 4:
       return {
-        currentWeight: data.currentWeight ? String(parseFloat(data.currentWeight)) : '',
+        currentWeight: isValidWeight(data.currentWeight) ? String(parseFloat(data.currentWeight)) : '',
       };
     case 5:
       return buildGoalWeightPatch(data);
@@ -96,7 +102,7 @@ function canProceed(step, data) {
     case 3:
       return Boolean(data.name?.trim()) && isPositiveNumber(data.age) && isPositiveNumber(data.height);
     case 4:
-      return isPositiveNumber(data.currentWeight);
+      return isValidWeight(data.currentWeight);
     case 5: {
       const current = parseFloat(data.currentWeight) || 0;
       const goal = parseFloat(data.goalWeight);

@@ -90,7 +90,7 @@ function detectWorkoutMomentum(entries) {
 }
 
 function detectMealPattern(entries, goal) {
-  if (goal !== 'muscle') return null;
+  if (goal !== 'muscle' && goal !== 'recomposition') return null;
 
   const recent = getRecentLockedEntries(entries, 4);
   if (recent.length < 3) return null;

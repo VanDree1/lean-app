@@ -38,6 +38,43 @@ const GOAL_TONES = {
       priority: 'activity',
     },
   },
+  recomposition: {
+    hero: {
+      quote: 'Bygg styrka medan formen skärps.',
+      subtle: 'Hög proteinnivå, smart träning och lugn rytm gör dubbelt jobb.',
+    },
+    daily: {
+      body: 'Protein, rörelse och återhämtning i samma loop.',
+      meta: 'Skydda musklerna och håll riktningen.',
+      primaryFieldLabel: 'Kalorier ätit',
+      secondaryFieldLabel: 'Sömn',
+      workoutLabel: 'Dagens träning',
+      workoutHint: 'Styrketräning och vardagsrörelse ska jobba ihop, inte tävla mot varandra.',
+    },
+    log: {
+      title: 'Form och styrka',
+      body: 'Här vill du se att vikten rör sig lugnt medan protein och träning håller kvaliteten uppe.',
+    },
+    coach: {
+      title: 'Tips från coachen',
+      body: ({ proteinGoal }) => `Behåll protein runt ${proteinGoal} g och låt styrkepassen vara jämna. Målet är bättre form utan att tappa tryck.`,
+    },
+    quote: {
+      status: 'Balans',
+      lead: 'Bygg och skala samtidigt.',
+      fallbacks: [
+        { text: 'Great things are not done by impulse, but by a series of small things brought together.', author: 'Vincent van Gogh' },
+        { text: 'We are what we repeatedly do. Excellence, then, is not an act, but a habit.', author: 'Will Durant' },
+        { text: 'It always seems impossible until it is done.', author: 'Nelson Mandela' },
+      ],
+    },
+    stats: {
+      secondaryKey: 'protein',
+      secondaryLabel: 'Protein idag',
+      secondaryUnit: 'G',
+      priority: 'protein',
+    },
+  },
   muscle: {
     hero: {
       quote: 'Bygg lugnt. Behåll rytmen.',

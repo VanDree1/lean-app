@@ -2,17 +2,20 @@ import { useState } from 'react';
 import {
   Flame,
   Dumbbell,
+  ShieldPlus,
   Zap,
   Target,
 } from 'lucide-react';
 import s from '../Step.module.css';
+import { GOAL_OPTIONS } from '../../../utils/goals';
 
-const GOALS = [
-  { value: 'fat_loss', icon: Flame, label: 'Bränna fett', desc: 'Minska kroppsfett' },
-  { value: 'muscle', icon: Dumbbell, label: 'Bygga muskler', desc: 'Stärka kroppen' },
-  { value: 'energy', icon: Zap, label: 'Mer energi', desc: 'Orka mer i vardagen' },
-  { value: 'target', icon: Target, label: 'Nå målvikt', desc: 'Specifik målsättning' },
-];
+const GOAL_ICONS = {
+  fat_loss: Flame,
+  recomposition: ShieldPlus,
+  muscle: Dumbbell,
+  energy: Zap,
+  target: Target,
+};
 
 export default function StepGoal({ data, onNext, onChangeData, showFooter = true, submitLabel = 'Nästa' }) {
   const controlled = typeof onChangeData === 'function';
@@ -34,8 +37,8 @@ export default function StepGoal({ data, onNext, onChangeData, showFooter = true
       <p className={s.subtitle}>Det här styr hur vi sätter dina dagliga mål.</p>
 
       <div className={s.hypeStack}>
-        {GOALS.map((g) => {
-          const Icon = g.icon;
+        {GOAL_OPTIONS.map((g) => {
+          const Icon = GOAL_ICONS[g.value] ?? Target;
 
           return (
             <button

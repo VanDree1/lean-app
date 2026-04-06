@@ -4,14 +4,10 @@ import { useOnboarding } from '../components/Onboarding/useOnboarding';
 import ProfileModal from '../components/Onboarding/ProfileModal';
 import { useAppStore } from '../store/useAppStore';
 import { getDisplayName } from '../utils/displayName';
+import { GOAL_LABELS, GOAL_OPTIONS } from '../utils/goals';
 import styles from './Profile.module.css';
 
-const GOALS = [
-  { value: 'fat_loss', label: 'Bränna fett',  desc: 'Minska kroppsfett' },
-  { value: 'muscle',   label: 'Bygga muskler', desc: 'Stärka kroppen' },
-  { value: 'energy',   label: 'Mer energi',    desc: 'Orka mer i vardagen' },
-  { value: 'target',   label: 'Nå målvikt',    desc: 'Specifik målsättning' },
-];
+const GOALS = GOAL_OPTIONS;
 
 const ACTIVITIES = [
   { value: 'sedentary',   label: 'Stillasittande', desc: 'Kontor, lite rörelse' },
@@ -28,7 +24,7 @@ const DIETS = [
 
 const GENDERS = ['Man', 'Kvinna'];
 
-const GOAL_LABEL     = { fat_loss: 'Bränna fett', muscle: 'Bygga muskler', energy: 'Mer energi', target: 'Nå målvikt' };
+const GOAL_LABEL     = GOAL_LABELS;
 const ACTIVITY_LABEL = { sedentary: 'Stillasittande', light: 'Måttligt aktiv', very_active: 'Mycket aktiv' };
 
 function getInitials(name) {

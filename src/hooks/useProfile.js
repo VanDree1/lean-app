@@ -9,6 +9,7 @@ const ACTIVITY_MULTIPLIER = {
 // kcal adjustment relative to TDEE
 const GOAL_ADJUSTMENT = {
   fat_loss: -350,
+  recomposition: -150,
   muscle:   +200,
   energy:      0,
   target:   -250,
@@ -17,6 +18,7 @@ const GOAL_ADJUSTMENT = {
 // protein g per kg bodyweight
 const PROTEIN_PER_KG = {
   fat_loss: 2.0,
+  recomposition: 2.2,
   muscle:   2.2,
   energy:   1.8,
   target:   2.0,

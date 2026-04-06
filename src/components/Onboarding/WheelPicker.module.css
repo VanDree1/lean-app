@@ -8,6 +8,19 @@
   flex-shrink: 0;
 }
 
+.compact {
+  height: calc(var(--wheel-item-h) * 4);
+}
+
+.compact .pad {
+  height: calc(var(--wheel-item-h) * 1.5);
+}
+
+.compact .fadeTop,
+.compact .fadeBottom {
+  height: calc(var(--wheel-item-h) * 1.35);
+}
+
 .list {
   height: 100%;
   overflow-y: scroll;

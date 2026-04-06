@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { calcTargets } from '../../../hooks/useProfile';
+import { GOAL_LABELS } from '../../../utils/goals';
 import s from '../Step.module.css';
 
 function makeConfetti() {
@@ -12,13 +13,6 @@ function makeConfetti() {
     delay: `${Math.random() * 0.4}s`,
   }));
 }
-
-const GOAL_LABELS = {
-  fat_loss: 'Bränna fett',
-  muscle:   'Bygga muskler',
-  energy:   'Mer energi',
-  target:   'Nå målvikt',
-};
 
 const ACTIVITY_LABELS = {
   sedentary:   'Stillasittande',
