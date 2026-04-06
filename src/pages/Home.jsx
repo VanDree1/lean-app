@@ -180,6 +180,14 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     window.setTimeout(() => setIsCompleting(false), 850);
   }
 
+  function handleFormKeyDown(event) {
+    if (event.key !== 'Enter') return;
+    if (event.shiftKey) return;
+    if (!canSave) return;
+    event.preventDefault();
+    completeCheckIn();
+  }
+
   function handleUnlock(event) {
     event.stopPropagation();
     setLocked(false);
@@ -281,6 +289,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 className={styles.focusInput}
                 value={caloriesInput}
                 onChange={(event) => setCaloriesInput(event.target.value)}
+                onKeyDown={handleFormKeyDown}
                 placeholder="Till exempel 1850"
                 min="0"
               />
@@ -297,6 +306,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 className={styles.focusInput}
                 value={sleepHours}
                 onChange={(event) => setSleepHours(event.target.value)}
+                onKeyDown={handleFormKeyDown}
                 placeholder="Till exempel 8"
               />
             </label>
@@ -339,6 +349,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                     step="5"
                     value={duration}
                     onChange={(event) => setDuration(Number(event.target.value))}
+                    onKeyDown={handleFormKeyDown}
                     aria-label="Träningslängd i minuter"
                   />
                   <div className={styles.workoutScale}>
