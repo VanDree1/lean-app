@@ -1,10 +1,8 @@
-const WEIGHT_KEY = 'djur-i-juni:weight-log';
+import { useAppStore } from '../store/useAppStore';
 
 export function useStreak() {
-  const entries = (() => {
-    try { return JSON.parse(localStorage.getItem(WEIGHT_KEY) || '[]'); }
-    catch { return []; }
-  })();
+  const { state } = useAppStore();
+  const entries = state.weightLog;
 
   const dates = new Set(entries.map((e) => e.date));
   const todayStr = new Date().toISOString().slice(0, 10);

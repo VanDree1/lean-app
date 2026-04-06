@@ -2,34 +2,17 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import s from '../Step.module.css';
 
 const GENDERS = ['Man', 'Kvinna'];
-const PROFILE_STORAGE_KEY = 'djur-i-juni:profile';
 
 export default function Step2Profile({ data, onNext, onChangeData, showFooter = true, submitLabel = 'Nästa' }) {
   const controlled = typeof onChangeData === 'function';
   const autosaveTimeoutRef = useRef(null);
   const [localProfile, setLocalProfile] = useState(() => {
-    const initial = {
+    return {
       name: data.name ?? '',
       age: data.age ?? '',
       height: data.height ?? '',
       gender: data.gender ?? '',
     };
-
-    try {
-      const stored = localStorage.getItem(PROFILE_STORAGE_KEY);
-      if (!stored) return initial;
-
-      const parsed = JSON.parse(stored);
-      return {
-        ...initial,
-        name: parsed?.name ?? initial.name,
-        age: parsed?.age ?? initial.age,
-        height: parsed?.height ?? initial.height,
-        gender: parsed?.gender ?? initial.gender,
-      };
-    } catch {
-      return initial;
-    }
   });
   const [saveState, setSaveState] = useState('idle');
   const profile = useMemo(() => (
@@ -53,12 +36,6 @@ export default function Step2Profile({ data, onNext, onChangeData, showFooter = 
 
     clearTimeout(autosaveTimeoutRef.current);
     autosaveTimeoutRef.current = setTimeout(() => {
-      try {
-        const existing = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || '{}');
-        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify({ ...existing, ...profile }));
-      } catch {
-        localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
-      }
       setSaveState('saved');
     }, 220);
   }, [profile]);
@@ -89,12 +66,6 @@ export default function Step2Profile({ data, onNext, onChangeData, showFooter = 
 
     if (!validProfile) return;
 
-    try {
-      const existing = JSON.parse(localStorage.getItem(PROFILE_STORAGE_KEY) || '{}');
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify({ ...existing, ...payload }));
-    } catch {
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(payload));
-    }
     setSaveState('saved');
     onNext(payload);
   }

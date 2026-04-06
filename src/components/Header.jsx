@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ProfileModal from './Onboarding/ProfileModal';
+import { useAppStore } from '../store/useAppStore';
 import styles from './Header.module.css';
 
 function formatDate() {
@@ -10,20 +11,12 @@ function formatDate() {
   });
 }
 
-function loadName() {
-  try {
-    const raw = localStorage.getItem('djur-i-juni:onboarding');
-    return raw ? JSON.parse(raw).name || '' : '';
-  } catch {
-    return '';
-  }
-}
-
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const name = loadName();
+  const { state } = useAppStore();
+  const name = state.profile?.name || '';
 
-  const date  = formatDate();
+  const date = formatDate();
   const label = date.charAt(0).toUpperCase() + date.slice(1);
   const initial = name ? name.charAt(0).toUpperCase() : null;
 

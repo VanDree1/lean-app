@@ -1,6 +1,4 @@
-import { useState, useEffect } from 'react';
-
-const PROFILE_KEY = 'djur-i-juni:profile';
+import { useAppStore } from '../store/useAppStore';
 
 const ACTIVITY_MULTIPLIER = {
   sedentary:   1.2,
@@ -46,23 +44,8 @@ export function calcTargets(profile) {
   return { kcalGoal, proteinGoal };
 }
 
-function loadProfile() {
-  try { return JSON.parse(localStorage.getItem(PROFILE_KEY)) ?? {}; }
-  catch { return {}; }
-}
-
 export function useProfile() {
-  const [profile, setProfile] = useState(loadProfile);
-
-  useEffect(() => {
-    function sync() { setProfile(loadProfile()); }
-    window.addEventListener('djur-i-juni:profile-updated', sync);
-    window.addEventListener('storage', sync);
-    return () => {
-      window.removeEventListener('djur-i-juni:profile-updated', sync);
-      window.removeEventListener('storage', sync);
-    };
-  }, []);
-
+  const { state } = useAppStore();
+  const profile = state.profile;
   return { profile, ...calcTargets(profile) };
 }

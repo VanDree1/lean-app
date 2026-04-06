@@ -7,19 +7,8 @@ import QuickStats from '../components/QuickStats/QuickStats';
 import WeightModal from '../components/Weight/WeightModal';
 import { useWeightLog } from '../components/Weight/useWeightLog';
 import { useGoalTone } from '../hooks/useGoalTone';
+import { useAppStore } from '../store/useAppStore';
 import styles from './Home.module.css';
-
-const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
-const STREAK_KEY = 'djur_juni_streak';
-const DAILY_CHECKIN_KEY = 'djur_juni_daily_checkin';
-const CALORIES_KEY = 'djur_juni_cal';
-const BURNED_KEY = 'djur_juni_burned';
-const DAILY_SAVED_AT_KEY = 'djur_juni_daily_saved_at';
-const SLEEP_KEY = 'djur_juni_sleep_hours';
-const TODAY_STATS_KEYS = [
-  'djur-i-juni:today-stats',
-  'djur-i-juni:daily-summary',
-];
 const WEIGHT_TREND = [103.2, 102.5, 102.1, 101.8, 101.0, 100.5, 100.0];
 const WORKOUTS = {
   gym: { name: 'Gym', met: 6.0, Icon: Dumbbell },
@@ -43,49 +32,6 @@ function isSameDayAsToday(value) {
   return parsed.toISOString().slice(0, 10) === todayIso;
 }
 
-function readIsDayLocked() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(DAILY_CHECKIN_KEY) || 'null');
-    const lockedDate = localStorage.getItem(LAST_LOGGED_DATE_KEY);
-    return isSameDayAsToday(lockedDate) && isSameDayAsToday(stored?.date);
-  } catch {
-    return false;
-  }
-}
-
-function readTodaySteps() {
-  try {
-    for (const key of TODAY_STATS_KEYS) {
-      const parsed = JSON.parse(localStorage.getItem(key) || 'null');
-      if (parsed?.date === new Date().toISOString().slice(0, 10)) {
-        return Number(parsed.steps) || 0;
-      }
-    }
-  } catch {
-    return 0;
-  }
-
-  return 0;
-}
-
-function saveTodayCalories(calories) {
-  localStorage.setItem(CALORIES_KEY, String(calories));
-  const payload = {
-    date: new Date().toISOString().slice(0, 10),
-    calories,
-    steps: readTodaySteps(),
-  };
-  for (const key of TODAY_STATS_KEYS) {
-    localStorage.setItem(key, JSON.stringify(payload));
-  }
-  window.dispatchEvent(new Event('djur-i-juni:today-stats-updated'));
-}
-
-function saveBurnedCalories(burned) {
-  localStorage.setItem(BURNED_KEY, String(burned));
-  window.dispatchEvent(new Event('djur-i-juni:today-stats-updated'));
-}
-
 function formatSavedTime(value) {
   if (!value) return '';
   const date = new Date(value);
@@ -97,22 +43,8 @@ function formatSavedTime(value) {
   });
 }
 
-function readTodaySleepHours() {
-  try {
-    const checkin = JSON.parse(localStorage.getItem(DAILY_CHECKIN_KEY) || 'null');
-    if (isSameDayAsToday(checkin?.date) && Number(checkin?.sleepHours) > 0) {
-      return Number(checkin.sleepHours);
-    }
-  } catch {
-    // ignore
-  }
-
-  const stored = Number(localStorage.getItem(SLEEP_KEY));
-  if (Number.isFinite(stored) && stored > 0) return stored;
-  return 8;
-}
-
-function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, setLocked, tone, sleepHoursToday, setSleepHoursToday, lowEnergyMode }) {
+function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, tone, sleepHoursToday, setSleepHoursToday, lowEnergyMode }) {
+  const { state, completeDailyCheckin, unlockDailyCheckin } = useAppStore();
   const weight = Number(latestWeight) || 100;
   const [isCompleting, setIsCompleting] = useState(false);
   const [showSavedState, setShowSavedState] = useState(false);
@@ -122,14 +54,14 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   const [sleepHours, setSleepHours] = useState(String(sleepHoursToday || 8));
   const [activeWorkoutKey, setActiveWorkoutKey] = useState(null);
   const [duration, setDuration] = useState(30);
-  const [savedAt, setSavedAt] = useState(() => formatSavedTime(localStorage.getItem(DAILY_SAVED_AT_KEY)));
+  const [savedAt, setSavedAt] = useState(() => formatSavedTime(state.daily.savedAt));
   const caloriesInputRef = useRef(null);
   const sleepInputRef = useRef(null);
   const workoutSectionRef = useRef(null);
   const todayString = new Date().toDateString();
   const todayCheckin = (() => {
     try {
-      const stored = JSON.parse(localStorage.getItem(DAILY_CHECKIN_KEY) || 'null');
+      const stored = state.daily.dailyCheckin;
       if (isSameDayAsToday(stored?.date)) return stored;
       return null;
     } catch {
@@ -196,8 +128,8 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     if (!Number.isFinite(parsedCalories) || parsedCalories < 0) return;
     if (!Number.isFinite(parsedSleep) || parsedSleep <= 0 || parsedSleep > 24) return;
 
-    const alreadyLogged = readIsDayLocked() || Boolean(todayCheckin);
-    const currentStreak = Number(localStorage.getItem(STREAK_KEY)) || 0;
+    const alreadyLogged = locked || Boolean(todayCheckin);
+    const currentStreak = state.daily.streak || 0;
     const nextStreak = alreadyLogged ? currentStreak : currentStreak + 1;
     const workoutBurn = activeWorkout ? estimatedCalories : 0;
     const previousBurn = Number(todayCheckin?.burned) || 0;
@@ -216,14 +148,17 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     setEaten(parsedCalories);
     setBurned(nextBurnedTotal);
     setSleepHoursToday(parsedSleep);
-    saveTodayCalories(parsedCalories);
-    saveBurnedCalories(nextBurnedTotal);
-    localStorage.setItem(DAILY_CHECKIN_KEY, JSON.stringify(nextCheckin));
-    localStorage.setItem(LAST_LOGGED_DATE_KEY, todayString);
-    localStorage.setItem(STREAK_KEY, String(nextStreak));
-    localStorage.setItem(DAILY_SAVED_AT_KEY, new Date().toISOString());
-    localStorage.setItem(SLEEP_KEY, String(parsedSleep));
-    setSavedAt(formatSavedTime(new Date().toISOString()));
+    const savedAtIso = new Date().toISOString();
+    completeDailyCheckin({
+      calories: parsedCalories,
+      burned: nextBurnedTotal,
+      sleepHours: parsedSleep,
+      checkin: nextCheckin,
+      lastLoggedDate: todayString,
+      streak: nextStreak,
+      savedAt: savedAtIso,
+    });
+    setSavedAt(formatSavedTime(savedAtIso));
     setShowSavedState(true);
 
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
@@ -233,7 +168,6 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     window.setTimeout(() => {
       setShowSavedState(false);
       setShowActionPicker(false);
-      setLocked(true);
       setIsCompleting(false);
     }, 800);
   }
@@ -266,8 +200,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   function handleUnlock(event) {
     event.stopPropagation();
     setIsEditingToday(true);
-    setLocked(false);
-    localStorage.removeItem(LAST_LOGGED_DATE_KEY);
+    unlockDailyCheckin();
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
     setSleepHours(String(todayCheckin?.sleepHours ?? sleepHoursToday ?? 8));
     setActiveWorkoutKey(todayCheckin?.workoutKey ?? null);
@@ -528,7 +461,6 @@ function SleepRecoveryCard({ sleepHoursToday, setSleepHoursToday, lowEnergyMode,
         onChange={(event) => {
           const next = Number(event.target.value);
           setSleepHoursToday(next);
-          localStorage.setItem(SLEEP_KEY, String(next));
         }}
         aria-label="Sömn i timmar"
       />
@@ -630,35 +562,18 @@ function WeightJourney({ onOpen, profile, locked }) {
 }
 
 export default function Home({ profile }) {
+  const { state, setDailyValues } = useAppStore();
   const { current: latestWeight } = useWeightLog();
   const tone = useGoalTone(profile);
   const [modal, setModal] = useState(null);
-  const [eaten, setEaten] = useState(() => parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
-  const [burned, setBurned] = useState(() => parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0);
-  const [isDayLocked, setIsDayLocked] = useState(() => readIsDayLocked());
-  const [sleepHoursToday, setSleepHoursToday] = useState(() => readTodaySleepHours());
+  const eaten = state.daily.calories;
+  const burned = state.daily.burned;
+  const isDayLocked = isSameDayAsToday(state.daily.lastLoggedDate) && isSameDayAsToday(state.daily.dailyCheckin?.date);
+  const sleepHoursToday = state.daily.sleepHours;
   const lowEnergyMode = sleepHoursToday < 6;
-
-  useEffect(() => {
-    function syncCalories() {
-      setEaten(parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
-      setBurned(parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0);
-      setIsDayLocked(readIsDayLocked());
-      setSleepHoursToday(readTodaySleepHours());
-    }
-
-    window.addEventListener('storage', syncCalories);
-    window.addEventListener('focus', syncCalories);
-    window.addEventListener('djur-i-juni:today-stats-updated', syncCalories);
-    window.addEventListener('djur-i-juni:daily-logic-updated', syncCalories);
-
-    return () => {
-      window.removeEventListener('storage', syncCalories);
-      window.removeEventListener('focus', syncCalories);
-      window.removeEventListener('djur-i-juni:today-stats-updated', syncCalories);
-      window.removeEventListener('djur-i-juni:daily-logic-updated', syncCalories);
-    };
-  }, []);
+  const setEaten = (value) => setDailyValues({ calories: value });
+  const setBurned = (value) => setDailyValues({ burned: value });
+  const setSleepHoursToday = (value) => setDailyValues({ sleepHours: value });
 
   return (
     <main className={styles.main}>
@@ -671,7 +586,6 @@ export default function Home({ profile }) {
           burned={burned}
           setBurned={setBurned}
           locked={isDayLocked}
-          setLocked={setIsDayLocked}
           tone={tone}
           sleepHoursToday={sleepHoursToday}
           setSleepHoursToday={setSleepHoursToday}
@@ -691,11 +605,7 @@ export default function Home({ profile }) {
           </div>
         <WeightJourney profile={profile} locked={isDayLocked} onOpen={() => setModal('weight')} />
         <QuickStats
-          key={isDayLocked ? 'quickstats-locked' : 'quickstats-open'}
           profile={profile}
-          eaten={eaten}
-          burned={burned}
-          setEaten={setEaten}
           locked={isDayLocked}
         />
         </div>

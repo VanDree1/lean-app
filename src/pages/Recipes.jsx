@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import recipes from '../data/recipes.js';
 import styles from './Recipes.module.css';
 import { useShoppingList } from '../hooks/useShoppingList.js';
+import { useAppStore } from '../store/useAppStore.js';
 
 const ALL_DIETS = ['Allätare', 'Pescetarian', 'Vegetarian', 'Vegan'];
 
@@ -26,33 +27,6 @@ function recipeMatchesDiet(recipe, activeDiet) {
   return recipe.diets.some((d) => allowed.includes(d));
 }
 const ALL_MEALS = ['Frukost', 'Lunch', 'Middag', 'Snack'];
-const FAVORITES_KEY = 'djur-i-juni:recipe-favorites';
-const FILTERS_KEY   = 'djur-i-juni:recipe-filters';
-
-function loadFavorites() {
-  try { return new Set(JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]')); }
-  catch { return new Set(); }
-}
-
-function saveFavorites(set) {
-  localStorage.setItem(FAVORITES_KEY, JSON.stringify([...set]));
-}
-
-function loadUserDiet() {
-  try {
-    const raw = localStorage.getItem('djur-i-juni:profile');
-    return raw ? JSON.parse(raw).diet || null : null;
-  } catch { return null; }
-}
-
-function loadSavedFilters() {
-  try { return JSON.parse(localStorage.getItem(FILTERS_KEY) || '{}'); }
-  catch { return {}; }
-}
-
-function saveFilters(diet, meal) {
-  localStorage.setItem(FILTERS_KEY, JSON.stringify({ diet, meal }));
-}
 
 function HeartIcon({ filled }) {
   return (
@@ -301,47 +275,21 @@ function RecipeModal({ recipe, onClose, onAddToList }) {
 }
 
 export default function Recipes() {
-  // Reactive user diet — listens for profile updates
-  const [userDiet, setUserDiet] = useState(loadUserDiet);
-  useEffect(() => {
-    function sync() { setUserDiet(loadUserDiet()); }
-    window.addEventListener('djur-i-juni:profile-updated', sync);
-    window.addEventListener('storage', sync);
-    return () => {
-      window.removeEventListener('djur-i-juni:profile-updated', sync);
-      window.removeEventListener('storage', sync);
-    };
-  }, []);
-
-  // Persisted filter state — restore from localStorage, fall back to userDiet
-  const [activeDiet, setActiveDietState] = useState(() => {
-    const saved = loadSavedFilters();
-    return saved.diet ?? userDiet ?? 'Alla';
-  });
-  const [activeMeal, setActiveMealState] = useState(() => {
-    const saved = loadSavedFilters();
-    return saved.meal ?? 'Alla';
-  });
-
-  function setActiveDiet(v) { setActiveDietState(v); saveFilters(v, activeMeal); }
-  function setActiveMeal(v) { setActiveMealState(v); saveFilters(activeDiet, v); }
+  const { state, toggleRecipeFavorite, setRecipeFilters } = useAppStore();
+  const userDiet = state.profile?.diet || null;
+  const activeDiet = state.recipes.filters?.diet ?? userDiet ?? 'Alla';
+  const activeMeal = state.recipes.filters?.meal ?? 'Alla';
 
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(null);
   const [showList, setShowList] = useState(false);
-  const [favorites, setFavorites] = useState(loadFavorites);
+  const favorites = new Set(state.recipes.favorites);
   const { items, addFromRecipe, toggle, clearChecked, clearAll, uncheckedCount } = useShoppingList();
 
   const toggleFavorite = useCallback((id) => {
-    setFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      saveFavorites(next);
-      return next;
-    });
-  }, []);
+    toggleRecipeFavorite(id);
+  }, [toggleRecipeFavorite]);
 
   const q = query.trim().toLowerCase();
   const filtered = recipes
@@ -403,7 +351,7 @@ export default function Recipes() {
                 key={f}
                 type="button"
                 className={activeMeal === f ? styles.filterActive : styles.filter}
-                onClick={() => setActiveMeal(f)}
+                onClick={() => setRecipeFilters({ meal: f })}
               >
                 {f}
               </button>
@@ -419,7 +367,7 @@ export default function Recipes() {
                 key={f}
                 type="button"
                 className={activeDiet === f ? styles.filterActive : styles.filter}
-                onClick={() => setActiveDiet(f)}
+                onClick={() => setRecipeFilters({ diet: f })}
               >
                 {f}
               </button>

@@ -2,10 +2,8 @@ import { useState } from 'react';
 import { calcTargets } from '../hooks/useProfile';
 import { useOnboarding } from '../components/Onboarding/useOnboarding';
 import ProfileModal from '../components/Onboarding/ProfileModal';
+import { useAppStore } from '../store/useAppStore';
 import styles from './Profile.module.css';
-
-const PROFILE_KEY = 'djur_juni_profile';
-const LEGACY_PROFILE_KEY = 'djur-i-juni:profile';
 
 const GOALS = [
   { value: 'fat_loss', label: 'Bränna fett', desc: 'Minska kroppsfett' },
@@ -30,19 +28,8 @@ const DIETS = [
 const GENDERS = ['Man', 'Kvinna'];
 
 function saveField(field, value, setProfile) {
-  try {
-    const nextData = { [field]: value, updatedAt: Date.now() };
-    setProfile((prev) => ({ ...prev, ...nextData }));
-    localStorage.setItem(PROFILE_KEY, JSON.stringify({
-      ...(JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}')),
-      ...nextData,
-    }));
-    localStorage.setItem(LEGACY_PROFILE_KEY, JSON.stringify({
-      ...(JSON.parse(localStorage.getItem(LEGACY_PROFILE_KEY) || '{}')),
-      ...nextData,
-    }));
-    window.dispatchEvent(new Event('djur-i-juni:profile-updated'));
-  } catch { /* ignore */ }
+  const nextData = { [field]: value, updatedAt: Date.now() };
+  setProfile(nextData);
 }
 
 function getInitials(name) {
@@ -177,7 +164,8 @@ function SectionCard({ title, children }) {
 const GOAL_LABEL    = { fat_loss: 'Bränna fett', muscle: 'Bygga muskler', energy: 'Mer energi', target: 'Nå målvikt' };
 const ACTIVITY_LABEL = { sedentary: 'Stillasittande', light: 'Måttligt aktiv', very_active: 'Mycket aktiv' };
 
-export default function Profile({ profile, setProfile }) {
+export default function Profile({ profile }) {
+  const { updateProfile } = useAppStore();
   const derivedTargets = calcTargets(profile);
   const kcalGoal = profile.caloriesGoal ?? derivedTargets.kcalGoal;
   const proteinGoal = profile.proteinGoal ?? derivedTargets.proteinGoal;
@@ -266,7 +254,7 @@ export default function Profile({ profile, setProfile }) {
       </div>
 
       {editing && (
-        <EditSheet field={FIELDS[editing]} profile={profile} setProfile={setProfile} onClose={() => setEditing(null)} />
+        <EditSheet field={FIELDS[editing]} profile={profile} setProfile={updateProfile} onClose={() => setEditing(null)} />
       )}
 
       {showWizard && (

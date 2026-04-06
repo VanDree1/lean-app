@@ -3,16 +3,8 @@ import { Plus, X } from 'lucide-react';
 import AnimatedNumber from '../AnimatedNumber/AnimatedNumber';
 import { calcTargets } from '../../hooks/useProfile';
 import { getGoalTone } from '../../hooks/useGoalTone';
+import { useAppStore } from '../../store/useAppStore';
 import styles from './QuickStats.module.css';
-
-const CALORIES_KEY = 'djur_juni_cal';
-const STEPS_KEY = 'djur_juni_steps';
-const PROTEIN_KEY = 'djur_juni_protein';
-const DAILY_ENTRIES_KEY = 'djur_juni_daily_entries';
-const TODAY_STATS_KEYS = [
-  'djur-i-juni:today-stats',
-  'djur-i-juni:daily-summary',
-];
 const MEAL_SLOTS = [
   { key: 'breakfast', label: 'Frukost', ratio: 0.22 },
   { key: 'lunch', label: 'Lunch', ratio: 0.3 },
@@ -37,51 +29,6 @@ function todayString() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function readTodayStats() {
-  try {
-    for (const key of TODAY_STATS_KEYS) {
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
-
-      const parsed = JSON.parse(raw);
-      if (!parsed || parsed.date !== todayString()) continue;
-
-      return {
-        calories: Number(parsed.calories) || 0,
-        steps: Number(parsed.steps) || 0,
-      };
-    }
-  } catch {
-    return { calories: 0, steps: 0 };
-  }
-
-  return { calories: 0, steps: 0 };
-}
-
-function readInitialSteps() {
-  const direct = Number(localStorage.getItem(STEPS_KEY));
-  if (Number.isFinite(direct) && direct > 0) return direct;
-  return readTodayStats().steps;
-}
-
-function readInitialProtein() {
-  const direct = Number(localStorage.getItem(PROTEIN_KEY));
-  return Number.isFinite(direct) && direct > 0 ? direct : 0;
-}
-
-function readDailyEntries() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(DAILY_ENTRIES_KEY) || '{}');
-    return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveDailyEntries(entries) {
-  localStorage.setItem(DAILY_ENTRIES_KEY, JSON.stringify(entries));
-}
-
 function createEmptyMeals() {
   return {
     breakfast: null,
@@ -101,8 +48,7 @@ function normalizeMealEntry(entry) {
   };
 }
 
-function readMealsForToday(fallbackCalories = 0) {
-  const entries = readDailyEntries();
+function readMealsForToday(entries, fallbackCalories = 0) {
   const today = todayString();
   const storedMeals = entries[today]?.meals;
 
@@ -130,10 +76,6 @@ function readMealsForToday(fallbackCalories = 0) {
   return createEmptyMeals();
 }
 
-function sumMealCalories(meals) {
-  return Object.values(meals).reduce((sum, meal) => sum + (meal?.calories || 0), 0);
-}
-
 function sumMealProtein(meals) {
   return Object.values(meals).reduce((sum, meal) => {
     if (!meal?.extraProtein) return sum;
@@ -152,17 +94,6 @@ function getMealSizeCalories(goal, slotKey, sizeKey, extraProtein = false) {
   return base + Math.round(base * (size.multiplier - 1)) + (extraProtein ? EXTRA_PROTEIN_KCAL : 0);
 }
 
-function saveTodayStats(nextStats) {
-  const payload = {
-    date: todayString(),
-    calories: Number(nextStats.calories) || 0,
-    steps: Number(nextStats.steps) || 0,
-  };
-
-  for (const key of TODAY_STATS_KEYS) {
-    localStorage.setItem(key, JSON.stringify(payload));
-  }
-}
 
 function MetricCard({
   label,
@@ -411,34 +342,19 @@ function CaloriesCard({
   );
 }
 
-export default function QuickStats({ profile = {}, eaten, burned, setEaten, locked = false }) {
-  const [steps, setSteps] = useState(() => readInitialSteps());
-  const [protein, setProtein] = useState(() => readInitialProtein());
-  const [meals, setMeals] = useState(() => readMealsForToday(Number(localStorage.getItem(CALORIES_KEY)) || 0));
+export default function QuickStats({ profile = {}, locked = false }) {
+  const { state, setDailyValues, logMeal } = useAppStore();
+  const eaten = state.daily.calories;
+  const burned = state.daily.burned;
+  const steps = state.daily.steps;
+  const protein = state.daily.protein;
+  const meals = readMealsForToday(state.daily.dailyEntries, state.daily.calories);
   const [activeMealSlot, setActiveMealSlot] = useState(null);
   const [editMode, setEditMode] = useState({ steps: false });
   const [inputValue, setInputValue] = useState('');
   const [feedback, setFeedback] = useState({ calories: '', steps: '' });
   const stepsInputRef = useRef(null);
   const skipBlurSaveRef = useRef(false);
-
-  useEffect(() => {
-    function syncStats() {
-      setSteps(readInitialSteps());
-      setProtein(readInitialProtein());
-      setMeals(readMealsForToday(Number(localStorage.getItem(CALORIES_KEY)) || 0));
-    }
-
-    window.addEventListener('storage', syncStats);
-    window.addEventListener('focus', syncStats);
-    window.addEventListener('djur-i-juni:today-stats-updated', syncStats);
-
-    return () => {
-      window.removeEventListener('storage', syncStats);
-      window.removeEventListener('focus', syncStats);
-      window.removeEventListener('djur-i-juni:today-stats-updated', syncStats);
-    };
-  }, []);
 
   useEffect(() => {
     if (editMode.steps) {
@@ -479,24 +395,7 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
   }
 
   function handleMealSave(slotKey, mealData) {
-    const nextMeals = {
-      ...meals,
-      [slotKey]: mealData,
-    };
-    const nextCalories = sumMealCalories(nextMeals);
-    const entries = readDailyEntries();
-    const today = todayString();
-    entries[today] = {
-      ...(entries[today] || {}),
-      date: today,
-      meals: nextMeals,
-    };
-
-    saveDailyEntries(entries);
-    localStorage.setItem(CALORIES_KEY, String(nextCalories));
-    saveTodayStats({ calories: nextCalories, steps });
-    setMeals(nextMeals);
-    setEaten(nextCalories);
+    logMeal(slotKey, mealData);
     setActiveMealSlot(null);
     triggerFeedback('calories', mealData.calories, 'kcal');
 
@@ -527,12 +426,7 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
       return;
     }
 
-    setSteps((prev) => {
-      const nextSteps = prev + increment;
-      localStorage.setItem(STEPS_KEY, String(nextSteps));
-      saveTodayStats({ calories: eaten, steps: nextSteps });
-      return nextSteps;
-    });
+    setDailyValues({ steps: steps + increment });
 
     triggerFeedback('steps', increment, 'steg');
     closeEditor('steps');
@@ -560,11 +454,7 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
       return;
     }
 
-    setProtein((prev) => {
-      const nextProtein = prev + increment;
-      localStorage.setItem(PROTEIN_KEY, String(nextProtein));
-      return nextProtein;
-    });
+    setDailyValues({ protein: protein + increment });
 
     triggerFeedback('steps', increment, 'g');
     closeEditor('steps');
@@ -614,9 +504,9 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
           slot={activeMealSlot}
           goal={kcalGoal}
           onClose={() => setActiveMealSlot(null)}
-          onSave={(mealData) => handleMealSave(activeMealSlot.key, mealData)}
-        />
-      ) : null}
-    </div>
+        onSave={(mealData) => handleMealSave(activeMealSlot.key, mealData)}
+      />
+    ) : null}
+  </div>
   );
 }

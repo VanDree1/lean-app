@@ -7,6 +7,7 @@ import Step2Profile       from './steps/Step2Profile';
 import Step3CurrentWeight from './steps/Step3CurrentWeight';
 import Step4GoalWeight    from './steps/Step4GoalWeight';
 import Step6Diet          from './steps/Step6Diet';
+import { useAppStore } from '../../store/useAppStore';
 import styles from './Onboarding.module.css';
 import pm from './ProfileModal.module.css';
 
@@ -110,20 +111,12 @@ function canProceed(step, data) {
   }
 }
 
-function loadSaved() {
-  try {
-    const raw = localStorage.getItem('djur-i-juni:onboarding');
-    return raw ? { ...EMPTY, ...JSON.parse(raw) } : EMPTY;
-  } catch {
-    return EMPTY;
-  }
-}
-
 export default function ProfileModal({ onClose }) {
+  const { state } = useAppStore();
   const { complete, saveDraft } = useOnboarding();
   const closeTimeoutRef = useRef(null);
   const [currentStep, setCurrentStep] = useState(1);
-  const [profileData, setProfileData] = useState(loadSaved);
+  const [profileData, setProfileData] = useState(() => ({ ...EMPTY, ...(state.onboarding || {}) }));
   const [saved, setSaved] = useState(false);
 
   useEffect(() => () => clearTimeout(closeTimeoutRef.current), []);
@@ -146,7 +139,6 @@ export default function ProfileModal({ onClose }) {
     setProfileData(newData);
     saveDraft(newData);
     if (currentStep === STEPS.length) {
-      localStorage.setItem('djur_i_juni_profile', JSON.stringify(newData));
       complete(newData);
       setSaved(true);
       clearTimeout(closeTimeoutRef.current);
