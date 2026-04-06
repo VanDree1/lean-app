@@ -72,6 +72,7 @@ export default function MotivationTip() {
   const { profile } = useProfile();
   const { loggedToday } = useStreak();
   const goal = profile.goal || 'default';
+  const mode = loggedToday ? 'ground' : 'reflect';
   const [quote, setQuote] = useState(() => {
     const cached = readCachedQuote(goal);
     return cached || { ...getFallbackQuote(goal), source: 'fallback' };
@@ -126,7 +127,11 @@ export default function MotivationTip() {
   }, [goal]);
 
   const statusText = loggedToday ? 'Dag säkrad' : GOAL_LABELS[goal] || GOAL_LABELS.default;
-  const quoteLead = loggedToday ? 'Bra. Nu räcker det att hålla rytmen.' : 'Låt det här sätta tonen för resten av dagen.';
+  const quoteLead = mode === 'ground'
+    ? 'Ta ett lugnt beslut och håll det.'
+    : loggedToday
+      ? 'Bra. Nu räcker det att hålla rytmen.'
+      : 'Låt det här sätta tonen för resten av dagen.';
 
   return (
     <section className={styles.card} aria-label="Dagens citat">
