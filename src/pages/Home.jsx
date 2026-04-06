@@ -66,22 +66,33 @@ function saveTodayCalories(calories) {
   window.dispatchEvent(new Event('djur-i-juni:today-stats-updated'));
 }
 
-function saveWorkoutCalories(estimatedCalories) {
-  const currentBurned = parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0;
-  const nextBurned = currentBurned + estimatedCalories;
-  localStorage.setItem(BURNED_KEY, String(nextBurned));
+function saveBurnedCalories(burned) {
+  localStorage.setItem(BURNED_KEY, String(burned));
   window.dispatchEvent(new Event('djur-i-juni:today-stats-updated'));
-  return nextBurned;
 }
 
-function DailyFocusCard({ eaten, setEaten, burned }) {
+function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
+  const weight = Number(profile.weight ?? profile.currentWeight ?? profile.startWeight) || 100;
   const [lastLoggedDate, setLastLoggedDate] = useState(() => localStorage.getItem(LAST_LOGGED_DATE_KEY) || null);
   const [streak, setStreak] = useState(() => Number(localStorage.getItem(STREAK_KEY)) || 0);
   const [isCompleting, setIsCompleting] = useState(false);
   const [showActionPicker, setShowActionPicker] = useState(false);
   const [caloriesInput, setCaloriesInput] = useState('');
-  const [trainedToday, setTrainedToday] = useState(false);
   const [sleepHours, setSleepHours] = useState('8');
+  const [activeWorkoutKey, setActiveWorkoutKey] = useState(null);
+  const [duration, setDuration] = useState(30);
+  const [weekHistory, setWeekHistory] = useState(() => {
+    try {
+      if (localStorage.getItem(WORKOUTS_WEEK_STAMP_KEY) !== getCurrentWeekStamp()) {
+        localStorage.setItem(WORKOUTS_WEEK_STAMP_KEY, getCurrentWeekStamp());
+        localStorage.setItem(WORKOUTS_WEEK_KEY, JSON.stringify([false, false, false, false, false, false, false]));
+        return [false, false, false, false, false, false, false];
+      }
+      return JSON.parse(localStorage.getItem(WORKOUTS_WEEK_KEY)) || [false, false, false, false, false, false, false];
+    } catch {
+      return [false, false, false, false, false, false, false];
+    }
+  });
   const todayString = new Date().toDateString();
   const todayCheckin = useMemo(() => {
     try {
@@ -94,11 +105,16 @@ function DailyFocusCard({ eaten, setEaten, burned }) {
   }, [todayString]);
   const isLoggedToday = lastLoggedDate === todayString && Boolean(todayCheckin);
   const streakLabel = `${streak} ${streak === 1 ? 'dag' : 'dagar'}`;
+  const activeWorkout = activeWorkoutKey ? WORKOUTS[activeWorkoutKey] : null;
+  const estimatedCalories = activeWorkout
+    ? Math.round(activeWorkout.met * weight * (duration / 60))
+    : 0;
 
   function handleCheckIn() {
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
-    setTrainedToday(Boolean(todayCheckin?.trained ?? burned > 0));
     setSleepHours(String(todayCheckin?.sleepHours ?? 8));
+    setActiveWorkoutKey(todayCheckin?.workoutKey ?? null);
+    setDuration(Number(todayCheckin?.duration) || 30);
     setShowActionPicker(true);
   }
 
@@ -110,22 +126,39 @@ function DailyFocusCard({ eaten, setEaten, burned }) {
 
     const alreadyLogged = lastLoggedDate === todayString;
     const nextStreak = alreadyLogged ? streak : streak + 1;
+    const workoutBurn = activeWorkout ? estimatedCalories : 0;
+    const previousBurn = Number(todayCheckin?.burned) || 0;
+    const nextBurnedTotal = Math.max(0, burned - previousBurn + workoutBurn);
     const nextCheckin = {
       date: todayString,
       calories: parsedCalories,
-      trained: trainedToday,
+      workoutKey: activeWorkoutKey,
+      workoutName: activeWorkout?.name ?? '',
+      duration,
+      burned: workoutBurn,
       sleepHours: parsedSleep,
     };
+    const dayIndex = (() => {
+      const nativeDay = new Date().getDay();
+      return nativeDay === 0 ? 6 : nativeDay - 1;
+    })();
+    const nextWeekHistory = [...weekHistory];
+    nextWeekHistory[dayIndex] = Boolean(activeWorkoutKey);
 
     setIsCompleting(true);
     setLastLoggedDate(todayString);
     setStreak(nextStreak);
     setShowActionPicker(false);
     setEaten(parsedCalories);
+    setBurned(nextBurnedTotal);
+    setWeekHistory(nextWeekHistory);
     saveTodayCalories(parsedCalories);
+    saveBurnedCalories(nextBurnedTotal);
     localStorage.setItem(DAILY_CHECKIN_KEY, JSON.stringify(nextCheckin));
     localStorage.setItem(LAST_LOGGED_DATE_KEY, todayString);
     localStorage.setItem(STREAK_KEY, String(nextStreak));
+    localStorage.setItem(WORKOUTS_WEEK_KEY, JSON.stringify(nextWeekHistory));
+    localStorage.setItem(WORKOUTS_WEEK_STAMP_KEY, getCurrentWeekStamp());
 
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
       navigator.vibrate([18, 24, 28]);
@@ -161,7 +194,7 @@ function DailyFocusCard({ eaten, setEaten, burned }) {
             </p>
             <p className={styles.focusMeta}>
               {isLoggedToday
-                ? `${todayCheckin?.calories ?? eaten} kcal · ${todayCheckin?.trained ? 'Tränat' : 'Ingen träning'} · ${todayCheckin?.sleepHours ?? 0} h sömn`
+                ? `${todayCheckin?.calories ?? eaten} kcal · ${todayCheckin?.workoutName || 'Ingen träning'} · ${todayCheckin?.sleepHours ?? 0} h sömn`
                 : `Streak ${streakLabel}`}
             </p>
           </div>
@@ -198,23 +231,56 @@ function DailyFocusCard({ eaten, setEaten, burned }) {
               </label>
 
               <div className={styles.focusField}>
-                <span className={styles.focusFieldLabel}>Träning</span>
-                <div className={styles.focusToggleRow}>
-                  <button
-                    type="button"
-                    className={[styles.focusToggle, trainedToday ? styles.focusToggleActive : ''].join(' ')}
-                    onClick={() => setTrainedToday(true)}
-                  >
-                    Ja
-                  </button>
-                  <button
-                    type="button"
-                    className={[styles.focusToggle, !trainedToday ? styles.focusToggleActive : ''].join(' ')}
-                    onClick={() => setTrainedToday(false)}
-                  >
-                    Nej
-                  </button>
+                <div className={styles.focusFieldHeader}>
+                  <span className={styles.focusFieldLabel}>Dagens träning</span>
+                  <span className={styles.focusFieldHint}>
+                    {activeWorkout ? `+${estimatedCalories} kcal` : 'Valfritt'}
+                  </span>
                 </div>
+                <div className={styles.workoutGrid}>
+                  {Object.entries(WORKOUTS).map(([key, workout]) => {
+                    const active = activeWorkoutKey === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        className={[styles.workoutOption, active ? styles.workoutOptionActive : ''].join(' ')}
+                        onClick={() => setActiveWorkoutKey(active ? null : key)}
+                        aria-pressed={active}
+                        aria-label={workout.name}
+                      >
+                        <workout.Icon size={24} strokeWidth={1.5} />
+                        <span className={styles.workoutLabel}>{workout.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {activeWorkout && (
+                  <div className={styles.workoutDetail}>
+                    <div className={styles.workoutDetailHeader}>
+                      <div>
+                        <span className={styles.workoutDetailName}>{activeWorkout.name}</span>
+                        <p className={styles.workoutDetailMeta}>{weight} kg kroppsvikt</p>
+                      </div>
+                      <span className={styles.workoutDuration}>{duration} min</span>
+                    </div>
+                    <input
+                      className={styles.workoutSlider}
+                      type="range"
+                      min="10"
+                      max="120"
+                      step="5"
+                      value={duration}
+                      onChange={(event) => setDuration(Number(event.target.value))}
+                      aria-label="Träningslängd i minuter"
+                    />
+                    <div className={styles.workoutScale}>
+                      <span>10 min</span>
+                      <span>120 min</span>
+                    </div>
+                    <p className={styles.workoutEstimate}>Uppskattning: +{estimatedCalories} kcal</p>
+                  </div>
+                )}
               </div>
 
               <label className={styles.focusField}>
@@ -231,6 +297,18 @@ function DailyFocusCard({ eaten, setEaten, burned }) {
                   placeholder="Till exempel 8"
                 />
               </label>
+
+              <div className={styles.focusWeekWrap}>
+                <span className={styles.focusFieldLabel}>Veckorytm</span>
+                <div className={styles.workoutWeek}>
+                  {WEEKDAY_LABELS.map((label, index) => (
+                    <div key={`${label}-${index}`} className={styles.workoutDay}>
+                      <span className={[styles.workoutDot, weekHistory[index] ? styles.workoutDotActive : ''].join(' ')} />
+                      <span className={styles.workoutDayLabel}>{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className={styles.focusSheetActions}>
               <button
@@ -258,131 +336,6 @@ function DailyFocusCard({ eaten, setEaten, burned }) {
         </div>
       )}
     </>
-  );
-}
-
-function WorkoutCard({ profile, setBurned }) {
-  const weight = Number(profile.weight ?? profile.currentWeight ?? profile.startWeight) || 100;
-  const [activeWorkout, setActiveWorkout] = useState(null);
-  const [duration, setDuration] = useState(30);
-  const [weekHistory, setWeekHistory] = useState(() => {
-    try {
-      if (localStorage.getItem(WORKOUTS_WEEK_STAMP_KEY) !== getCurrentWeekStamp()) {
-        localStorage.setItem(WORKOUTS_WEEK_STAMP_KEY, getCurrentWeekStamp());
-        localStorage.setItem(WORKOUTS_WEEK_KEY, JSON.stringify([false, false, false, false, false, false, false]));
-        return [false, false, false, false, false, false, false];
-      }
-      return JSON.parse(localStorage.getItem(WORKOUTS_WEEK_KEY)) || [false, false, false, false, false, false, false];
-    } catch {
-      return [false, false, false, false, false, false, false];
-    }
-  });
-  const [feedback, setFeedback] = useState('');
-  const estimatedCalories = activeWorkout
-    ? Math.round(activeWorkout.met * weight * (duration / 60))
-    : 0;
-
-  function handleSaveWorkout() {
-    if (!activeWorkout) return;
-
-    const nextBurned = saveWorkoutCalories(estimatedCalories);
-    setBurned(nextBurned);
-    const dayIndex = (() => {
-      const nativeDay = new Date().getDay();
-      return nativeDay === 0 ? 6 : nativeDay - 1;
-    })();
-
-    setWeekHistory((prev) => {
-      const next = [...prev];
-      const firstWorkoutToday = !next[dayIndex];
-      next[dayIndex] = true;
-      localStorage.setItem(WORKOUTS_WEEK_KEY, JSON.stringify(next));
-      localStorage.setItem(WORKOUTS_WEEK_STAMP_KEY, getCurrentWeekStamp());
-      setFeedback(firstWorkoutToday ? `Grym insats! +${estimatedCalories} kcal uppskattat.` : `Uppdaterat: +${estimatedCalories} kcal.`);
-      return next;
-    });
-
-    setActiveWorkout(null);
-    setDuration(30);
-  }
-
-  return (
-    <section className={styles.workoutCard} aria-labelledby="workout-title">
-      <div className={styles.workoutHeader}>
-        <div>
-          <p id="workout-title" className={styles.sectionEyebrow}>Dagens träning</p>
-          <p className={styles.workoutSubtle}>Välj pass och justera tiden lugnt.</p>
-        </div>
-      </div>
-      <div className={styles.workoutGrid}>
-        {Object.entries(WORKOUTS).map(([key, workout]) => {
-          const active = activeWorkout?.key === key;
-          return (
-            <button
-              key={key}
-              type="button"
-              className={[styles.workoutOption, active ? styles.workoutOptionActive : ''].join(' ')}
-              onClick={() => setActiveWorkout(active ? null : { key, ...workout })}
-              aria-pressed={active}
-              aria-label={workout.name}
-            >
-              <workout.Icon size={24} strokeWidth={1.5} />
-              <span className={styles.workoutLabel}>{workout.name}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {activeWorkout && (
-        <div className={styles.workoutDetail}>
-          <div className={styles.workoutDetailHeader}>
-            <div>
-              <span className={styles.workoutDetailName}>{activeWorkout.name}</span>
-              <p className={styles.workoutDetailMeta}>{weight} kg kroppsvikt</p>
-            </div>
-            <span className={styles.workoutDuration}>{duration} min</span>
-          </div>
-          <input
-            className={styles.workoutSlider}
-            type="range"
-            min="10"
-            max="120"
-            step="5"
-            value={duration}
-            onChange={(event) => setDuration(Number(event.target.value))}
-            aria-label="Träningslängd i minuter"
-          />
-          <div className={styles.workoutScale}>
-            <span>10 min</span>
-            <span>120 min</span>
-          </div>
-          <div className={styles.workoutEstimateRow}>
-            <p className={styles.workoutEstimate}>Uppskattning: +{estimatedCalories} kcal</p>
-            <div className={styles.workoutActionRow}>
-              <button type="button" className={styles.workoutCancelButton} onClick={() => setActiveWorkout(null)}>
-                Avbryt
-              </button>
-              <button type="button" className={styles.workoutLogButton} onClick={handleSaveWorkout}>
-                Logga
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className={styles.workoutWeek}>
-        {WEEKDAY_LABELS.map((label, index) => (
-          <div key={`${label}-${index}`} className={styles.workoutDay}>
-            <span className={[styles.workoutDot, weekHistory[index] ? styles.workoutDotActive : ''].join(' ')} />
-            <span className={styles.workoutDayLabel}>{label}</span>
-          </div>
-        ))}
-      </div>
-
-      <p className={[styles.workoutFeedback, feedback ? styles.workoutFeedbackVisible : ''].join(' ')}>
-        {feedback || 'Välj pass, justera tid och logga när det är gjort.'}
-      </p>
-    </section>
   );
 }
 
@@ -472,16 +425,15 @@ export default function Home({ profile }) {
     <main className={styles.main}>
       <div className={styles.stack}>
         <HeroCard profile={profile} />
-        <DailyFocusCard eaten={eaten} setEaten={setEaten} burned={burned} />
+        <DailyFocusCard profile={profile} eaten={eaten} setEaten={setEaten} burned={burned} setBurned={setBurned} />
         <div className={styles.logSection}>
         <div className={styles.logSectionHeader}>
           <p className={styles.sectionEyebrow}>Logga idag</p>
-          <h2 className={styles.logSectionTitle}>Vikt, träning och kalorier</h2>
-          <p className={styles.logSectionBody}>Tre tydliga kort. Ett för vikt, ett för kalorier och ett för träning.</p>
+          <h2 className={styles.logSectionTitle}>Vikt och kalorier</h2>
+          <p className={styles.logSectionBody}>Träningen ligger nu i Dagens insats. Här håller du bara vikten och kaloribudgeten ren.</p>
           </div>
         <WeightJourney profile={profile} onOpen={() => setModal('weight')} />
         <QuickStats profile={profile} eaten={eaten} burned={burned} setEaten={setEaten} />
-        <WorkoutCard profile={profile} setBurned={setBurned} />
         </div>
       </div>
 
