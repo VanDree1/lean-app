@@ -109,6 +109,15 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
   const estimatedCalories = activeWorkout
     ? Math.round(activeWorkout.met * weight * (duration / 60))
     : 0;
+  const summaryItems = isLoggedToday
+    ? [
+        `${todayCheckin?.calories ?? eaten} kcal`,
+        todayCheckin?.workoutName
+          ? `${todayCheckin.workoutName}${todayCheckin?.duration ? ` ${todayCheckin.duration} min` : ''}`
+          : 'Ingen träning',
+        `${todayCheckin?.sleepHours ?? 0} h sömn`,
+      ]
+    : [];
 
   function handleCheckIn() {
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
@@ -192,11 +201,17 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
                 ? 'Kalorier, träning och sömn är registrerat för idag.'
                 : 'Tryck här och fyll i kalorier, träning och sömn för dagen.'}
             </p>
-            <p className={styles.focusMeta}>
-              {isLoggedToday
-                ? `${todayCheckin?.calories ?? eaten} kcal · ${todayCheckin?.workoutName || 'Ingen träning'} · ${todayCheckin?.sleepHours ?? 0} h sömn`
-                : `Streak ${streakLabel}`}
-            </p>
+            {isLoggedToday ? (
+              <div className={styles.focusSummaryRow}>
+                {summaryItems.map((item) => (
+                  <span key={item} className={styles.focusSummaryPill}>
+                    {item}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.focusMeta}>Streak {streakLabel}</p>
+            )}
           </div>
         </div>
 
