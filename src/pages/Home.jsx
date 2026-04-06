@@ -58,8 +58,8 @@ function saveBurnedCalories(burned) {
   window.dispatchEvent(new Event('djur-i-juni:today-stats-updated'));
 }
 
-function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
-  const weight = Number(profile.weight ?? profile.currentWeight ?? profile.startWeight) || 100;
+function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned }) {
+  const weight = Number(latestWeight) || 100;
   const [lastLoggedDate, setLastLoggedDate] = useState(() => localStorage.getItem(LAST_LOGGED_DATE_KEY) || null);
   const [streak, setStreak] = useState(() => Number(localStorage.getItem(STREAK_KEY)) || 0);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -254,7 +254,7 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
                     <div className={styles.workoutDetailHeader}>
                       <div>
                         <span className={styles.workoutDetailName}>{activeWorkout.name}</span>
-                        <p className={styles.workoutDetailMeta}>{weight} kg kroppsvikt</p>
+                        <p className={styles.workoutDetailMeta}>Senast loggad vikt: {weight.toFixed(1)} kg</p>
                       </div>
                       <span className={styles.workoutDuration}>{duration} min</span>
                     </div>
@@ -368,6 +368,7 @@ function WeightJourney({ onOpen, profile }) {
 }
 
 export default function Home({ profile }) {
+  const { current: latestWeight } = useWeightLog();
   const [modal, setModal] = useState(null);
   const [eaten, setEaten] = useState(() => parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
   const [burned, setBurned] = useState(() => parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0);
@@ -393,7 +394,7 @@ export default function Home({ profile }) {
     <main className={styles.main}>
       <div className={styles.stack}>
         <HeroCard profile={profile} />
-        <DailyFocusCard profile={profile} eaten={eaten} setEaten={setEaten} burned={burned} setBurned={setBurned} />
+        <DailyFocusCard latestWeight={latestWeight} eaten={eaten} setEaten={setEaten} burned={burned} setBurned={setBurned} />
         <div className={styles.logSection}>
         <div className={styles.logSectionHeader}>
           <p className={styles.sectionEyebrow}>Logga idag</p>
