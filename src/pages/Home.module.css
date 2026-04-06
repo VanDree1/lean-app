@@ -14,12 +14,7 @@
 
 .overviewGrid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
-}
-
-.overviewGrid > :first-child {
-  grid-column: 1 / -1;
 }
 
 .sectionEyebrow {
@@ -849,6 +844,89 @@
   padding: 1.35rem 1.4rem;
 }
 
+.trendCard {
+  padding: 1.5rem 1.6rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
+}
+
+.rhythmRow {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.rhythmDay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.rhythmLabel {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.42);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.rhythmDot {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.rhythmDotComplete {
+  background: rgba(52, 211, 153, 0.92);
+  box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.1);
+}
+
+.rhythmDotToday {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.06);
+}
+
+.averageGrid {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.averageStat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.averageValue {
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #ffffff;
+}
+
+.averageUnit {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.42);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.trendMeta {
+  margin-top: 1rem;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.36);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .sleepTopRow {
   margin-top: 0.9rem;
   display: flex;
@@ -1092,16 +1170,13 @@
 }
 
 @media (max-width: 740px) {
-  .overviewGrid {
+  .twoColumn,
+  .bottomGrid {
     grid-template-columns: 1fr;
   }
 
-  .overviewGrid > :first-child {
-    grid-column: auto;
-  }
-
-  .twoColumn,
-  .bottomGrid {
+  .rhythmRow,
+  .averageGrid {
     grid-template-columns: 1fr;
   }
 

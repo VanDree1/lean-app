@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Activity, Bike, Check, Dumbbell, Flower2, Footprints } from 'lucide-react';
 import AnimatedNumber from '../components/AnimatedNumber/AnimatedNumber';
-import QuickStats from '../components/QuickStats/QuickStats';
 import { useWeightLog } from '../components/Weight/useWeightLog';
 import { useGoalTone } from '../hooks/useGoalTone';
 import { useAppStore } from '../store/useAppStore';
 import Journal from './Journal';
 import styles from './Home.module.css';
-const WEIGHT_TREND = [103.2, 102.5, 102.1, 101.8, 101.0, 100.5, 100.0];
 const WORKOUTS = {
   gym: { name: 'Gym', met: 6.0, Icon: Dumbbell },
   run: { name: 'Löpning', met: 9.8, Icon: Footprints },
@@ -58,6 +56,67 @@ function formatStepPreset(value) {
 
 function todayIsoString() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function getWeekStart(date = new Date()) {
+  const value = new Date(date);
+  const day = value.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  value.setDate(value.getDate() + diff);
+  value.setHours(0, 0, 0, 0);
+  return value;
+}
+
+function formatDayIso(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function buildWeekRhythm(dailyEntries) {
+  const labels = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
+  const start = getWeekStart();
+
+  return labels.map((label, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    const iso = formatDayIso(date);
+
+    return {
+      label,
+      date: iso,
+      complete: Boolean(dailyEntries?.[iso]?.locked),
+      isToday: iso === todayIsoString(),
+    };
+  });
+}
+
+function buildWeightMap(weightLog) {
+  return Object.fromEntries((weightLog || []).map((entry) => [entry.date, Number(entry.weight) || null]));
+}
+
+function getSevenDayAverages(dailyEntries, weightLog) {
+  const weightMap = buildWeightMap(weightLog);
+  const loggedDays = Object.entries(dailyEntries || {})
+    .filter(([, entry]) => entry?.locked)
+    .sort(([a], [b]) => b.localeCompare(a))
+    .slice(0, 7)
+    .map(([date, entry]) => ({
+      calories: Number(entry.calories) || 0,
+      weight: Number(entry.weight ?? weightMap[date]) || null,
+    }));
+
+  if (loggedDays.length === 0) {
+    return { days: 0, avgCalories: 0, avgWeight: 0 };
+  }
+
+  const calorieSum = loggedDays.reduce((sum, day) => sum + day.calories, 0);
+  const weightedDays = loggedDays.filter((day) => Number.isFinite(day.weight) && day.weight > 0);
+  const weightSum = weightedDays.reduce((sum, day) => sum + day.weight, 0);
+
+  return {
+    days: loggedDays.length,
+    avgCalories: Math.round(calorieSum / loggedDays.length),
+    avgWeight: weightedDays.length ? weightSum / weightedDays.length : 0,
+  };
 }
 
 function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, tone, sleepHoursToday, setSleepHoursToday, lowEnergyMode, onOpenJournal }) {
@@ -590,71 +649,51 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   );
 }
 
-function SleepRecoveryCard({ sleepHoursToday, tone }) {
+function WeekRhythmCard({ dailyEntries }) {
+  const days = buildWeekRhythm(dailyEntries);
+
   return (
-    <section className={styles.noteCard} aria-label={tone.recovery.sleepTitle}>
-      <p className={styles.sectionEyebrow}>{tone.recovery.sleepTitle}</p>
-      <div className={styles.sleepTopRow}>
-        <div className={styles.sleepValueWrap}>
-          <span className={styles.sleepValue}>
-            <AnimatedNumber value={sleepHoursToday} duration={500} decimals={1} />
-          </span>
-          <span className={styles.sleepUnit}>timmar</span>
-        </div>
+    <section className={styles.trendCard} aria-label="Veckans rytm">
+      <p className={styles.sectionEyebrow}>Veckans rytm</p>
+      <div className={styles.rhythmRow}>
+        {days.map((day) => (
+          <div key={day.date} className={styles.rhythmDay}>
+            <span className={styles.rhythmLabel}>{day.label}</span>
+            <span
+              className={[
+                styles.rhythmDot,
+                day.complete ? styles.rhythmDotComplete : '',
+                day.isToday ? styles.rhythmDotToday : '',
+              ].join(' ')}
+            />
+          </div>
+        ))}
       </div>
     </section>
   );
 }
 
-function WeightJourney({ profile }) {
-  const { current } = useWeightLog();
-  const startWeight = profile.startWeight ?? profile.weight ?? profile.currentWeight ?? 100;
-  const goalWeight = profile.goalWeight ?? 90;
-  const lost = startWeight - current;
-  const totalToLose = startWeight - goalWeight;
-  const progress = totalToLose > 0
-    ? Math.min(100, Math.max(0, (lost / totalToLose) * 100))
-    : 0;
-  const minTrend = Math.min(...WEIGHT_TREND);
-  const maxTrend = Math.max(...WEIGHT_TREND);
-  const trendRange = maxTrend - minTrend || 1;
-  const trendPath = WEIGHT_TREND.map((value, index) => {
-    const x = (index / (WEIGHT_TREND.length - 1)) * 100;
-    const y = 85 - (((value - minTrend) / trendRange) * 55);
-    return `${index === 0 ? 'M' : 'L'} ${x} ${y}`;
-  }).join(' ');
+function SevenDayAverageCard({ dailyEntries, weightLog }) {
+  const averages = getSevenDayAverages(dailyEntries, weightLog);
 
   return (
-    <section className={[styles.weightCard, styles.weightCardReadOnly].join(' ')}>
-      <div className={styles.weightSparkline} aria-hidden="true">
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={styles.weightSparklineSvg}>
-          <path d={trendPath} className={styles.weightSparklinePath} />
-        </svg>
-      </div>
-
-      <div className={styles.weightContent}>
-      <div className={styles.weightHeader}>
-        <div>
-          <p className={styles.sectionEyebrow}>Vikt</p>
-          <h2 className={styles.weightValue}>
-            <AnimatedNumber value={current} duration={800} decimals={1} />
-            <span className={styles.weightUnit}>kg</span>
-          </h2>
+    <section className={styles.trendCard} aria-label="7-dagars snitt">
+      <p className={styles.sectionEyebrow}>7-dagars snitt</p>
+      <div className={styles.averageGrid}>
+        <div className={styles.averageStat}>
+          <span className={styles.averageValue}>
+            <AnimatedNumber value={averages.avgWeight} duration={700} decimals={1} />
+          </span>
+          <span className={styles.averageUnit}>kg</span>
         </div>
-        <div className={styles.weightBadge}>{progress.toFixed(0)}% klart</div>
-      </div>
-
-      <div className={styles.milestoneWrap}>
-        <div className={styles.milestoneHeader}>
-          <span>Start {startWeight}</span>
-          <span>Nu {current.toFixed(1)}</span>
-          <span>Mål {goalWeight}</span>
-        </div>
-        <div className={styles.milestoneTrack}>
-          <div className={styles.milestoneFill} style={{ width: `${progress}%` }} />
+        <div className={styles.averageStat}>
+          <span className={styles.averageValue}>
+            <AnimatedNumber value={averages.avgCalories} duration={700} />
+          </span>
+          <span className={styles.averageUnit}>kcal</span>
         </div>
       </div>
-      </div>
+      <p className={styles.trendMeta}>{averages.days} stängda dagar</p>
     </section>
   );
 }
@@ -690,16 +729,12 @@ export default function Home({ profile }) {
           onOpenJournal={() => setModal('journal')}
         />
         <div className={styles.overviewGrid}>
-          <QuickStats
-            profile={profile}
-            locked={isDayLocked}
+          <WeekRhythmCard
+            dailyEntries={state.daily.dailyEntries}
           />
-          <WeightJourney
-            profile={profile}
-          />
-          <SleepRecoveryCard
-            sleepHoursToday={sleepHoursToday}
-            tone={tone}
+          <SevenDayAverageCard
+            dailyEntries={state.daily.dailyEntries}
+            weightLog={state.weightLog}
           />
         </div>
       </div>
