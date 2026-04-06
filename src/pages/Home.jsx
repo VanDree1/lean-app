@@ -89,6 +89,15 @@ function buildWeekRhythm(dailyEntries) {
   });
 }
 
+function getWeeklyGoalProgress(dailyEntries, target = 5) {
+  const completed = buildWeekRhythm(dailyEntries).filter((day) => day.complete).length;
+  return {
+    completed,
+    target,
+    progress: Math.max(0, Math.min(100, (completed / target) * 100)),
+  };
+}
+
 function buildWeightMap(weightLog) {
   return Object.fromEntries((weightLog || []).map((entry) => [entry.date, Number(entry.weight) || null]));
 }
@@ -172,6 +181,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   const parsedSteps = parseInt(stepsInput, 10);
   const parsedWeight = Number(weightInput);
   const todayWeight = state.weightLog.find((entry) => entry.date === todayIsoString())?.weight ?? null;
+  const weeklyGoal = getWeeklyGoalProgress(state.daily.dailyEntries);
   const canSave =
     Number.isFinite(parsedCalories) &&
     parsedCalories >= 0 &&
@@ -375,6 +385,15 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                   Journal
                 </button>
               </div>
+              <div className={styles.weekGoal}>
+                <div className={styles.weekGoalHeader}>
+                  <span className={styles.weekGoalLabel}>Veckomål</span>
+                  <span className={styles.weekGoalValue}>{weeklyGoal.completed} / {weeklyGoal.target} dagar</span>
+                </div>
+                <div className={styles.weekGoalTrack} aria-hidden="true">
+                  <div className={styles.weekGoalFill} style={{ width: `${weeklyGoal.progress}%` }} />
+                </div>
+              </div>
               {savedAt ? <p className={styles.focusSavedMeta}>Sparad {savedAt}</p> : null}
             </div>
           </div>
@@ -401,6 +420,15 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
             <div className={styles.focusMain}>
               <p className={styles.sectionEyebrow}>Dagens insats</p>
               <h2 id="today-title" className={styles.focusTitle}>Öppna</h2>
+              <div className={styles.weekGoal}>
+                <div className={styles.weekGoalHeader}>
+                  <span className={styles.weekGoalLabel}>Veckomål</span>
+                  <span className={styles.weekGoalValue}>{weeklyGoal.completed} / {weeklyGoal.target} dagar</span>
+                </div>
+                <div className={styles.weekGoalTrack} aria-hidden="true">
+                  <div className={styles.weekGoalFill} style={{ width: `${weeklyGoal.progress}%` }} />
+                </div>
+              </div>
             </div>
           </div>
 
