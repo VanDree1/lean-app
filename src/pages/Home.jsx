@@ -85,6 +85,7 @@ function saveBurnedCalories(burned) {
 function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, setLocked }) {
   const weight = Number(latestWeight) || 100;
   const [isCompleting, setIsCompleting] = useState(false);
+  const [showSavedState, setShowSavedState] = useState(false);
   const [showActionPicker, setShowActionPicker] = useState(false);
   const [caloriesInput, setCaloriesInput] = useState('');
   const [sleepHours, setSleepHours] = useState('8');
@@ -165,8 +166,6 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     };
 
     setIsCompleting(true);
-    setLocked(true);
-    setShowActionPicker(false);
     setEaten(parsedCalories);
     setBurned(nextBurnedTotal);
     saveTodayCalories(parsedCalories);
@@ -174,12 +173,18 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     localStorage.setItem(DAILY_CHECKIN_KEY, JSON.stringify(nextCheckin));
     localStorage.setItem(LAST_LOGGED_DATE_KEY, todayString);
     localStorage.setItem(STREAK_KEY, String(nextStreak));
+    setShowSavedState(true);
 
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
       navigator.vibrate([18, 24, 28]);
     }
 
-    window.setTimeout(() => setIsCompleting(false), 850);
+    window.setTimeout(() => {
+      setShowSavedState(false);
+      setShowActionPicker(false);
+      setLocked(true);
+      setIsCompleting(false);
+    }, 800);
   }
 
   function handleFormKeyDown(event, field) {
@@ -387,10 +392,19 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
             </div>
           </div>
           <div className={styles.focusSheetActions}>
+            {showSavedState ? (
+              <div className={styles.focusSavedState} aria-live="polite">
+                <span className={styles.focusSavedCheck}>
+                  <Check size={16} strokeWidth={1.9} />
+                </span>
+                <span className={styles.focusSavedText}>Dagen är sparad</span>
+              </div>
+            ) : null}
             <button
               type="button"
               className={styles.focusSheetSecondary}
               onClick={() => setShowActionPicker(false)}
+              disabled={showSavedState}
             >
               Avbryt
             </button>
@@ -398,9 +412,9 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
               type="button"
               className={styles.focusSheetPrimary}
               onClick={completeCheckIn}
-              disabled={!canSave}
+              disabled={!canSave || showSavedState}
             >
-              Spara dagens insats
+              {showSavedState ? 'Sparat' : 'Spara dagens insats'}
             </button>
           </div>
         </section>
