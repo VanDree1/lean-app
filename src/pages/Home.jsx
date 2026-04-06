@@ -5,6 +5,7 @@ import HeroCard from '../components/HeroCard/HeroCard';
 import QuickStats from '../components/QuickStats/QuickStats';
 import WeightModal from '../components/Weight/WeightModal';
 import { useWeightLog } from '../components/Weight/useWeightLog';
+import { useDailyLogic } from '../hooks/useDailyLogic';
 import styles from './Home.module.css';
 
 const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
@@ -61,7 +62,6 @@ function saveBurnedCalories(burned) {
 function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, setLocked }) {
   const weight = Number(latestWeight) || 100;
   const [lastLoggedDate, setLastLoggedDate] = useState(() => localStorage.getItem(LAST_LOGGED_DATE_KEY) || null);
-  const [streak, setStreak] = useState(() => Number(localStorage.getItem(STREAK_KEY)) || 0);
   const [isCompleting, setIsCompleting] = useState(false);
   const [showActionPicker, setShowActionPicker] = useState(false);
   const [caloriesInput, setCaloriesInput] = useState('');
@@ -108,7 +108,8 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     if (!Number.isFinite(parsedSleep) || parsedSleep <= 0 || parsedSleep > 24) return;
 
     const alreadyLogged = lastLoggedDate === todayString || Boolean(todayCheckin);
-    const nextStreak = alreadyLogged ? streak : streak + 1;
+    const currentStreak = Number(localStorage.getItem(STREAK_KEY)) || 0;
+    const nextStreak = alreadyLogged ? currentStreak : currentStreak + 1;
     const workoutBurn = activeWorkout ? estimatedCalories : 0;
     const previousBurn = Number(todayCheckin?.burned) || 0;
     const nextBurnedTotal = Math.max(0, burned - previousBurn + workoutBurn);
@@ -125,7 +126,6 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     setIsCompleting(true);
     setLastLoggedDate(todayString);
     setLocked(true);
-    setStreak(nextStreak);
     setShowActionPicker(false);
     setEaten(parsedCalories);
     setBurned(nextBurnedTotal);
@@ -396,6 +396,7 @@ function WeightJourney({ onOpen, profile, locked }) {
 }
 
 export default function Home({ profile }) {
+  useDailyLogic();
   const { current: latestWeight } = useWeightLog();
   const [modal, setModal] = useState(null);
   const [eaten, setEaten] = useState(() => parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
