@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
+import AnimatedNumber from '../components/AnimatedNumber/AnimatedNumber';
 import HeroCard from '../components/HeroCard/HeroCard';
 import QuickStats from '../components/QuickStats/QuickStats';
 import StreakBanner from '../components/StreakBanner/StreakBanner';
@@ -7,7 +8,6 @@ import WeightModal from '../components/Weight/WeightModal';
 import { useWeightLog } from '../components/Weight/useWeightLog';
 import { useStreak } from '../hooks/useStreak';
 import { useProfile } from '../hooks/useProfile';
-import { useCountUp } from '../hooks/useCountUp';
 import styles from './Home.module.css';
 
 const PROFILE_KEY = 'djur-i-juni:profile';
@@ -248,7 +248,6 @@ function DailyFocusCard() {
 
 function WeightJourney({ onOpen }) {
   const { recent, current, progress, GOAL_WEIGHT, START_WEIGHT } = useWeightLog();
-  const currentDisplay = useCountUp(Math.round(current * 10), 900) / 10;
   const lowest = recent.length > 0 ? Math.min(...recent.map((entry) => entry.weight)) : current;
   const isLowest = current <= lowest;
   const minTrend = Math.min(...WEIGHT_TREND);
@@ -273,7 +272,7 @@ function WeightJourney({ onOpen }) {
         <div>
           <p className={styles.sectionEyebrow}>Vikt</p>
           <h2 className={styles.weightValue}>
-            {currentDisplay.toFixed(1)}
+            <AnimatedNumber value={current} duration={800} decimals={1} />
             <span className={styles.weightUnit}>kg</span>
           </h2>
         </div>

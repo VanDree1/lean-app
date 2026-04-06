@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
+import AnimatedNumber from '../AnimatedNumber/AnimatedNumber';
 import { useProfile } from '../../hooks/useProfile';
-import { useCountUp } from '../../hooks/useCountUp';
 import styles from './QuickStats.module.css';
 
 const TODAY_STATS_KEYS = [
@@ -53,7 +53,6 @@ function saveTodayStats(nextStats) {
 }
 
 function TodayCard({ label, unit, value, target, isEditing, inputValue, onEditStart, onInputChange, onInputSubmit }) {
-  const displayed = useCountUp(value, 700);
   const progress = Math.max(0, Math.min(100, target > 0 ? (value / target) * 100 : 0));
 
   return (
@@ -83,7 +82,7 @@ function TodayCard({ label, unit, value, target, isEditing, inputValue, onEditSt
         ) : (
           <>
             <span className={[styles.value, value === 0 ? styles.valueEmpty : ''].join(' ')}>
-              {displayed.toLocaleString('sv-SE')}
+              <AnimatedNumber value={value} duration={800} />
             </span>
             <span className={styles.unit}>{unit}</span>
           </>
