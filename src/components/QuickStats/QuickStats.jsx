@@ -39,15 +39,14 @@ function readTodayStats() {
   return { calories: 0, steps: 0 };
 }
 
-function TodayCard({ label, unit, value, target, emptyLabel }) {
+function TodayCard({ label, unit, value, target, fallbackText }) {
   const displayed = useCountUp(value, 700);
-  const hasValue = value > 0;
 
   return (
     <section className={styles.card} aria-label={label}>
       <div className={styles.head}>
         <span className={styles.label}>{label}</span>
-        <span className={styles.meta}>{hasValue ? `Mål ${target.toLocaleString('sv-SE')}` : emptyLabel}</span>
+        <span className={styles.meta}>{target.toLocaleString('sv-SE')} {unit.toLowerCase()}</span>
       </div>
 
       <div className={styles.valueRow}>
@@ -56,7 +55,7 @@ function TodayCard({ label, unit, value, target, emptyLabel }) {
       </div>
 
       <p className={styles.detail}>
-        {hasValue ? `Idag hittills` : `Inget loggat än`}
+        {value > 0 ? 'Hittills idag' : fallbackText}
       </p>
     </section>
   );
@@ -85,18 +84,18 @@ export default function QuickStats() {
   return (
     <div className={styles.grid}>
       <TodayCard
-        label="Kalorier idag"
+        label="Kalorier"
         unit="KCAL"
         value={stats.calories}
         target={kcalGoal}
-        emptyLabel="Ingen logg"
+        fallbackText="Ingen data än"
       />
       <TodayCard
-        label="Steg idag"
+        label="Steg"
         unit="STEG"
         value={stats.steps}
         target={stepGoal}
-        emptyLabel="Ingen data"
+        fallbackText="Ingen data än"
       />
     </div>
   );
