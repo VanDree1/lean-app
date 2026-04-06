@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import ProfileModal from './Onboarding/ProfileModal';
 import { useAppStore } from '../store/useAppStore';
+import { getDisplayName } from '../utils/displayName';
 import styles from './Header.module.css';
 
 function formatDate() {
@@ -14,7 +15,7 @@ function formatDate() {
 export default function Header() {
   const [open, setOpen] = useState(false);
   const { state } = useAppStore();
-  const name = state.profile?.name || '';
+  const name = getDisplayName(state.profile?.name);
 
   const date = formatDate();
   const label = date.charAt(0).toUpperCase() + date.slice(1);

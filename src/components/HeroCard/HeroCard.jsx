@@ -1,5 +1,6 @@
 import styles from './HeroCard.module.css';
 import { useGoalTone } from '../../hooks/useGoalTone';
+import { getFirstName } from '../../utils/displayName';
 
 function getGreeting() {
   const h = new Date().getHours();
@@ -13,12 +14,13 @@ function getGreeting() {
 export default function HeroCard({ profile = {} }) {
   const tone = useGoalTone(profile);
   const greeting = getGreeting();
+  const firstName = getFirstName(profile.name);
 
   return (
     <section className={styles.card} aria-labelledby="overview-title">
       <div className={styles.glow} />
       <p className={styles.eyebrow}>Översikt</p>
-      <p className={styles.greeting}>{greeting}{profile.name ? `, ${String(profile.name).split(' ')[0]}` : ''}</p>
+      <p className={styles.greeting}>{greeting}{firstName ? `, ${firstName}` : ''}</p>
       <h2 id="overview-title" className={styles.quote}>{tone.hero.quote}</h2>
       <p className={styles.subtle}>{tone.hero.subtle}</p>
     </section>

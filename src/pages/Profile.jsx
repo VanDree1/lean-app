@@ -1,21 +1,22 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { calcTargets } from '../hooks/useProfile';
 import { useOnboarding } from '../components/Onboarding/useOnboarding';
 import ProfileModal from '../components/Onboarding/ProfileModal';
 import { useAppStore } from '../store/useAppStore';
+import { getDisplayName } from '../utils/displayName';
 import styles from './Profile.module.css';
 
 const GOALS = [
-  { value: 'fat_loss', label: 'Bränna fett', desc: 'Minska kroppsfett' },
+  { value: 'fat_loss', label: 'Bränna fett',  desc: 'Minska kroppsfett' },
   { value: 'muscle',   label: 'Bygga muskler', desc: 'Stärka kroppen' },
-  { value: 'energy',   label: 'Mer energi', desc: 'Orka mer i vardagen' },
-  { value: 'target',   label: 'Nå målvikt', desc: 'Specifik målsättning' },
+  { value: 'energy',   label: 'Mer energi',    desc: 'Orka mer i vardagen' },
+  { value: 'target',   label: 'Nå målvikt',    desc: 'Specifik målsättning' },
 ];
 
 const ACTIVITIES = [
   { value: 'sedentary',   label: 'Stillasittande', desc: 'Kontor, lite rörelse' },
-  { value: 'light',       label: 'Måttligt aktiv', desc: 'Tränar 1–3×/vecka' },
-  { value: 'very_active', label: 'Mycket aktiv', desc: 'Tränar 4+/vecka' },
+  { value: 'light',       label: 'Måttligt aktiv',  desc: 'Tränar 1–3×/vecka' },
+  { value: 'very_active', label: 'Mycket aktiv',    desc: 'Tränar 4+/vecka' },
 ];
 
 const DIETS = [
@@ -27,41 +28,65 @@ const DIETS = [
 
 const GENDERS = ['Man', 'Kvinna'];
 
-function saveField(field, value, setProfile) {
-  const nextData = { [field]: value, updatedAt: Date.now() };
-  setProfile(nextData);
-}
+const GOAL_LABEL     = { fat_loss: 'Bränna fett', muscle: 'Bygga muskler', energy: 'Mer energi', target: 'Nå målvikt' };
+const ACTIVITY_LABEL = { sedentary: 'Stillasittande', light: 'Måttligt aktiv', very_active: 'Mycket aktiv' };
 
 function getInitials(name) {
-  if (!name) return '?';
-  return name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
+  const displayName = getDisplayName(name);
+  if (!displayName) return '?';
+  return displayName.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 }
 
-// ── Edit sheet ──────────────────────────────────────────────────────────────
+// ── Field definitions ────────────────────────────────────────────────────────
 
-function EditSheet({ field, profile, setProfile, onClose }) {
+const FIELDS = {
+  caloriesGoal:  { key: 'caloriesGoal',  label: 'Kalorimål',      type: 'number',  placeholder: 'kcal', min: 800,  max: 6000, hint: 'Ditt dagliga kaloriintag i kcal' },
+  goalWeight:    { key: 'goalWeight',    label: 'Viktmål',         type: 'number',  placeholder: 'kg',   min: 30,   max: 300,  hint: 'I kilo' },
+  currentWeight: { key: 'currentWeight', label: 'Nuv. vikt',       type: 'number',  placeholder: 'kg',   min: 30,   max: 300,  hint: 'I kilo' },
+  name:          { key: 'name',          label: 'Namn',            type: 'text',    placeholder: 'Ditt förnamn' },
+  age:           { key: 'age',           label: 'Ålder',           type: 'number',  placeholder: 'år',   min: 1,    max: 120 },
+  height:        { key: 'height',        label: 'Längd',           type: 'number',  placeholder: 'cm',   min: 100,  max: 250,  hint: 'I centimeter' },
+  gender:        { key: 'gender',        label: 'Kön',             type: 'chips',   options: GENDERS },
+  goal:          { key: 'goal',          label: 'Mål',             type: 'options', options: GOALS },
+  activity:      { key: 'activity',      label: 'Aktivitetsnivå',  type: 'options', options: ACTIVITIES },
+  allergies:     { key: 'allergies',     label: 'Allergier & intol.', type: 'text', placeholder: 'T.ex. laktos, nötter' },
+};
+
+// ── Auto-saving EditSheet ────────────────────────────────────────────────────
+// Options / chips: tap = save + close instantly (no button needed)
+// Text / number:   saving happens on close (✕ or backdrop)
+
+function EditSheet({ field, profile, onSave, onClose }) {
   const [value, setValue] = useState(profile[field.key] ?? '');
-  const [saved, setSaved] = useState(false);
 
-  function handleSave() {
-    const parsed = field.type === 'number' ? (parseFloat(value) || null) : value;
-    saveField(field.key, parsed, setProfile);
-    setSaved(true);
-    setTimeout(() => onClose(), 700);
+  function commitAndClose(val) {
+    const parsed = field.type === 'number'
+      ? (parseFloat(val) || null)
+      : (String(val).trim() || null);
+    // Only update if valid and changed
+    if (parsed !== null && parsed !== profile[field.key]) {
+      onSave(field.key, parsed);
+    }
+    onClose();
   }
 
-  const valid = field.required ? String(value).trim() !== '' && (field.type !== 'number' || Number(value) > 0) : true;
+  function handleOptionSelect(val) {
+    onSave(field.key, val);
+    onClose();
+  }
 
   return (
-    <div className={styles.sheetOverlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={styles.sheetOverlay} onClick={(e) => e.target === e.currentTarget && commitAndClose(value)}>
       <div className={styles.sheet}>
         <div className={styles.sheetHandle} />
         <div className={styles.sheetHeader}>
-          <h2 className={styles.sheetTitle}>{saved ? '✓ Sparat' : field.label}</h2>
-          <button className={styles.sheetClose} onClick={onClose} aria-label="Stäng">✕</button>
+          <h2 className={styles.sheetTitle}>{field.label}</h2>
+          <button className={styles.sheetDone} onClick={() => commitAndClose(value)} aria-label="Klar">
+            Klar
+          </button>
         </div>
 
-        {field.type === 'text' || field.type === 'number' ? (
+        {(field.type === 'text' || field.type === 'number') && (
           <div className={styles.sheetBody}>
             <input
               className={styles.sheetInput}
@@ -73,10 +98,13 @@ function EditSheet({ field, profile, setProfile, onClose }) {
               autoFocus
               min={field.min}
               max={field.max}
+              onKeyDown={(e) => e.key === 'Enter' && commitAndClose(value)}
             />
             {field.hint && <p className={styles.sheetHint}>{field.hint}</p>}
           </div>
-        ) : field.type === 'options' ? (
+        )}
+
+        {field.type === 'options' && (
           <div className={styles.sheetBody}>
             <div className={styles.optionList}>
               {field.options.map((opt) => (
@@ -84,15 +112,18 @@ function EditSheet({ field, profile, setProfile, onClose }) {
                   key={opt.value}
                   type="button"
                   className={value === opt.value ? styles.optionSelected : styles.option}
-                  onClick={() => setValue(opt.value)}
+                  onClick={() => handleOptionSelect(opt.value)}
                 >
                   <span className={styles.optionLabel}>{opt.label ?? opt.value}</span>
                   {opt.desc && <span className={styles.optionDesc}>{opt.desc}</span>}
+                  {value === opt.value && <span className={styles.optionCheck}>✓</span>}
                 </button>
               ))}
             </div>
           </div>
-        ) : field.type === 'chips' ? (
+        )}
+
+        {field.type === 'chips' && (
           <div className={styles.sheetBody}>
             <div className={styles.chipRow}>
               {field.options.map((opt) => (
@@ -100,50 +131,29 @@ function EditSheet({ field, profile, setProfile, onClose }) {
                   key={opt}
                   type="button"
                   className={value === opt ? styles.chipSelected : styles.chip}
-                  onClick={() => setValue(value === opt ? '' : opt)}
+                  onClick={() => handleOptionSelect(opt)}
                 >
                   {opt}
                 </button>
               ))}
             </div>
           </div>
-        ) : null}
-
-        <div className={styles.sheetFooter}>
-          <button type="button" className={styles.sheetCancel} onClick={onClose} disabled={saved}>Avbryt</button>
-          <button type="button" className={saved ? styles.sheetSaved : styles.sheetSave} onClick={handleSave} disabled={!valid || saved}>
-            {saved ? '✓ Sparat!' : 'Spara'}
-          </button>
-        </div>
+        )}
       </div>
     </div>
   );
 }
 
-// ── Field definitions ────────────────────────────────────────────────────────
+// ── Row ──────────────────────────────────────────────────────────────────────
 
-const FIELDS = {
-  name:          { key: 'name',          label: 'Namn',           type: 'text',    placeholder: 'Ditt förnamn', required: true },
-  age:           { key: 'age',           label: 'Ålder',          type: 'number',  placeholder: 'år', min: 1, max: 120, required: true },
-  height:        { key: 'height',        label: 'Längd',          type: 'number',  placeholder: 'cm', min: 1, max: 250, hint: 'I centimeter', required: true },
-  gender:        { key: 'gender',        label: 'Kön',            type: 'chips',   options: GENDERS },
-  goal:          { key: 'goal',          label: 'Mål',            type: 'options', options: GOALS, required: true },
-  activity:      { key: 'activity',      label: 'Aktivitetsnivå', type: 'options', options: ACTIVITIES, required: true },
-  currentWeight: { key: 'currentWeight', label: 'Nuv. vikt',      type: 'number',  placeholder: 'kg', min: 1, max: 500, hint: 'I kilo', required: true },
-  goalWeight:    { key: 'goalWeight',    label: 'Målvikt',        type: 'number',  placeholder: 'kg', min: 1, max: 500, hint: 'I kilo' },
-  diet:          { key: 'diet',          label: 'Kost',           type: 'options', options: DIETS },
-  allergies:     { key: 'allergies',     label: 'Allergier',      type: 'text',    placeholder: 'T.ex. laktos, nötter' },
-};
-
-// ── Row components ───────────────────────────────────────────────────────────
-
-function ProfileRow({ fieldKey, value, onEdit }) {
-  const display = value || <span className={styles.rowEmpty}>Lägg till</span>;
+function ProfileRow({ label, value, onEdit, accent }) {
   return (
-    <button type="button" className={styles.row} onClick={() => onEdit(fieldKey)}>
-      <span className={styles.rowLabel}>{FIELDS[fieldKey].label}</span>
+    <button type="button" className={styles.row} onClick={onEdit}>
+      <span className={styles.rowLabel}>{label}</span>
       <span className={styles.rowRight}>
-        <span className={styles.rowValue}>{display}</span>
+        <span className={accent ? styles.rowValueAccent : styles.rowValue}>
+          {value || <span className={styles.rowEmpty}>Lägg till</span>}
+        </span>
         <span className={styles.rowChevron}>›</span>
       </span>
     </button>
@@ -153,29 +163,33 @@ function ProfileRow({ fieldKey, value, onEdit }) {
 function SectionCard({ title, children }) {
   return (
     <div className={styles.section}>
-      <p className={styles.sectionTitle}>{title}</p>
+      {title && <p className={styles.sectionTitle}>{title}</p>}
       <div className={styles.sectionBody}>{children}</div>
     </div>
   );
 }
 
-// ── Main page ────────────────────────────────────────────────────────────────
-
-const GOAL_LABEL    = { fat_loss: 'Bränna fett', muscle: 'Bygga muskler', energy: 'Mer energi', target: 'Nå målvikt' };
-const ACTIVITY_LABEL = { sedentary: 'Stillasittande', light: 'Måttligt aktiv', very_active: 'Mycket aktiv' };
+// ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function Profile({ profile }) {
-  const { updateProfile } = useAppStore();
+  const { updateProfile, state } = useAppStore();
+  const latestWeight = state.weightLog?.[0]?.weight ?? profile.currentWeight ?? null;
   const derivedTargets = calcTargets(profile);
-  const kcalGoal = profile.caloriesGoal ?? derivedTargets.kcalGoal;
-  const proteinGoal = profile.proteinGoal ?? derivedTargets.proteinGoal;
   const { reset } = useOnboarding();
-  const [editing, setEditing] = useState(null); // fieldKey or null
+  const [editing, setEditing] = useState(null);
   const [showWizard, setShowWizard] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
   const p = profile;
+  const displayName = getDisplayName(p.name);
   const initials = getInitials(p.name);
+
+  const saveField = useCallback((key, value) => {
+    updateProfile({ [key]: value, updatedAt: Date.now() });
+  }, [updateProfile]);
+
+  const kcalGoal   = p.caloriesGoal ?? derivedTargets.kcalGoal;
+  const proteinGoal = p.proteinGoal ?? derivedTargets.proteinGoal;
 
   return (
     <main className={styles.main}>
@@ -185,51 +199,72 @@ export default function Profile({ profile }) {
         <div className={styles.hero}>
           <div className={styles.avatar}>{initials}</div>
           <div className={styles.heroText}>
-            <h2 className={styles.heroName}>{p.name || 'Din profil'}</h2>
+            <h2 className={styles.heroName}>{displayName || 'Din profil'}</h2>
             <p className={styles.heroSub}>
               {GOAL_LABEL[p.goal] || 'Sätt ditt mål'} · {ACTIVITY_LABEL[p.activity] || 'Välj nivå'}
             </p>
           </div>
         </div>
 
-        {/* Calculated targets */}
-        <div className={styles.statRow}>
-          <div className={styles.statPill}>
-            <span className={styles.statVal}>{kcalGoal}</span>
-            <span className={styles.statLabel}>kcal / dag</span>
-          </div>
-          <div className={styles.statPill}>
-            <span className={styles.statVal}>{proteinGoal}g</span>
-            <span className={styles.statLabel}>protein / dag</span>
-          </div>
-          <div className={styles.statPill}>
-            <span className={styles.statVal}>{p.currentWeight ? `${p.currentWeight} kg` : '–'}</span>
-            <span className={styles.statLabel}>nuv. vikt</span>
-          </div>
-          <div className={styles.statPill}>
-            <span className={styles.statVal}>{p.goalWeight ? `${p.goalWeight} kg` : '–'}</span>
-            <span className={styles.statLabel}>målvikt</span>
-          </div>
-        </div>
+        {/* Mål */}
+        <SectionCard title="Mål">
+          <ProfileRow
+            label="Kalorimål"
+            value={kcalGoal ? `${kcalGoal} kcal` : null}
+            onEdit={() => setEditing('caloriesGoal')}
+            accent
+          />
+          <ProfileRow
+            label="Proteinmål"
+            value={proteinGoal ? `${proteinGoal} g` : null}
+            onEdit={() => setEditing('caloriesGoal')}
+          />
+          <ProfileRow
+            label="Nuv. vikt"
+            value={latestWeight ? `${latestWeight} kg` : null}
+            onEdit={() => setEditing('currentWeight')}
+          />
+          <ProfileRow
+            label="Viktmål"
+            value={p.goalWeight ? `${p.goalWeight} kg` : null}
+            onEdit={() => setEditing('goalWeight')}
+          />
+        </SectionCard>
 
-        {/* Sections */}
+        {/* Kosthållning — inline pills, no sheet */}
+        <SectionCard title="Kosthållning">
+          <div className={styles.dietGrid}>
+            {DIETS.map((d) => (
+              <button
+                key={d.value}
+                type="button"
+                className={p.diet === d.value ? styles.dietPillActive : styles.dietPill}
+                onClick={() => saveField('diet', d.value)}
+              >
+                <span className={styles.dietPillLabel}>{d.value}</span>
+                <span className={styles.dietPillDesc}>{d.desc}</span>
+              </button>
+            ))}
+          </div>
+          <ProfileRow
+            label="Allergier & intol."
+            value={p.allergies || null}
+            onEdit={() => setEditing('allergies')}
+          />
+        </SectionCard>
+
+        {/* Personuppgifter */}
         <SectionCard title="Personuppgifter">
-          <ProfileRow fieldKey="name"   value={p.name}   onEdit={setEditing} />
-          <ProfileRow fieldKey="age"    value={p.age ? `${p.age} år` : ''}   onEdit={setEditing} />
-          <ProfileRow fieldKey="height" value={p.height ? `${p.height} cm` : ''} onEdit={setEditing} />
-          <ProfileRow fieldKey="gender" value={p.gender} onEdit={setEditing} />
+          <ProfileRow label="Namn"   value={displayName}                       onEdit={() => setEditing('name')} />
+          <ProfileRow label="Ålder"  value={p.age ? `${p.age} år` : null}      onEdit={() => setEditing('age')} />
+          <ProfileRow label="Längd"  value={p.height ? `${p.height} cm` : null} onEdit={() => setEditing('height')} />
+          <ProfileRow label="Kön"    value={p.gender}                           onEdit={() => setEditing('gender')} />
         </SectionCard>
 
-        <SectionCard title="Mål & träning">
-          <ProfileRow fieldKey="goal"     value={GOAL_LABEL[p.goal]}       onEdit={setEditing} />
-          <ProfileRow fieldKey="activity" value={ACTIVITY_LABEL[p.activity]} onEdit={setEditing} />
-          <ProfileRow fieldKey="currentWeight" value={p.currentWeight ? `${p.currentWeight} kg` : ''} onEdit={setEditing} />
-          <ProfileRow fieldKey="goalWeight"    value={p.goalWeight ? `${p.goalWeight} kg` : ''}    onEdit={setEditing} />
-        </SectionCard>
-
-        <SectionCard title="Kost">
-          <ProfileRow fieldKey="diet"      value={p.diet}      onEdit={setEditing} />
-          <ProfileRow fieldKey="allergies" value={p.allergies} onEdit={setEditing} />
+        {/* Träning */}
+        <SectionCard title="Träning">
+          <ProfileRow label="Mål"             value={GOAL_LABEL[p.goal]}         onEdit={() => setEditing('goal')} />
+          <ProfileRow label="Aktivitetsnivå"  value={ACTIVITY_LABEL[p.activity]} onEdit={() => setEditing('activity')} />
         </SectionCard>
 
         {/* Actions */}
@@ -254,7 +289,12 @@ export default function Profile({ profile }) {
       </div>
 
       {editing && (
-        <EditSheet field={FIELDS[editing]} profile={profile} setProfile={updateProfile} onClose={() => setEditing(null)} />
+        <EditSheet
+          field={FIELDS[editing]}
+          profile={profile}
+          onSave={saveField}
+          onClose={() => setEditing(null)}
+        />
       )}
 
       {showWizard && (
