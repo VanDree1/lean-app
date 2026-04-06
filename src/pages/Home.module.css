@@ -363,12 +363,34 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  margin-top: 0.9rem;
   padding: 0;
   border: 0;
   background: transparent;
   font-size: 0.72rem;
   color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.focusMetaActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.focusJournalLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.42);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
@@ -384,6 +406,10 @@
 }
 
 .focusEditLink:hover {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.focusJournalLink:hover {
   color: rgba(255, 255, 255, 0.72);
 }
 
@@ -830,28 +856,20 @@
   line-height: 1.7;
 }
 
-.weightLink {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
+.weightHistoryLink {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.46);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  transition: color 0.18s ease, transform 0.18s ease;
+  cursor: pointer;
+  transition: color 0.18s ease;
 }
 
-.weightCard:hover .weightLink {
+.weightHistoryLink:hover {
   color: rgba(255, 255, 255, 0.78);
-}
-
-.weightCardLocked:hover .weightLink {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.weightCard:active .weightLink {
-  transform: translateX(1px);
-}
-
-.weightCardLocked:active .weightLink {
-  transform: none;
 }
 
 .noteCard {

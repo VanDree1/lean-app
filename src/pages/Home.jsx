@@ -9,6 +9,7 @@ import { useWeightLog } from '../components/Weight/useWeightLog';
 import { useGoalTone } from '../hooks/useGoalTone';
 import { useInsights } from '../hooks/useInsights';
 import { useAppStore } from '../store/useAppStore';
+import Journal from './Journal';
 import styles from './Home.module.css';
 const WEIGHT_TREND = [103.2, 102.5, 102.1, 101.8, 101.0, 100.5, 100.0];
 const WORKOUTS = {
@@ -48,7 +49,7 @@ function preventWheelValueChange(event) {
   event.currentTarget.blur();
 }
 
-function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, tone, sleepHoursToday, setSleepHoursToday, lowEnergyMode }) {
+function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, tone, sleepHoursToday, setSleepHoursToday, lowEnergyMode, onOpenJournal }) {
   const { state, completeDailyCheckin, unlockDailyCheckin } = useAppStore();
   const weight = Number(latestWeight) || 100;
   const [isCompleting, setIsCompleting] = useState(false);
@@ -242,9 +243,14 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                   </span>
                 ))}
               </div>
-              <button type="button" className={styles.focusEditLink} onClick={handleUnlock}>
-                Lås upp
-              </button>
+              <div className={styles.focusMetaActions}>
+                <button type="button" className={styles.focusEditLink} onClick={handleUnlock}>
+                  Lås upp
+                </button>
+                <button type="button" className={styles.focusJournalLink} onClick={onOpenJournal}>
+                  Journal
+                </button>
+              </div>
               {savedAt ? <p className={styles.focusSavedMeta}>Sparad {savedAt}</p> : null}
             </div>
           </div>
@@ -510,7 +516,7 @@ function PatternInsightCard({ insight }) {
   );
 }
 
-function WeightJourney({ onOpen, profile, locked }) {
+function WeightJourney({ onOpen, onOpenHistory, profile, locked }) {
   const { recent, current } = useWeightLog();
   const startWeight = profile.startWeight ?? profile.weight ?? profile.currentWeight ?? 100;
   const goalWeight = profile.goalWeight ?? 90;
@@ -579,7 +585,16 @@ function WeightJourney({ onOpen, profile, locked }) {
               ? 'Nytt lägsta. Fortsätt registrera vikten lugnt.'
               : 'Tryck här för att logga eller justera dagens vikt.'}
         </p>
-        <span className={styles.weightLink}>{locked ? 'Låst' : 'Logga vikt'}</span>
+        <button
+          type="button"
+          className={styles.weightHistoryLink}
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenHistory();
+          }}
+        >
+          Öppna historik
+        </button>
       </div>
       </div>
     </section>
@@ -620,6 +635,7 @@ export default function Home({ profile }) {
           sleepHoursToday={sleepHoursToday}
           setSleepHoursToday={setSleepHoursToday}
           lowEnergyMode={lowEnergyMode}
+          onOpenJournal={() => setModal('journal')}
         />
         <SleepRecoveryCard
           sleepHoursToday={sleepHoursToday}
@@ -633,7 +649,12 @@ export default function Home({ profile }) {
           <h2 className={styles.logSectionTitle}>{tone.log.title}</h2>
           <p className={styles.logSectionBody}>{tone.log.body}</p>
           </div>
-        <WeightJourney profile={profile} locked={isDayLocked} onOpen={() => setModal('weight')} />
+        <WeightJourney
+          profile={profile}
+          locked={isDayLocked}
+          onOpen={() => setModal('weight')}
+          onOpenHistory={() => setModal('journal')}
+        />
         <QuickStats
           profile={profile}
           locked={isDayLocked}
@@ -643,7 +664,8 @@ export default function Home({ profile }) {
         <MotivationTip profile={profile} lowEnergyMode={lowEnergyMode} recoveryTone={tone.recovery} />
       </div>
 
-      {modal === 'weight' && <WeightModal onClose={() => setModal(null)} />}
+      {modal === 'weight' && <WeightModal onClose={() => setModal(null)} onOpenJournal={() => setModal('journal')} />}
+      {modal === 'journal' && <Journal onClose={() => setModal(null)} />}
     </main>
   );
 }

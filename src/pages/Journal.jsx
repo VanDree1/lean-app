@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import styles from './Journal.module.css';
 
@@ -45,14 +45,34 @@ function getEntryTitle(entry, goal) {
   return 'Dag registrerad';
 }
 
-function getEntrySummary(entry, goal) {
+function getNutritionPhrase(entry, goal) {
   const score = getNutritionScore(entry, goal);
-  const workout = entry.workoutName
-    ? `${entry.duration ? `${entry.duration} min ` : ''}${entry.workoutName}`
-    : 'ingen träning';
-  const sleep = Number(entry.sleepHours) > 0 ? `${Number(entry.sleepHours).toString().replace('.', ',')} h sömn` : 'sömn saknas';
+  if (score >= 95) return 'Kosten satt väldigt fint.';
+  if (score >= 85) return 'Bra riktning på maten.';
+  if (score >= 70) return 'Helt okej rytm på maten.';
+  return 'Dagen gick lite mer på känsla.';
+}
 
-  return `${score}% på kosten, ${workout}. ${sleep}.`;
+function getWorkoutPhrase(entry) {
+  if (!entry.workoutName) return 'Ingen träning loggad.';
+  if (entry.duration) return `${entry.duration} min ${entry.workoutName}.`;
+  return `${entry.workoutName}.`;
+}
+
+function getSleepPhrase(entry) {
+  const sleep = Number(entry.sleepHours);
+  if (sleep <= 0) return 'Sömnen saknas.';
+  if (sleep < 6) return `${sleep.toString().replace('.', ',')} h sömn, låg energi.`;
+  if (sleep >= 8) return `${sleep.toString().replace('.', ',')} h sömn, bra återhämtning.`;
+  return `${sleep.toString().replace('.', ',')} h sömn.`;
+}
+
+function getEntrySummary(entry, goal) {
+  return [
+    getNutritionPhrase(entry, goal),
+    getWorkoutPhrase(entry),
+    getSleepPhrase(entry),
+  ].join(' ');
 }
 
 function getStatusTone(entry, goal) {
@@ -66,6 +86,19 @@ function getStatusTone(entry, goal) {
 export default function Journal({ onClose = null }) {
   const { state } = useAppStore();
   const goal = state.profile?.caloriesGoal || 3150;
+
+  useEffect(() => {
+    if (!onClose) return undefined;
+
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const entries = useMemo(() => {
     return Object.values(state.daily.dailyEntries || {})
