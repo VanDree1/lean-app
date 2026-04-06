@@ -536,11 +536,19 @@
   font: inherit;
   outline: none;
   transition: border-color 0.18s ease, background-color 0.18s ease;
+  appearance: textfield;
+  -moz-appearance: textfield;
 }
 
 .focusInput:focus {
   border-color: rgba(199, 221, 207, 0.28);
   background: rgba(255, 255, 255, 0.06);
+}
+
+.focusInput::-webkit-outer-spin-button,
+.focusInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .focusSheetActions {

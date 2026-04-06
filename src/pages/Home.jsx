@@ -44,6 +44,10 @@ function formatSavedTime(value) {
   });
 }
 
+function preventWheelValueChange(event) {
+  event.currentTarget.blur();
+}
+
 function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, tone, sleepHoursToday, setSleepHoursToday, lowEnergyMode }) {
   const { state, completeDailyCheckin, unlockDailyCheckin } = useAppStore();
   const weight = Number(latestWeight) || 100;
@@ -313,6 +317,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 value={caloriesInput}
                 onChange={(event) => setCaloriesInput(event.target.value)}
                 onKeyDown={(event) => handleFormKeyDown(event, 'calories')}
+                onWheel={preventWheelValueChange}
                 placeholder="Till exempel 1850"
                 min="0"
               />
@@ -331,6 +336,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 value={sleepHours}
                 onChange={(event) => setSleepHours(event.target.value)}
                 onKeyDown={(event) => handleFormKeyDown(event, 'sleep')}
+                onWheel={preventWheelValueChange}
                 placeholder="Till exempel 8"
               />
             </label>
