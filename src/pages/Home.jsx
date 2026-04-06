@@ -14,8 +14,15 @@ const ONBOARDING_KEY = 'djur-i-juni:onboarding';
 const HEALTH_FACT_CACHE_KEY_PREFIX = 'djur-i-juni:health-fact';
 const HEALTH_FACT_TTL_MS = 1000 * 60 * 60 * 12;
 const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
+const LAST_LOGGED_ACTION_KEY = 'djur_juni_last_action';
 const STREAK_KEY = 'djur_juni_streak';
 const WEIGHT_TREND = [103.2, 102.5, 102.1, 101.8, 101.0, 100.5, 100.0];
+const DAILY_ACTIONS = [
+  { value: 'weight', label: 'Jag vägde mig', desc: 'Dagens vikt är registrerad' },
+  { value: 'food', label: 'Jag höll kosten', desc: 'Maten satt som den skulle' },
+  { value: 'training', label: 'Jag tränade', desc: 'Passet eller rörelsen är gjort' },
+  { value: 'routine', label: 'Jag höll rutinen', desc: 'Jag gjorde det viktigaste idag' },
+];
 
 const HEALTH_TOPICS_BY_GOAL = {
   fat_loss: [
@@ -209,19 +216,29 @@ function applyDailyCoachContext(tip, loggedToday) {
 
 function DailyFocusCard() {
   const [lastLoggedDate, setLastLoggedDate] = useState(() => localStorage.getItem(LAST_LOGGED_DATE_KEY) || null);
+  const [lastLoggedAction, setLastLoggedAction] = useState(() => localStorage.getItem(LAST_LOGGED_ACTION_KEY) || '');
   const [streak, setStreak] = useState(() => Number(localStorage.getItem(STREAK_KEY)) || 0);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [showActionPicker, setShowActionPicker] = useState(false);
   const todayString = new Date().toDateString();
-  const isLoggedToday = lastLoggedDate === todayString;
+  const isLoggedToday = lastLoggedDate === todayString && Boolean(lastLoggedAction);
 
   function handleCheckIn() {
     if (isLoggedToday) return;
+    setShowActionPicker(true);
+  }
+
+  function completeCheckIn(action) {
+    if (!action) return;
 
     const nextStreak = streak + 1;
     setIsCompleting(true);
     setLastLoggedDate(todayString);
+    setLastLoggedAction(action);
     setStreak(nextStreak);
+    setShowActionPicker(false);
     localStorage.setItem(LAST_LOGGED_DATE_KEY, todayString);
+    localStorage.setItem(LAST_LOGGED_ACTION_KEY, action);
     localStorage.setItem(STREAK_KEY, String(nextStreak));
 
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
@@ -232,41 +249,85 @@ function DailyFocusCard() {
   }
 
   return (
-    <button
-      type="button"
-      className={[
-        styles.focusCard,
-        styles.focusCheckin,
-        isCompleting ? styles.focusCardCompleting : '',
-        isLoggedToday ? styles.focusCardDone : styles.focusCardTodo,
-      ].join(' ')}
-      aria-labelledby="today-title"
-      onClick={handleCheckIn}
-      disabled={isLoggedToday}
-    >
-      <div className={styles.focusContent}>
-        <div className={styles.focusMain}>
-          <p className={styles.sectionEyebrow}>Idag</p>
-          <h2 id="today-title" className={styles.focusTitle}>
-            {isLoggedToday ? 'Dagens insats är loggad.' : 'Logga idag för att behålla rytmen'}
-          </h2>
-          <p className={styles.focusBody}>
-            {isLoggedToday ? 'Bra jobbat. Vila nu.' : 'En lugn check-in räcker för att hålla dagen intakt.'}
-          </p>
-          <p className={styles.focusMeta}>Streak {streak} dagar</p>
+    <>
+      <button
+        type="button"
+        className={[
+          styles.focusCard,
+          styles.focusCheckin,
+          isCompleting ? styles.focusCardCompleting : '',
+          isLoggedToday ? styles.focusCardDone : styles.focusCardTodo,
+        ].join(' ')}
+        aria-labelledby="today-title"
+        onClick={handleCheckIn}
+        disabled={isLoggedToday}
+      >
+        <div className={styles.focusContent}>
+          <div className={styles.focusMain}>
+            <p className={styles.sectionEyebrow}>Idag</p>
+            <h2 id="today-title" className={styles.focusTitle}>
+              {isLoggedToday ? 'Dagens insats är loggad.' : 'Logga idag för att behålla rytmen'}
+            </h2>
+            <p className={styles.focusBody}>
+              {isLoggedToday
+                ? 'Bra jobbat. Vila nu.'
+                : 'Tryck här och välj vad du faktiskt fick gjort idag.'}
+            </p>
+            <p className={styles.focusMeta}>
+              {isLoggedToday
+                ? `${DAILY_ACTIONS.find((item) => item.value === lastLoggedAction)?.label || 'Insats'} · ${streak} dagar`
+                : `Streak ${streak} dagar`}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className={styles.focusStatus} aria-hidden="true">
-        {isLoggedToday ? (
-          <span className={styles.focusCheckWrap}>
-            <Check size={18} strokeWidth={1.8} className={styles.focusCheckIcon} />
-          </span>
-        ) : (
-          <span className={styles.focusPulseDot} />
-        )}
-      </div>
-    </button>
+        <div className={styles.focusStatus} aria-hidden="true">
+          {isLoggedToday ? (
+            <span className={styles.focusCheckWrap}>
+              <Check size={18} strokeWidth={1.8} className={styles.focusCheckIcon} />
+            </span>
+          ) : (
+            <span className={styles.focusPulseDot} />
+          )}
+        </div>
+      </button>
+      {showActionPicker && !isLoggedToday && (
+        <div className={styles.focusSheetOverlay} onClick={(event) => event.target === event.currentTarget && setShowActionPicker(false)}>
+          <div className={styles.focusSheet} role="dialog" aria-modal="true" aria-label="Välj dagens insats">
+            <div className={styles.focusSheetHeader}>
+              <p className={styles.sectionEyebrow}>Dagens insats</p>
+              <h3 className={styles.focusSheetTitle}>Vad vill du markera som klart?</h3>
+            </div>
+            <div className={styles.focusOptionList}>
+              {DAILY_ACTIONS.map((action) => (
+                <button
+                  key={action.value}
+                  type="button"
+                  className={styles.focusOption}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    completeCheckIn(action.value);
+                  }}
+                >
+                  <span className={styles.focusOptionLabel}>{action.label}</span>
+                  <span className={styles.focusOptionDesc}>{action.desc}</span>
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className={styles.focusSheetClose}
+              onClick={(event) => {
+                event.stopPropagation();
+                setShowActionPicker(false);
+              }}
+            >
+              Avbryt
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
