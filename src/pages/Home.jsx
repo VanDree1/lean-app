@@ -238,112 +238,103 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
         </button>
       )}
       {showActionPicker && (
-        <div className={styles.focusSheetOverlay} onClick={(event) => event.target === event.currentTarget && setShowActionPicker(false)}>
-          <div className={styles.focusSheet} role="dialog" aria-modal="true" aria-label="Fyll i dagens insats">
-            <div className={styles.focusSheetHeader}>
-              <p className={styles.sectionEyebrow}>Dagens insats</p>
-            </div>
-            <div className={styles.focusForm}>
-              <label className={styles.focusField}>
-                <span className={styles.focusFieldLabel}>Kalorier ätit</span>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  className={styles.focusInput}
-                  value={caloriesInput}
-                  onChange={(event) => setCaloriesInput(event.target.value)}
-                  placeholder="Till exempel 1850"
-                />
-              </label>
+        <section className={styles.focusInlineSheet} role="dialog" aria-label="Fyll i dagens insats">
+          <div className={styles.focusSheetHeader}>
+            <p className={styles.sectionEyebrow}>Dagens insats</p>
+          </div>
+          <div className={styles.focusForm}>
+            <label className={styles.focusField}>
+              <span className={styles.focusFieldLabel}>Kalorier ätit</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                className={styles.focusInput}
+                value={caloriesInput}
+                onChange={(event) => setCaloriesInput(event.target.value)}
+                placeholder="Till exempel 1850"
+              />
+            </label>
 
-              <label className={styles.focusField}>
-                <span className={styles.focusFieldLabel}>Sömn</span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  step="0.5"
-                  min="0"
-                  max="24"
-                  className={styles.focusInput}
-                  value={sleepHours}
-                  onChange={(event) => setSleepHours(event.target.value)}
-                  placeholder="Till exempel 8"
-                />
-              </label>
+            <label className={styles.focusField}>
+              <span className={styles.focusFieldLabel}>Sömn</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                step="0.5"
+                min="0"
+                max="24"
+                className={styles.focusInput}
+                value={sleepHours}
+                onChange={(event) => setSleepHours(event.target.value)}
+                placeholder="Till exempel 8"
+              />
+            </label>
 
-              <div className={[styles.focusField, !activeWorkout ? styles.focusFieldMuted : ''].join(' ')}>
-                <div className={styles.focusFieldHeader}>
-                  <span className={styles.focusFieldLabel}>Dagens träning</span>
-                  {activeWorkout ? <span className={styles.focusFieldHint}>+{estimatedCalories} kcal</span> : null}
-                </div>
-                <div className={styles.workoutGrid}>
-                  {Object.entries(WORKOUTS).map(([key, workout]) => {
-                    const active = activeWorkoutKey === key;
-                    return (
-                      <button
-                        key={key}
-                        type="button"
-                        className={[styles.workoutOption, active ? styles.workoutOptionActive : ''].join(' ')}
-                        onClick={() => setActiveWorkoutKey(active ? null : key)}
-                        aria-pressed={active}
-                        aria-label={workout.name}
-                      >
-                        <workout.Icon size={24} strokeWidth={1.5} />
-                        <span className={styles.workoutLabel}>{workout.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-                {activeWorkout && (
-                  <div className={styles.workoutDetail}>
-                    <div className={styles.workoutDetailHeader}>
-                      <span className={styles.workoutDetailName}>{activeWorkout.name}</span>
-                      <span className={styles.workoutDuration}>{duration} min</span>
-                    </div>
-                    <input
-                      className={styles.workoutSlider}
-                      type="range"
-                      min="10"
-                      max="120"
-                      step="5"
-                      value={duration}
-                      onChange={(event) => setDuration(Number(event.target.value))}
-                      aria-label="Träningslängd i minuter"
-                    />
-                    <div className={styles.workoutScale}>
-                      <span>10 min</span>
-                      <span>120 min</span>
-                    </div>
-                    <p className={styles.workoutEstimate}>+{estimatedCalories} kcal</p>
-                  </div>
-                )}
+            <div className={[styles.focusField, !activeWorkout ? styles.focusFieldMuted : ''].join(' ')}>
+              <div className={styles.focusFieldHeader}>
+                <span className={styles.focusFieldLabel}>Dagens träning</span>
+                {activeWorkout ? <span className={styles.focusFieldHint}>+{estimatedCalories} kcal</span> : null}
               </div>
-
-            </div>
-            <div className={styles.focusSheetActions}>
-              <button
-                type="button"
-                className={styles.focusSheetSecondary}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setShowActionPicker(false);
-                }}
-              >
-                Avbryt
-              </button>
-              <button
-                type="button"
-                className={styles.focusSheetPrimary}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  completeCheckIn();
-                }}
-              >
-                Spara dagens insats
-              </button>
+              <div className={styles.workoutGrid}>
+                {Object.entries(WORKOUTS).map(([key, workout]) => {
+                  const active = activeWorkoutKey === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      className={[styles.workoutOption, active ? styles.workoutOptionActive : ''].join(' ')}
+                      onClick={() => setActiveWorkoutKey(active ? null : key)}
+                      aria-pressed={active}
+                      aria-label={workout.name}
+                    >
+                      <workout.Icon size={24} strokeWidth={1.5} />
+                      <span className={styles.workoutLabel}>{workout.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              {activeWorkout && (
+                <div className={styles.workoutDetail}>
+                  <div className={styles.workoutDetailHeader}>
+                    <span className={styles.workoutDetailName}>{activeWorkout.name}</span>
+                    <span className={styles.workoutDuration}>{duration} min</span>
+                  </div>
+                  <input
+                    className={styles.workoutSlider}
+                    type="range"
+                    min="10"
+                    max="120"
+                    step="5"
+                    value={duration}
+                    onChange={(event) => setDuration(Number(event.target.value))}
+                    aria-label="Träningslängd i minuter"
+                  />
+                  <div className={styles.workoutScale}>
+                    <span>10 min</span>
+                    <span>120 min</span>
+                  </div>
+                  <p className={styles.workoutEstimate}>+{estimatedCalories} kcal</p>
+                </div>
+              )}
             </div>
           </div>
-        </div>
+          <div className={styles.focusSheetActions}>
+            <button
+              type="button"
+              className={styles.focusSheetSecondary}
+              onClick={() => setShowActionPicker(false)}
+            >
+              Avbryt
+            </button>
+            <button
+              type="button"
+              className={styles.focusSheetPrimary}
+              onClick={completeCheckIn}
+            >
+              Spara dagens insats
+            </button>
+          </div>
+        </section>
       )}
     </>
   );
