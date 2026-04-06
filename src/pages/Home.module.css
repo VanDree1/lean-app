@@ -299,11 +299,10 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-.focusCardDone {
+.focusCardLogged {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  opacity: 0.6;
-  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0.82;
   box-shadow: none;
 }
 
@@ -325,10 +324,10 @@
 }
 
 .focusBody {
-  margin-top: 1rem;
+  margin-top: 0.8rem;
   max-width: 24ch;
-  color: rgba(255, 255, 255, 0.52);
-  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.48);
+  line-height: 1.45;
 }
 
 .focusMeta {
@@ -358,6 +357,15 @@
   line-height: 1;
   color: rgba(255, 255, 255, 0.78);
   letter-spacing: 0.01em;
+}
+
+.focusEditLink {
+  display: inline-flex;
+  margin-top: 0.9rem;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.56);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .focusStatus {
@@ -404,49 +412,6 @@
   line-height: 1.2;
   letter-spacing: -0.03em;
   color: #ffffff;
-}
-
-.focusOptionList {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.focusOption {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.2rem;
-  padding: 1rem 1.05rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1.15rem;
-  background: rgba(255, 255, 255, 0.04);
-  color: #ffffff;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.focusOption:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.14);
-}
-
-.focusOption:active {
-  transform: scale(0.985);
-}
-
-.focusOptionLabel {
-  font-size: 0.98rem;
-  line-height: 1.3;
-  color: #ffffff;
-}
-
-.focusOptionDesc {
-  font-size: 0.82rem;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.48);
 }
 
 .focusForm {
@@ -498,33 +463,6 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
-.focusToggleRow {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.6rem;
-}
-
-.focusToggle {
-  padding: 0.9rem 1rem;
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.62);
-  cursor: pointer;
-  transition: border-color 0.18s ease, background-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.focusToggle:active {
-  transform: scale(0.985);
-}
-
-.focusToggleActive {
-  border-color: rgba(199, 221, 207, 0.28);
-  background: rgba(199, 221, 207, 0.1);
-  color: #ffffff;
-}
-
 .focusSheetActions {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
@@ -562,24 +500,6 @@
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-}
-
-.focusSheetClose {
-  width: 100%;
-  margin-top: 0.8rem;
-  padding: 0.95rem 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.72);
-  cursor: pointer;
-  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
-}
-
-.focusSheetClose:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
 }
 
 .focusPulseDot {
@@ -1043,6 +963,14 @@
 .workoutDotActive {
   background: #34d399;
   box-shadow: 0 0 10px rgba(52, 211, 153, 0.32);
+}
+
+.workoutDayToday .workoutDayLabel {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.workoutDotToday {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
 }
 
 .workoutDayLabel {

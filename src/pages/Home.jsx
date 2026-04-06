@@ -109,6 +109,10 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
   const estimatedCalories = activeWorkout
     ? Math.round(activeWorkout.met * weight * (duration / 60))
     : 0;
+  const todayWeekIndex = (() => {
+    const nativeDay = new Date().getDay();
+    return nativeDay === 0 ? 6 : nativeDay - 1;
+  })();
   const summaryItems = isLoggedToday
     ? [
         `${todayCheckin?.calories ?? eaten} kcal`,
@@ -147,12 +151,8 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
       burned: workoutBurn,
       sleepHours: parsedSleep,
     };
-    const dayIndex = (() => {
-      const nativeDay = new Date().getDay();
-      return nativeDay === 0 ? 6 : nativeDay - 1;
-    })();
     const nextWeekHistory = [...weekHistory];
-    nextWeekHistory[dayIndex] = Boolean(activeWorkoutKey);
+    nextWeekHistory[todayWeekIndex] = Boolean(activeWorkoutKey);
 
     setIsCompleting(true);
     setLastLoggedDate(todayString);
@@ -184,31 +184,33 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
           styles.focusCard,
           styles.focusCheckin,
           isCompleting ? styles.focusCardCompleting : '',
-          isLoggedToday ? styles.focusCardDone : styles.focusCardTodo,
+          isLoggedToday ? styles.focusCardLogged : styles.focusCardTodo,
         ].join(' ')}
         aria-labelledby="today-title"
         onClick={handleCheckIn}
-        disabled={isLoggedToday}
       >
         <div className={styles.focusContent}>
           <div className={styles.focusMain}>
             <p className={styles.sectionEyebrow}>Idag</p>
             <h2 id="today-title" className={styles.focusTitle}>
-              {isLoggedToday ? 'Dagens insats är loggad.' : 'Logga idag för att behålla rytmen'}
+              {isLoggedToday ? 'Dagens insats är klar.' : 'Logga dagen'}
             </h2>
             <p className={styles.focusBody}>
               {isLoggedToday
-                ? 'Kalorier, träning och sömn är registrerat för idag.'
-                : 'Tryck här och fyll i kalorier, träning och sömn för dagen.'}
+                ? 'Kalorier, träning och sömn är sparat.'
+                : 'Kalorier, träning och sömn på ett ställe.'}
             </p>
             {isLoggedToday ? (
-              <div className={styles.focusSummaryRow}>
-                {summaryItems.map((item) => (
-                  <span key={item} className={styles.focusSummaryPill}>
-                    {item}
-                  </span>
-                ))}
-              </div>
+              <>
+                <div className={styles.focusSummaryRow}>
+                  {summaryItems.map((item) => (
+                    <span key={item} className={styles.focusSummaryPill}>
+                      {item}
+                    </span>
+                  ))}
+                </div>
+                <span className={styles.focusEditLink}>Ändra</span>
+              </>
             ) : (
               <p className={styles.focusMeta}>Streak {streakLabel}</p>
             )}
@@ -314,11 +316,14 @@ function DailyFocusCard({ profile, eaten, setEaten, burned, setBurned }) {
               </label>
 
               <div className={styles.focusWeekWrap}>
-                <span className={styles.focusFieldLabel}>Veckorytm</span>
+                <div className={styles.focusFieldHeader}>
+                  <span className={styles.focusFieldLabel}>Veckorytm</span>
+                  <span className={styles.focusFieldHint}>{weekHistory.filter(Boolean).length}/7</span>
+                </div>
                 <div className={styles.workoutWeek}>
                   {WEEKDAY_LABELS.map((label, index) => (
-                    <div key={`${label}-${index}`} className={styles.workoutDay}>
-                      <span className={[styles.workoutDot, weekHistory[index] ? styles.workoutDotActive : ''].join(' ')} />
+                    <div key={`${label}-${index}`} className={[styles.workoutDay, index === todayWeekIndex ? styles.workoutDayToday : ''].join(' ')}>
+                      <span className={[styles.workoutDot, weekHistory[index] ? styles.workoutDotActive : '', index === todayWeekIndex ? styles.workoutDotToday : ''].join(' ')} />
                       <span className={styles.workoutDayLabel}>{label}</span>
                     </div>
                   ))}
