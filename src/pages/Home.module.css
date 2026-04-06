@@ -411,6 +411,28 @@
   transition: width 0.45s ease;
 }
 
+.weekGoalFillActive {
+  box-shadow:
+    0 0 0 4px rgba(52, 211, 153, 0.08),
+    0 0 18px rgba(52, 211, 153, 0.28);
+  animation: weekGoalPulse 0.55s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+@keyframes weekGoalPulse {
+  0% {
+    transform: scaleX(0.98);
+    opacity: 0.72;
+  }
+  60% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
 .focusEditLink:hover {
   color: rgba(255, 255, 255, 0.72);
 }

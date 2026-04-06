@@ -391,7 +391,10 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                   <span className={styles.weekGoalValue}>{weeklyGoal.completed} / {weeklyGoal.target} dagar</span>
                 </div>
                 <div className={styles.weekGoalTrack} aria-hidden="true">
-                  <div className={styles.weekGoalFill} style={{ width: `${weeklyGoal.progress}%` }} />
+                  <div
+                    className={[styles.weekGoalFill, showSavedState ? styles.weekGoalFillActive : ''].join(' ')}
+                    style={{ width: `${weeklyGoal.progress}%` }}
+                  />
                 </div>
               </div>
               {savedAt ? <p className={styles.focusSavedMeta}>Sparad {savedAt}</p> : null}
