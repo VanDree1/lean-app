@@ -3,7 +3,6 @@ import { Activity, Bike, Check, Dumbbell, Flower2, Footprints } from 'lucide-rea
 import AnimatedNumber from '../components/AnimatedNumber/AnimatedNumber';
 import HeroCard from '../components/HeroCard/HeroCard';
 import QuickStats from '../components/QuickStats/QuickStats';
-import StreakBanner from '../components/StreakBanner/StreakBanner';
 import WeightModal from '../components/Weight/WeightModal';
 import { useWeightLog } from '../components/Weight/useWeightLog';
 import { useStreak } from '../hooks/useStreak';
@@ -256,6 +255,7 @@ function DailyFocusCard() {
   const [showActionPicker, setShowActionPicker] = useState(false);
   const todayString = new Date().toDateString();
   const isLoggedToday = lastLoggedDate === todayString && Boolean(lastLoggedAction);
+  const streakLabel = `${streak} ${streak === 1 ? 'dag' : 'dagar'}`;
 
   function handleCheckIn() {
     if (isLoggedToday) return;
@@ -309,8 +309,8 @@ function DailyFocusCard() {
             </p>
             <p className={styles.focusMeta}>
               {isLoggedToday
-                ? `${DAILY_ACTIONS.find((item) => item.value === lastLoggedAction)?.label || 'Insats'} · ${streak} dagar`
-                : `Streak ${streak} dagar`}
+                ? `${DAILY_ACTIONS.find((item) => item.value === lastLoggedAction)?.label || 'Insats'} · ${streakLabel}`
+                : `Streak ${streakLabel}`}
             </p>
           </div>
         </div>
@@ -659,10 +659,7 @@ export default function Home({ profile }) {
       <div className={styles.stack}>
         <HeroCard profile={profile} />
         <DailyFocusCard />
-        <div className={styles.twoColumn}>
-          <StreakBanner />
-          <WeightJourney profile={profile} onOpen={() => setModal('weight')} />
-        </div>
+        <WeightJourney profile={profile} onOpen={() => setModal('weight')} />
         <QuickStats profile={profile} eaten={eaten} burned={burned} setEaten={setEaten} />
         <WorkoutCard profile={profile} setBurned={setBurned} />
         <CoachTipCard profile={profile} />
