@@ -50,16 +50,6 @@ function readIsDayLocked() {
   }
 }
 
-function formatHistoryLabel(dateString) {
-  const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-  if (dateString === today) return 'Idag';
-  if (dateString === yesterday) return 'Igår';
-
-  const date = new Date(`${dateString}T00:00:00`);
-  return date.toLocaleDateString('sv-SE', { weekday: 'short' });
-}
-
 function readTodaySteps() {
   try {
     for (const key of TODAY_STATS_KEYS) {
@@ -427,41 +417,8 @@ function WeightJourney({ onOpen, profile, locked }) {
   );
 }
 
-function DailyHistoryCard({ entries }) {
-  if (!entries.length) return null;
-
-  return (
-    <section className={styles.historyCard} aria-labelledby="history-title">
-      <div className={styles.historyHeader}>
-        <p className={styles.sectionEyebrow}>Historik</p>
-        <h2 id="history-title" className={styles.historyTitle}>Senaste dagarna</h2>
-      </div>
-      <div className={styles.historyList}>
-        {entries.map((entry) => (
-          <div key={entry.date} className={styles.historyRow}>
-            <div className={styles.historyDate}>
-              <span className={styles.historyDay}>{formatHistoryLabel(entry.date)}</span>
-              <span className={styles.historyDateText}>{entry.date}</span>
-            </div>
-            <div className={styles.historyMetrics}>
-              <span className={styles.historyMetric}>
-                {entry.weight != null ? `${Number(entry.weight).toFixed(1)} kg` : 'Ingen vikt'}
-              </span>
-              <span className={styles.historyMetric}>{entry.calories || 0} kcal</span>
-              <span className={styles.historyMetric}>{entry.steps || 0} steg</span>
-              <span className={[styles.historyState, entry.locked ? styles.historyStateDone : styles.historyStateMissed].join(' ')}>
-                {entry.locked ? 'Klar' : 'Missad'}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
 export default function Home({ profile }) {
-  const { history } = useDailyLogic();
+  useDailyLogic();
   const { current: latestWeight } = useWeightLog();
   const [modal, setModal] = useState(null);
   const [eaten, setEaten] = useState(() => parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
@@ -516,7 +473,6 @@ export default function Home({ profile }) {
           setEaten={setEaten}
           locked={isDayLocked}
         />
-        <DailyHistoryCard entries={history.slice(0, 5)} />
         </div>
       </div>
 

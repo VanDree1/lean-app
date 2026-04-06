@@ -54,7 +54,6 @@
 
 .focusCard,
 .profileCard,
-.historyCard,
 .weightCard,
 .noteCard,
 .workoutCard {
@@ -70,7 +69,6 @@
 
 .focusCard:hover,
 .profileCard:hover,
-.historyCard:hover,
 .weightCard:hover,
 .noteCard:hover,
 .workoutCard:hover {
@@ -754,101 +752,6 @@
 
 .weightCardLocked:active .weightLink {
   transform: none;
-}
-
-.historyCard {
-  padding: 1.3rem 1.4rem;
-}
-
-.historyHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.historyTitle {
-  font-size: 1rem;
-  line-height: 1.12;
-  letter-spacing: -0.03em;
-  color: #ffffff;
-}
-
-.historyList {
-  margin-top: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
-}
-
-.historyRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.85rem;
-  padding-top: 0.7rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.historyRow:first-child {
-  padding-top: 0;
-  border-top: 0;
-}
-
-.historyDate {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.18rem;
-}
-
-.historyDay {
-  font-size: 0.86rem;
-  color: rgba(255, 255, 255, 0.86);
-}
-
-.historyDateText {
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.4);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.historyMetrics {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.55rem;
-  flex-wrap: wrap;
-}
-
-.historyMetric {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.62);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.historyState {
-  display: inline-flex;
-  align-items: center;
-  min-height: 1.65rem;
-  padding: 0.35rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.68rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.historyStateDone {
-  background: rgba(199, 221, 207, 0.08);
-  border: 1px solid rgba(199, 221, 207, 0.12);
-  color: rgba(199, 221, 207, 0.92);
-}
-
-.historyStateMissed {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.46);
 }
 
 .noteCard {
