@@ -1,16 +1,98 @@
-# React + Vite
+# Djur i Juni
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+En React/Vite-app för daglig hälsologgning med fokus på rytm, trend och enkel uppföljning.
 
-Currently, two official plugins are available:
+## Kom igång
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 1. Klona projektet
 
-## React Compiler
+```bash
+git clone https://github.com/VanDree1/lean-app.git
+cd lean-app
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 2. Installera beroenden
 
-## Expanding the ESLint configuration
+```bash
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 3. Starta utvecklingsservern
+
+```bash
+npm run dev
+```
+
+Öppna sedan adressen som visas i terminalen, normalt:
+
+`http://localhost:5173/`
+
+## Krav
+
+- Node.js 20+ rekommenderas
+- npm 10+ rekommenderas
+
+Kontrollera versioner:
+
+```bash
+node -v
+npm -v
+```
+
+## Vanliga kommandon
+
+Starta appen lokalt:
+
+```bash
+npm run dev
+```
+
+Bygg för produktion:
+
+```bash
+npm run build
+```
+
+Förhandsvisa produktionsbygget:
+
+```bash
+npm run preview
+```
+
+Kör lint:
+
+```bash
+npm run lint
+```
+
+## Om något inte startar
+
+Om `localhost:5173` inte öppnas:
+
+1. Kontrollera att `npm run dev` fortfarande kör i terminalen.
+2. Testa att ladda om sidan.
+3. Kontrollera att inga fel visas i terminalen.
+
+Om beroenden saknas eller installationen avbryts:
+
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+
+## Projektstruktur
+
+- `src/pages` – appens huvudsidor
+- `src/components` – UI-komponenter
+- `src/store` – global state och localStorage-synk
+- `src/hooks` – logik för tone, insights, profil m.m.
+
+## Delning
+
+För att någon annan ska kunna köra appen räcker det att de:
+
+1. laddar ner eller klonar repot från GitHub
+2. kör `npm install`
+3. kör `npm run dev`
+
+Ingen separat backend eller databas krävs för lokal körning.
