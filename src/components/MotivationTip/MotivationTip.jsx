@@ -1,53 +1,17 @@
-import { useEffect, useState } from 'react';
-import { useProfile } from '../../hooks/useProfile';
+import { useEffect, useMemo, useState } from 'react';
 import { useStreak } from '../../hooks/useStreak';
+import { getGoalTone, useGoalTone } from '../../hooks/useGoalTone';
 import styles from './MotivationTip.module.css';
 
 const CACHE_KEY_PREFIX = 'djur-i-juni:daily-quote';
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 
-const GOAL_LABELS = {
-  fat_loss: 'Fettförlust',
-  muscle: 'Bygga muskler',
-  energy: 'Mer energi',
-  target: 'Målvikt',
-  default: 'Din riktning',
-};
-
-const FALLBACK_QUOTES_BY_GOAL = {
-  fat_loss: [
-    { text: 'Discipline is choosing between what you want now and what you want most.', author: 'Abraham Lincoln' },
-    { text: 'Success is the sum of small efforts, repeated day in and day out.', author: 'Robert Collier' },
-    { text: 'We are what we repeatedly do. Excellence, then, is not an act, but a habit.', author: 'Will Durant' },
-  ],
-  muscle: [
-    { text: 'Strength does not come from winning. Your struggles develop your strengths.', author: 'Arnold Schwarzenegger' },
-    { text: 'The resistance that you fight physically in the gym and the resistance that you fight in life can only build a strong character.', author: 'Arnold Schwarzenegger' },
-    { text: 'Absorb what is useful, discard what is useless, and add what is specifically your own.', author: 'Bruce Lee' },
-  ],
-  energy: [
-    { text: 'Nature does not hurry, yet everything is accomplished.', author: 'Lao Tzu' },
-    { text: 'Simplicity is the ultimate sophistication.', author: 'Leonardo da Vinci' },
-    { text: 'It is not enough to be busy. The question is: what are we busy about?', author: 'Henry David Thoreau' },
-  ],
-  target: [
-    { text: 'A goal without a plan is just a wish.', author: 'Antoine de Saint-Exupery' },
-    { text: 'First say to yourself what you would be; and then do what you have to do.', author: 'Epictetus' },
-    { text: 'Well begun is half done.', author: 'Aristotle' },
-  ],
-  default: [
-    { text: 'Absorb what is useful, discard what is useless, and add what is specifically your own.', author: 'Bruce Lee' },
-    { text: 'We are what we repeatedly do. Excellence, then, is not an act, but a habit.', author: 'Will Durant' },
-    { text: 'Success is the sum of small efforts, repeated day in and day out.', author: 'Robert Collier' },
-  ],
-};
-
 function getCacheKey(goal) {
   return `${CACHE_KEY_PREFIX}:${goal || 'default'}`;
 }
 
-function getFallbackQuote(goal) {
-  const quotes = FALLBACK_QUOTES_BY_GOAL[goal] || FALLBACK_QUOTES_BY_GOAL.default;
+function getFallbackQuote(tone) {
+  const quotes = tone.quote.fallbacks;
   return quotes[Math.floor(Date.now() / 86_400_000) % quotes.length];
 }
 
@@ -68,14 +32,15 @@ function isFresh(cache) {
   return Boolean(cache && Date.now() - cache.fetchedAt < CACHE_TTL_MS);
 }
 
-export default function MotivationTip() {
-  const { profile } = useProfile();
+export default function MotivationTip({ profile = {} }) {
   const { loggedToday } = useStreak();
-  const goal = profile.goal || 'default';
+  const tone = useGoalTone(profile);
+  const goal = tone.goal || 'fat_loss';
   const mode = loggedToday ? 'ground' : 'reflect';
+  const fallbackQuote = useMemo(() => getFallbackQuote(getGoalTone({ goal })), [goal]);
   const [quote, setQuote] = useState(() => {
     const cached = readCachedQuote(goal);
-    return cached || { ...getFallbackQuote(goal), source: 'fallback' };
+    return cached || { ...fallbackQuote, source: 'fallback' };
   });
 
   useEffect(() => {
@@ -116,7 +81,7 @@ export default function MotivationTip() {
           return;
         }
 
-        const fallback = cached || { ...getFallbackQuote(goal), source: 'fallback', fetchedAt: Date.now() };
+        const fallback = cached || { ...fallbackQuote, source: 'fallback', fetchedAt: Date.now() };
         setQuote(fallback);
       }
     }
@@ -124,14 +89,10 @@ export default function MotivationTip() {
     loadQuote();
 
     return () => controller.abort();
-  }, [goal]);
+  }, [goal, fallbackQuote]);
 
-  const statusText = loggedToday ? 'Klar' : GOAL_LABELS[goal] || GOAL_LABELS.default;
-  const quoteLead = mode === 'ground'
-    ? 'Håll det lugnt.'
-    : loggedToday
-      ? 'Behåll rytmen.'
-      : 'Sätt tonen.';
+  const statusText = loggedToday ? 'Klar' : tone.quote.status;
+  const quoteLead = mode === 'ground' ? 'Behåll rytmen.' : tone.quote.lead;
 
   return (
     <section className={styles.card} aria-label="Dagens citat">

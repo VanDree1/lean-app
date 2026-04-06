@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { Activity, Bike, Check, Dumbbell, Flower2, Footprints } from 'lucide-react';
 import AnimatedNumber from '../components/AnimatedNumber/AnimatedNumber';
 import HeroCard from '../components/HeroCard/HeroCard';
+import MotivationTip from '../components/MotivationTip/MotivationTip';
 import QuickStats from '../components/QuickStats/QuickStats';
 import WeightModal from '../components/Weight/WeightModal';
 import { useWeightLog } from '../components/Weight/useWeightLog';
+import { useGoalTone } from '../hooks/useGoalTone';
 import styles from './Home.module.css';
 
 const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
@@ -94,7 +96,7 @@ function formatSavedTime(value) {
   });
 }
 
-function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, setLocked }) {
+function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, setLocked, tone }) {
   const weight = Number(latestWeight) || 100;
   const [isCompleting, setIsCompleting] = useState(false);
   const [showSavedState, setShowSavedState] = useState(false);
@@ -295,8 +297,8 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
             <div className={styles.focusMain}>
               <p className={styles.sectionEyebrow}>Idag</p>
               <h2 id="today-title" className={styles.focusTitle}>Logga dagen</h2>
-              <p className={styles.focusBody}>Kalorier, träning och sömn.</p>
-              <p className={styles.focusMeta}>Tryck för att fylla i.</p>
+              <p className={styles.focusBody}>{tone.daily.body}</p>
+              <p className={styles.focusMeta}>{tone.daily.meta}</p>
             </div>
           </div>
 
@@ -453,6 +455,18 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   );
 }
 
+function CoachTipCard({ tone }) {
+  return (
+    <section className={styles.noteCard} aria-label={tone.coach.title}>
+      <div className={styles.contextHeader}>
+        <p className={styles.sectionEyebrow}>{tone.coach.title}</p>
+        <span className={styles.contextStatus}>{tone.quote.status}</span>
+      </div>
+      <p className={styles.contextBody}>{tone.coach.body(tone)}</p>
+    </section>
+  );
+}
+
 function WeightJourney({ onOpen, profile, locked }) {
   const { recent, current } = useWeightLog();
   const startWeight = profile.startWeight ?? profile.weight ?? profile.currentWeight ?? 100;
@@ -531,6 +545,7 @@ function WeightJourney({ onOpen, profile, locked }) {
 
 export default function Home({ profile }) {
   const { current: latestWeight } = useWeightLog();
+  const tone = useGoalTone(profile);
   const [modal, setModal] = useState(null);
   const [eaten, setEaten] = useState(() => parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
   const [burned, setBurned] = useState(() => parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0);
@@ -568,12 +583,13 @@ export default function Home({ profile }) {
           setBurned={setBurned}
           locked={isDayLocked}
           setLocked={setIsDayLocked}
+          tone={tone}
         />
         <div className={styles.logSection}>
         <div className={styles.logSectionHeader}>
           <p className={styles.sectionEyebrow}>Logga idag</p>
-          <h2 className={styles.logSectionTitle}>Vikt och kalorier</h2>
-          <p className={styles.logSectionBody}>Träningen ligger nu i Dagens insats. Här håller du bara vikten och kaloribudgeten ren.</p>
+          <h2 className={styles.logSectionTitle}>{tone.log.title}</h2>
+          <p className={styles.logSectionBody}>{tone.log.body}</p>
           </div>
         <WeightJourney profile={profile} locked={isDayLocked} onOpen={() => setModal('weight')} />
         <QuickStats
@@ -585,6 +601,8 @@ export default function Home({ profile }) {
           locked={isDayLocked}
         />
         </div>
+        <CoachTipCard tone={tone} />
+        <MotivationTip profile={profile} />
       </div>
 
       {modal === 'weight' && <WeightModal onClose={() => setModal(null)} />}

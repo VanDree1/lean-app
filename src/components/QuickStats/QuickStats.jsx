@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
 import AnimatedNumber from '../AnimatedNumber/AnimatedNumber';
 import { calcTargets } from '../../hooks/useProfile';
+import { getGoalTone } from '../../hooks/useGoalTone';
 import styles from './QuickStats.module.css';
 
 const CALORIES_KEY = 'djur_juni_cal';
 const STEPS_KEY = 'djur_juni_steps';
+const PROTEIN_KEY = 'djur_juni_protein';
 const TODAY_STATS_KEYS = [
   'djur-i-juni:today-stats',
   'djur-i-juni:daily-summary',
@@ -48,6 +50,11 @@ function readInitialSteps() {
   return readTodayStats().steps;
 }
 
+function readInitialProtein() {
+  const direct = Number(localStorage.getItem(PROTEIN_KEY));
+  return Number.isFinite(direct) && direct > 0 ? direct : 0;
+}
+
 function saveTodayStats(nextStats) {
   const payload = {
     date: todayString(),
@@ -60,7 +67,7 @@ function saveTodayStats(nextStats) {
   }
 }
 
-function StepsCard({
+function MetricCard({
   label,
   unit,
   cardKey,
@@ -76,11 +83,12 @@ function StepsCard({
   onInputCancel,
   onInputBlur,
   locked,
+  priority = false,
 }) {
   const progress = Math.max(0, Math.min(100, target > 0 ? (value / target) * 100 : 0));
 
   return (
-    <section className={[styles.card, feedback ? styles.cardSaved : '', locked ? styles.cardLocked : ''].join(' ')} aria-label={label}>
+    <section className={[styles.card, feedback ? styles.cardSaved : '', locked ? styles.cardLocked : '', priority ? styles.cardPriority : ''].join(' ')} aria-label={label}>
       <button type="button" className={styles.addButton} onClick={onEditStart} aria-label={`Lägg till ${label.toLowerCase()}`} disabled={locked}>
         <Plus size={16} strokeWidth={1.5} />
       </button>
@@ -215,6 +223,7 @@ function CaloriesCard({
 
 export default function QuickStats({ profile = {}, eaten, burned, setEaten, locked = false }) {
   const [steps, setSteps] = useState(() => readInitialSteps());
+  const [protein, setProtein] = useState(() => readInitialProtein());
   const [editMode, setEditMode] = useState({ calories: false, steps: false });
   const [inputValue, setInputValue] = useState('');
   const [feedback, setFeedback] = useState({ calories: '', steps: '' });
@@ -225,6 +234,7 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
   useEffect(() => {
     function syncStats() {
       setSteps(readInitialSteps());
+      setProtein(readInitialProtein());
     }
 
     window.addEventListener('storage', syncStats);
@@ -251,8 +261,14 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
   }, [editMode]);
 
   const derivedTargets = calcTargets(profile);
+  const tone = getGoalTone(profile);
   const kcalGoal = profile.caloriesGoal ?? derivedTargets.kcalGoal;
   const stepGoal = STEP_GOALS[profile.activity] || STEP_GOALS.light;
+  const isProteinPriority = tone.stats.priority === 'protein';
+  const secondaryValue = isProteinPriority ? protein : steps;
+  const secondaryTarget = isProteinPriority ? tone.proteinGoal : stepGoal;
+  const secondaryLabel = tone.stats.secondaryLabel;
+  const secondaryUnit = tone.stats.secondaryUnit;
 
   function triggerFeedback(key, amount, unit) {
     setFeedback((current) => ({ ...current, [key]: `+${amount} ${unit}` }));
@@ -341,6 +357,38 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
     closeEditor('steps');
   }
 
+  function handleSaveProtein() {
+    if (locked) {
+      closeEditor('steps');
+      return;
+    }
+    if (skipBlurSaveRef.current) {
+      skipBlurSaveRef.current = false;
+      closeEditor('steps');
+      return;
+    }
+
+    if (inputValue.trim() === '' || Number.isNaN(Number(inputValue))) {
+      closeEditor('steps');
+      return;
+    }
+
+    const increment = parseInt(inputValue, 10);
+    if (!Number.isFinite(increment) || increment <= 0) {
+      closeEditor('steps');
+      return;
+    }
+
+    setProtein((prev) => {
+      const nextProtein = prev + increment;
+      localStorage.setItem(PROTEIN_KEY, String(nextProtein));
+      return nextProtein;
+    });
+
+    triggerFeedback('steps', increment, 'g');
+    closeEditor('steps');
+  }
+
   return (
     <div className={styles.grid}>
       <CaloriesCard
@@ -365,12 +413,12 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
         onInputBlur={handleSaveCalories}
         locked={locked}
       />
-      <StepsCard
+      <MetricCard
         cardKey="steps"
-        label="Steg idag"
-        unit="STEG"
-        value={steps}
-        target={stepGoal}
+        label={secondaryLabel}
+        unit={secondaryUnit}
+        value={secondaryValue}
+        target={secondaryTarget}
         isEditing={editMode.steps}
         inputValue={inputValue}
         feedback={feedback.steps}
@@ -381,13 +429,14 @@ export default function QuickStats({ profile = {}, eaten, burned, setEaten, lock
           setInputValue('');
         }}
         onInputChange={setInputValue}
-        onInputSubmit={handleSaveSteps}
+        onInputSubmit={isProteinPriority ? handleSaveProtein : handleSaveSteps}
         onInputCancel={() => {
           skipBlurSaveRef.current = true;
           closeEditor('steps');
         }}
-        onInputBlur={handleSaveSteps}
+        onInputBlur={isProteinPriority ? handleSaveProtein : handleSaveSteps}
         locked={locked}
+        priority={isProteinPriority}
       />
     </div>
   );

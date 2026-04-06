@@ -38,6 +38,17 @@
     0 0 24px rgba(199, 221, 207, 0.08);
 }
 
+.cardPriority {
+  border-color: rgba(199, 221, 207, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(199, 221, 207, 0.08), transparent 42%),
+    rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 16px 38px rgba(0, 0, 0, 0.16),
+    0 0 0 1px rgba(199, 221, 207, 0.05),
+    0 0 26px rgba(199, 221, 207, 0.05);
+}
+
 .cardLocked {
   opacity: 0.58;
   border-color: rgba(255, 255, 255, 0.06);
