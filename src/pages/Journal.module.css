@@ -1,0 +1,194 @@
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 1rem 1rem calc(5rem + env(safe-area-inset-bottom, 0.75rem));
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.hero,
+.emptyCard,
+.card {
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
+}
+
+.hero {
+  padding: 1.5rem;
+}
+
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.title {
+  margin-top: 0.45rem;
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  color: #ffffff;
+}
+
+.subtitle {
+  margin-top: 0.8rem;
+  max-width: 34ch;
+  font-size: 0.94rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.56);
+}
+
+.emptyCard {
+  padding: 1.4rem;
+}
+
+.emptyTitle {
+  font-size: 1.05rem;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.emptyBody {
+  margin-top: 0.65rem;
+  max-width: 34ch;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.56);
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 58px 18px minmax(0, 1fr);
+  gap: 0.85rem;
+  align-items: stretch;
+}
+
+.dateCol {
+  padding-top: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  align-items: flex-end;
+}
+
+.day,
+.date {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.lineCol {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.dot {
+  position: absolute;
+  top: 1.2rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  z-index: 1;
+}
+
+.dotStrong {
+  background: rgba(52, 211, 153, 0.95);
+  box-shadow: 0 0 0 6px rgba(52, 211, 153, 0.08);
+}
+
+.dotSteady {
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.06);
+}
+
+.dotWarning {
+  background: rgba(245, 158, 11, 0.95);
+  box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.08);
+}
+
+.dotMuted {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.line {
+  width: 1px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.card {
+  padding: 1.15rem 1.2rem 1.1rem;
+}
+
+.cardTitle {
+  font-size: 1rem;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+}
+
+.cardSummary {
+  margin-top: 0.45rem;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.64);
+}
+
+.metaRow {
+  margin-top: 0.85rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.95rem;
+  padding: 0.42rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.74rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+@media (max-width: 680px) {
+  .row {
+    grid-template-columns: 46px 16px minmax(0, 1fr);
+    gap: 0.7rem;
+  }
+
+  .dateCol {
+    padding-top: 0.7rem;
+  }
+
+  .hero,
+  .emptyCard,
+  .card {
+    border-radius: 1.25rem;
+  }
+}

@@ -55,6 +55,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   const [sleepHours, setSleepHours] = useState(String(sleepHoursToday || 8));
   const [activeWorkoutKey, setActiveWorkoutKey] = useState(null);
   const [duration, setDuration] = useState(30);
+  const [comment, setComment] = useState('');
   const [savedAt, setSavedAt] = useState(() => formatSavedTime(state.daily.savedAt));
   const caloriesInputRef = useRef(null);
   const sleepInputRef = useRef(null);
@@ -122,6 +123,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     setSleepHours(String(todayCheckin?.sleepHours ?? sleepHoursToday ?? 8));
     setActiveWorkoutKey(todayCheckin?.workoutKey ?? null);
     setDuration(Number(todayCheckin?.duration) || 30);
+    setComment(todayCheckin?.comment ?? '');
     setShowActionPicker(true);
   }
 
@@ -143,6 +145,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
       duration,
       burned: workoutBurn,
       sleepHours: parsedSleep,
+      comment: comment.trim(),
     };
 
     setIsCompleting(true);
@@ -206,6 +209,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     setSleepHours(String(todayCheckin?.sleepHours ?? sleepHoursToday ?? 8));
     setActiveWorkoutKey(todayCheckin?.workoutKey ?? null);
     setDuration(Number(todayCheckin?.duration) || 30);
+    setComment(todayCheckin?.comment ?? '');
     setShowActionPicker(true);
   }
 
@@ -331,6 +335,18 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
               />
             </label>
             </div>
+
+            <label className={styles.focusField}>
+              <span className={styles.focusFieldLabel}>Kommentar</span>
+              <input
+                type="text"
+                className={styles.focusInput}
+                value={comment}
+                onChange={(event) => setComment(event.target.value)}
+                placeholder="Valfritt"
+                maxLength={90}
+              />
+            </label>
 
             <div
               ref={workoutSectionRef}

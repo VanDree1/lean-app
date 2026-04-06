@@ -31,6 +31,22 @@ function RecipesIcon({ active }) {
   );
 }
 
+function JournalIcon({ active }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M7 4h10a2 2 0 0 1 2 2v14H7a2 2 0 0 0-2 2V6a2 2 0 0 1 2-2z"
+        stroke="currentColor"
+        strokeWidth={active ? 2.2 : 1.6}
+        strokeLinejoin="round"
+        fill={active ? 'currentColor' : 'none'}
+        fillOpacity={active ? 0.12 : 0}
+      />
+      <path d="M9 8h6M9 12h6M9 16h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function ProfileIcon({ active }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -76,6 +92,18 @@ export default function BottomNav({ active, onChange }) {
           {active === 'recept' && <span className={styles.activePip} aria-hidden="true" />}
         </div>
         <span className={styles.label}>Recept</span>
+      </button>
+
+      <button
+        className={`${styles.tab} ${active === 'journal' ? styles.tabActive : ''}`}
+        onClick={() => onChange('journal')}
+        aria-current={active === 'journal' ? 'page' : undefined}
+      >
+        <div className={styles.iconWrap}>
+          <JournalIcon active={active === 'journal'} />
+          {active === 'journal' && <span className={styles.activePip} aria-hidden="true" />}
+        </div>
+        <span className={styles.label}>Journal</span>
       </button>
 
       <button

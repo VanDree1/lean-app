@@ -244,6 +244,7 @@ function reducer(state, action) {
                 workoutKey: action.payload.checkin?.workoutKey || '',
                 workoutName: action.payload.checkin?.workoutName || '',
                 duration: Number(action.payload.checkin?.duration) || 0,
+                comment: action.payload.checkin?.comment || '',
               },
             },
           },
