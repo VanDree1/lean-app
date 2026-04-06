@@ -19,6 +19,7 @@ const STREAK_KEY = 'djur_juni_streak';
 const WORKOUTS_WEEK_KEY = 'djur_juni_week';
 const WORKOUTS_WEEK_STAMP_KEY = 'djur_juni_week_stamp';
 const CALORIES_KEY = 'djur_juni_cal';
+const BURNED_KEY = 'djur_juni_burned';
 const TODAY_STATS_KEYS = [
   'djur-i-juni:today-stats',
   'djur-i-juni:daily-summary',
@@ -49,38 +50,12 @@ function getCurrentWeekStamp() {
   return monday.toISOString().slice(0, 10);
 }
 
-function todayStatsDate() {
-  return new Date().toISOString().slice(0, 10);
-}
-
 function saveWorkoutCalories(estimatedCalories) {
-  const currentCalories = parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0;
-  const nextCalories = currentCalories + estimatedCalories;
-  localStorage.setItem(CALORIES_KEY, String(nextCalories));
-
-  const payload = {
-    date: todayStatsDate(),
-    calories: nextCalories,
-    steps: 0,
-  };
-
-  try {
-    for (const key of TODAY_STATS_KEYS) {
-      const parsed = JSON.parse(localStorage.getItem(key) || 'null');
-      if (parsed && parsed.date === payload.date) {
-        payload.steps = Number(parsed.steps) || 0;
-        break;
-      }
-    }
-  } catch {
-    payload.steps = 0;
-  }
-
-  for (const key of TODAY_STATS_KEYS) {
-    localStorage.setItem(key, JSON.stringify(payload));
-  }
-
+  const currentBurned = parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0;
+  const nextBurned = currentBurned + estimatedCalories;
+  localStorage.setItem(BURNED_KEY, String(nextBurned));
   window.dispatchEvent(new Event('djur-i-juni:today-stats-updated'));
+  return nextBurned;
 }
 
 const HEALTH_TOPICS_BY_GOAL = {
@@ -390,7 +365,7 @@ function DailyFocusCard() {
   );
 }
 
-function WorkoutCard({ profile }) {
+function WorkoutCard({ profile, setBurned }) {
   const weight = Number(profile.weight ?? profile.currentWeight ?? profile.startWeight) || 100;
   const [activeWorkout, setActiveWorkout] = useState(null);
   const [duration, setDuration] = useState(30);
@@ -414,7 +389,8 @@ function WorkoutCard({ profile }) {
   function handleSaveWorkout() {
     if (!activeWorkout) return;
 
-    saveWorkoutCalories(estimatedCalories);
+    const nextBurned = saveWorkoutCalories(estimatedCalories);
+    setBurned(nextBurned);
     const dayIndex = (() => {
       const nativeDay = new Date().getDay();
       return nativeDay === 0 ? 6 : nativeDay - 1;
@@ -658,6 +634,25 @@ function CoachTipCard({ profile }) {
 
 export default function Home({ profile }) {
   const [modal, setModal] = useState(null);
+  const [eaten, setEaten] = useState(() => parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
+  const [burned, setBurned] = useState(() => parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0);
+
+  useEffect(() => {
+    function syncCalories() {
+      setEaten(parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
+      setBurned(parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0);
+    }
+
+    window.addEventListener('storage', syncCalories);
+    window.addEventListener('focus', syncCalories);
+    window.addEventListener('djur-i-juni:today-stats-updated', syncCalories);
+
+    return () => {
+      window.removeEventListener('storage', syncCalories);
+      window.removeEventListener('focus', syncCalories);
+      window.removeEventListener('djur-i-juni:today-stats-updated', syncCalories);
+    };
+  }, []);
 
   return (
     <main className={styles.main}>
@@ -668,8 +663,8 @@ export default function Home({ profile }) {
           <StreakBanner />
           <WeightJourney profile={profile} onOpen={() => setModal('weight')} />
         </div>
-        <QuickStats profile={profile} />
-        <WorkoutCard profile={profile} />
+        <QuickStats profile={profile} eaten={eaten} burned={burned} setEaten={setEaten} />
+        <WorkoutCard profile={profile} setBurned={setBurned} />
         <CoachTipCard profile={profile} />
       </div>
 

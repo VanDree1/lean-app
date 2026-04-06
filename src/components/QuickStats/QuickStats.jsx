@@ -42,12 +42,6 @@ function readTodayStats() {
   return { calories: 0, steps: 0 };
 }
 
-function readInitialCalories() {
-  const direct = Number(localStorage.getItem(CALORIES_KEY));
-  if (Number.isFinite(direct) && direct > 0) return direct;
-  return readTodayStats().calories;
-}
-
 function readInitialSteps() {
   const direct = Number(localStorage.getItem(STEPS_KEY));
   if (Number.isFinite(direct) && direct > 0) return direct;
@@ -66,7 +60,7 @@ function saveTodayStats(nextStats) {
   }
 }
 
-function TodayCard({
+function StepsCard({
   label,
   unit,
   cardKey,
@@ -140,8 +134,84 @@ function TodayCard({
   );
 }
 
-export default function QuickStats({ profile = {} }) {
-  const [calories, setCalories] = useState(() => readInitialCalories());
+function CaloriesCard({
+  goal,
+  eaten,
+  burned,
+  isEditing,
+  inputValue,
+  feedback,
+  inputRef,
+  onEditStart,
+  onInputChange,
+  onInputSubmit,
+  onInputCancel,
+  onInputBlur,
+}) {
+  const remaining = goal - eaten + burned;
+  const netEaten = eaten - burned;
+  const progress = Math.max(0, Math.min(100, goal > 0 ? (netEaten / goal) * 100 : 0));
+
+  return (
+    <section className={[styles.card, feedback ? styles.cardSaved : ''].join(' ')} aria-label="Kalorier">
+      <button type="button" className={styles.addButton} onClick={onEditStart} aria-label="Lägg till kalorier">
+        <Plus size={16} strokeWidth={1.5} />
+      </button>
+
+      <span className={styles.label}>Kalorier</span>
+
+      <div className={styles.valueRow}>
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            className={styles.inlineInput}
+            type="number"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={inputValue}
+            onChange={(event) => onInputChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                onInputCancel();
+                return;
+              }
+              if (event.key === 'Enter') {
+                onInputSubmit();
+              }
+            }}
+            onBlur={onInputBlur}
+            aria-label="Kalorier input"
+          />
+        ) : (
+          <>
+            <span className={[styles.value, remaining <= 0 ? styles.valueEmpty : ''].join(' ')}>
+              <AnimatedNumber value={remaining} duration={800} />
+            </span>
+            <span className={styles.unit}>KCAL KVAR</span>
+          </>
+        )}
+      </div>
+
+      <div className={styles.track}>
+        <div className={styles.fill} style={{ width: `${progress}%` }} />
+      </div>
+
+      <div className={styles.calorieMetaRow}>
+        <span className={styles.meta}>Mål: {goal.toLocaleString('sv-SE')}</span>
+        <span className={styles.meta}>Ätit: -{eaten.toLocaleString('sv-SE')}</span>
+        <span className={styles.meta}>Tränat: +{burned.toLocaleString('sv-SE')}</span>
+      </div>
+
+      <div className={styles.footerRow}>
+        <span className={[styles.feedback, feedback ? styles.feedbackVisible : ''].join(' ')}>
+          {feedback || ''}
+        </span>
+      </div>
+    </section>
+  );
+}
+
+export default function QuickStats({ profile = {}, eaten, burned, setEaten }) {
   const [steps, setSteps] = useState(() => readInitialSteps());
   const [editMode, setEditMode] = useState({ calories: false, steps: false });
   const [inputValue, setInputValue] = useState('');
@@ -152,7 +222,6 @@ export default function QuickStats({ profile = {} }) {
 
   useEffect(() => {
     function syncStats() {
-      setCalories(readInitialCalories());
       setSteps(readInitialSteps());
     }
 
@@ -222,7 +291,7 @@ export default function QuickStats({ profile = {} }) {
       return;
     }
 
-    setCalories((prev) => {
+    setEaten((prev) => {
       const nextCalories = prev + increment;
       localStorage.setItem(CALORIES_KEY, String(nextCalories));
       saveTodayStats({ calories: nextCalories, steps });
@@ -254,7 +323,7 @@ export default function QuickStats({ profile = {} }) {
     setSteps((prev) => {
       const nextSteps = prev + increment;
       localStorage.setItem(STEPS_KEY, String(nextSteps));
-      saveTodayStats({ calories, steps: nextSteps });
+      saveTodayStats({ calories: eaten, steps: nextSteps });
       return nextSteps;
     });
 
@@ -264,12 +333,10 @@ export default function QuickStats({ profile = {} }) {
 
   return (
     <div className={styles.grid}>
-      <TodayCard
-        cardKey="calories"
-        label="Kalorier"
-        unit="KCAL"
-        value={calories}
-        target={kcalGoal}
+      <CaloriesCard
+        goal={kcalGoal}
+        eaten={eaten}
+        burned={burned}
         isEditing={editMode.calories}
         inputValue={inputValue}
         feedback={feedback.calories}
@@ -286,7 +353,7 @@ export default function QuickStats({ profile = {} }) {
         }}
         onInputBlur={handleSaveCalories}
       />
-      <TodayCard
+      <StepsCard
         cardKey="steps"
         label="Steg"
         unit="STEG"
