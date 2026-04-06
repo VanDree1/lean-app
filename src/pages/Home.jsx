@@ -91,6 +91,8 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   const [activeWorkoutKey, setActiveWorkoutKey] = useState(null);
   const [duration, setDuration] = useState(30);
   const caloriesInputRef = useRef(null);
+  const sleepInputRef = useRef(null);
+  const workoutSectionRef = useRef(null);
   const todayString = new Date().toDateString();
   const todayCheckin = (() => {
     try {
@@ -180,11 +182,28 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     window.setTimeout(() => setIsCompleting(false), 850);
   }
 
-  function handleFormKeyDown(event) {
+  function handleFormKeyDown(event, field) {
     if (event.key !== 'Enter') return;
     if (event.shiftKey) return;
-    if (!canSave) return;
     event.preventDefault();
+
+    if (field === 'calories') {
+      sleepInputRef.current?.focus();
+      sleepInputRef.current?.select?.();
+      return;
+    }
+
+    if (field === 'sleep') {
+      if (!activeWorkoutKey) {
+        if (canSave) completeCheckIn();
+        return;
+      }
+
+      workoutSectionRef.current?.focus();
+      return;
+    }
+
+    if (!canSave) return;
     completeCheckIn();
   }
 
@@ -289,7 +308,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 className={styles.focusInput}
                 value={caloriesInput}
                 onChange={(event) => setCaloriesInput(event.target.value)}
-                onKeyDown={handleFormKeyDown}
+                onKeyDown={(event) => handleFormKeyDown(event, 'calories')}
                 placeholder="Till exempel 1850"
                 min="0"
               />
@@ -303,16 +322,22 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 step="0.5"
                 min="0"
                 max="24"
+                ref={sleepInputRef}
                 className={styles.focusInput}
                 value={sleepHours}
                 onChange={(event) => setSleepHours(event.target.value)}
-                onKeyDown={handleFormKeyDown}
+                onKeyDown={(event) => handleFormKeyDown(event, 'sleep')}
                 placeholder="Till exempel 8"
               />
             </label>
             </div>
 
-            <div className={[styles.focusField, !activeWorkout ? styles.focusFieldMuted : ''].join(' ')}>
+            <div
+              ref={workoutSectionRef}
+              tabIndex={activeWorkout ? 0 : -1}
+              className={[styles.focusField, !activeWorkout ? styles.focusFieldMuted : ''].join(' ')}
+              onKeyDown={(event) => handleFormKeyDown(event, 'workout')}
+            >
               <div className={styles.focusFieldHeader}>
                 <span className={styles.focusFieldLabel}>Dagens träning</span>
                 {activeWorkout ? <span className={styles.focusFieldHint}>+{estimatedCalories} kcal</span> : null}
