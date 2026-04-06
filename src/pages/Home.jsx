@@ -675,6 +675,25 @@ function WeekRhythmCard({ dailyEntries }) {
 
 function SevenDayAverageCard({ dailyEntries, weightLog }) {
   const averages = getSevenDayAverages(dailyEntries, weightLog);
+  const daysLeft = Math.max(0, 7 - averages.days);
+  const unlockProgress = Math.max(0, Math.min(100, (averages.days / 7) * 100));
+
+  if (averages.days < 7) {
+    return (
+      <section className={styles.trendCard} aria-label="7-dagars snitt låst">
+        <p className={styles.sectionEyebrow}>7-dagars snitt</p>
+        <div className={styles.unlockState}>
+          <p className={styles.unlockTitle}>
+            Logga {daysLeft} dagar till för att låsa upp din trend
+          </p>
+          <div className={styles.unlockTrack} aria-hidden="true">
+            <div className={styles.unlockFill} style={{ width: `${unlockProgress}%` }} />
+          </div>
+          <p className={styles.trendMeta}>{averages.days} av 7 dagar</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className={styles.trendCard} aria-label="7-dagars snitt">

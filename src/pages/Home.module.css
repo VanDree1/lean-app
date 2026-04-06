@@ -919,6 +919,33 @@
   text-transform: uppercase;
 }
 
+.unlockState {
+  margin-top: 1rem;
+}
+
+.unlockTitle {
+  max-width: 20ch;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.72);
+  text-wrap: balance;
+}
+
+.unlockTrack {
+  margin-top: 1rem;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+.unlockFill {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(52, 211, 153, 0.92);
+  transition: width 0.45s ease;
+}
+
 .trendMeta {
   margin-top: 1rem;
   font-size: 0.72rem;
