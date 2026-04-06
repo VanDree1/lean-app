@@ -16,8 +16,12 @@ const HEALTH_FACT_TTL_MS = 1000 * 60 * 60 * 12;
 const LAST_LOGGED_DATE_KEY = 'djur_juni_last_logged';
 const LAST_LOGGED_ACTION_KEY = 'djur_juni_last_action';
 const STREAK_KEY = 'djur_juni_streak';
-const WORKOUTS_KEY = 'djur_juni_workouts';
-const WORKOUTS_DATE_KEY = 'djur_juni_workouts_date';
+const WORKOUTS_WEEK_KEY = 'djur_juni_week';
+const CALORIES_KEY = 'djur_juni_cal';
+const TODAY_STATS_KEYS = [
+  'djur-i-juni:today-stats',
+  'djur-i-juni:daily-summary',
+];
 const WEIGHT_TREND = [103.2, 102.5, 102.1, 101.8, 101.0, 100.5, 100.0];
 const DAILY_ACTIONS = [
   { value: 'weight', label: 'Jag vägde mig', desc: 'Dagens vikt är registrerad' },
@@ -25,13 +29,48 @@ const DAILY_ACTIONS = [
   { value: 'training', label: 'Jag tränade', desc: 'Passet eller rörelsen är gjort' },
   { value: 'routine', label: 'Jag höll rutinen', desc: 'Jag gjorde det viktigaste idag' },
 ];
-const WORKOUT_OPTIONS = [
-  { value: 'gym', label: 'Gym', Icon: Dumbbell },
-  { value: 'running', label: 'Löpning', Icon: Footprints },
-  { value: 'yoga', label: 'Yoga', Icon: Flower2 },
-  { value: 'cycling', label: 'Cykling', Icon: Bike },
-  { value: 'other', label: 'Annat', Icon: Activity },
-];
+const WORKOUTS = {
+  gym: { name: 'Gym', met: 6.0, Icon: Dumbbell },
+  run: { name: 'Löpning', met: 9.8, Icon: Footprints },
+  yoga: { name: 'Yoga', met: 3.0, Icon: Flower2 },
+  cycle: { name: 'Cykling', met: 7.5, Icon: Bike },
+  other: { name: 'Annat', met: 5.0, Icon: Activity },
+};
+const WEEKDAY_LABELS = ['M', 'T', 'O', 'T', 'F', 'L', 'S'];
+
+function todayStatsDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function saveWorkoutCalories(estimatedCalories) {
+  const currentCalories = parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0;
+  const nextCalories = currentCalories + estimatedCalories;
+  localStorage.setItem(CALORIES_KEY, String(nextCalories));
+
+  const payload = {
+    date: todayStatsDate(),
+    calories: nextCalories,
+    steps: 0,
+  };
+
+  try {
+    for (const key of TODAY_STATS_KEYS) {
+      const parsed = JSON.parse(localStorage.getItem(key) || 'null');
+      if (parsed && parsed.date === payload.date) {
+        payload.steps = Number(parsed.steps) || 0;
+        break;
+      }
+    }
+  } catch {
+    payload.steps = 0;
+  }
+
+  for (const key of TODAY_STATS_KEYS) {
+    localStorage.setItem(key, JSON.stringify(payload));
+  }
+
+  window.dispatchEvent(new Event('djur-i-juni:today-stats-updated'));
+}
 
 const HEALTH_TOPICS_BY_GOAL = {
   fat_loss: [
@@ -340,34 +379,42 @@ function DailyFocusCard() {
   );
 }
 
-function WorkoutCard() {
-  const todayString = new Date().toDateString();
-  const [selectedWorkouts, setSelectedWorkouts] = useState(() => {
+function WorkoutCard({ profile }) {
+  const weight = Number(profile.weight ?? profile.currentWeight ?? profile.startWeight) || 100;
+  const [activeWorkout, setActiveWorkout] = useState(null);
+  const [duration, setDuration] = useState(30);
+  const [weekHistory, setWeekHistory] = useState(() => {
     try {
-      const storedDate = localStorage.getItem(WORKOUTS_DATE_KEY);
-      if (storedDate !== todayString) return [];
-      return JSON.parse(localStorage.getItem(WORKOUTS_KEY) || '[]');
+      return JSON.parse(localStorage.getItem(WORKOUTS_WEEK_KEY)) || [false, false, false, false, false, false, false];
     } catch {
-      return [];
+      return [false, false, false, false, false, false, false];
     }
   });
-  const [feedback, setFeedback] = useState(() => (selectedWorkouts.length > 0 ? 'Grym insats! +300 kcal uppskattat.' : ''));
+  const [feedback, setFeedback] = useState('');
+  const estimatedCalories = activeWorkout
+    ? Math.round(activeWorkout.met * weight * (duration / 60))
+    : 0;
 
-  function toggleWorkout(workout) {
-    setSelectedWorkouts((prev) => {
-      const alreadySelected = prev.includes(workout);
-      const next = alreadySelected ? prev.filter((item) => item !== workout) : [...prev, workout];
-      localStorage.setItem(WORKOUTS_KEY, JSON.stringify(next));
-      localStorage.setItem(WORKOUTS_DATE_KEY, todayString);
+  function handleSaveWorkout() {
+    if (!activeWorkout) return;
 
-      if (!alreadySelected && prev.length === 0) {
-        setFeedback('Grym insats! +300 kcal uppskattat.');
-      } else if (next.length === 0) {
-        setFeedback('');
-      }
+    saveWorkoutCalories(estimatedCalories);
+    const dayIndex = (() => {
+      const nativeDay = new Date().getDay();
+      return nativeDay === 0 ? 6 : nativeDay - 1;
+    })();
 
+    setWeekHistory((prev) => {
+      const next = [...prev];
+      const firstWorkoutToday = !next[dayIndex];
+      next[dayIndex] = true;
+      localStorage.setItem(WORKOUTS_WEEK_KEY, JSON.stringify(next));
+      setFeedback(firstWorkoutToday ? `Grym insats! +${estimatedCalories} kcal uppskattat.` : `Uppdaterat: +${estimatedCalories} kcal.`);
       return next;
     });
+
+    setActiveWorkout(null);
+    setDuration(30);
   }
 
   return (
@@ -376,25 +423,60 @@ function WorkoutCard() {
         <p id="workout-title" className={styles.sectionEyebrow}>Dagens träning</p>
       </div>
       <div className={styles.workoutGrid}>
-        {WORKOUT_OPTIONS.map((option) => {
-          const active = selectedWorkouts.includes(option.value);
+        {Object.entries(WORKOUTS).map(([key, workout]) => {
+          const active = activeWorkout?.key === key;
           return (
             <button
-              key={option.value}
+              key={key}
               type="button"
               className={[styles.workoutOption, active ? styles.workoutOptionActive : ''].join(' ')}
-              onClick={() => toggleWorkout(option.value)}
+              onClick={() => setActiveWorkout({ key, ...workout })}
               aria-pressed={active}
-              aria-label={option.label}
+              aria-label={workout.name}
             >
-              <option.Icon size={24} strokeWidth={1.5} />
-              <span className={styles.workoutLabel}>{option.label}</span>
+              <workout.Icon size={24} strokeWidth={1.5} />
+              <span className={styles.workoutLabel}>{workout.name}</span>
             </button>
           );
         })}
       </div>
+
+      {activeWorkout && (
+        <div className={styles.workoutDetail}>
+          <div className={styles.workoutDetailHeader}>
+            <span className={styles.workoutDetailName}>{activeWorkout.name}</span>
+            <span className={styles.workoutDuration}>{duration} min</span>
+          </div>
+          <input
+            className={styles.workoutSlider}
+            type="range"
+            min="10"
+            max="120"
+            step="5"
+            value={duration}
+            onChange={(event) => setDuration(Number(event.target.value))}
+            aria-label="Träningslängd i minuter"
+          />
+          <div className={styles.workoutEstimateRow}>
+            <p className={styles.workoutEstimate}>Uppskattning: +{estimatedCalories} kcal</p>
+            <button type="button" className={styles.workoutLogButton} onClick={handleSaveWorkout}>
+              Logga
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className={styles.workoutWeek}>
+        {WEEKDAY_LABELS.map((label, index) => (
+          <div key={`${label}-${index}`} className={styles.workoutDay}>
+            <span className={[styles.workoutDot, weekHistory[index] ? styles.workoutDotActive : ''].join(' ')} />
+            <span className={styles.workoutDayLabel}>{label}</span>
+          </div>
+        ))}
+      </div>
+
       <p className={[styles.workoutFeedback, feedback ? styles.workoutFeedbackVisible : ''].join(' ')}>
-        {feedback || 'Välj det som blev gjort idag.'}
+        {feedback || 'Välj pass, justera tid och logga när det är gjort.'}
       </p>
     </section>
   );
@@ -555,7 +637,7 @@ export default function Home({ profile }) {
           <WeightJourney profile={profile} onOpen={() => setModal('weight')} />
         </div>
         <QuickStats profile={profile} />
-        <WorkoutCard />
+        <WorkoutCard profile={profile} />
         <CoachTipCard profile={profile} />
       </div>
 

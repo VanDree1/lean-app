@@ -158,10 +158,12 @@ export default function QuickStats({ profile = {} }) {
 
     window.addEventListener('storage', syncStats);
     window.addEventListener('focus', syncStats);
+    window.addEventListener('djur-i-juni:today-stats-updated', syncStats);
 
     return () => {
       window.removeEventListener('storage', syncStats);
       window.removeEventListener('focus', syncStats);
+      window.removeEventListener('djur-i-juni:today-stats-updated', syncStats);
     };
   }, []);
 
