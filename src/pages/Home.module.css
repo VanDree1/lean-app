@@ -850,6 +850,92 @@
   padding: 1.35rem 1.4rem;
 }
 
+.sleepTopRow {
+  margin-top: 0.9rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sleepValueWrap {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.sleepValue {
+  font-size: clamp(2rem, 5vw, 2.55rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #ffffff;
+}
+
+.sleepUnit {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.42);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.sleepBadge {
+  padding: 0.45rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.56);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.sleepBadgeWarning {
+  border-color: rgba(199, 221, 207, 0.16);
+  background: rgba(199, 221, 207, 0.08);
+  color: rgba(199, 221, 207, 0.92);
+}
+
+.sleepSlider {
+  width: 100%;
+  margin-top: 1rem;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  outline: none;
+}
+
+.sleepSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #ffffff;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.04);
+}
+
+.sleepSlider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: #ffffff;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.04);
+}
+
+.sleepScale {
+  margin-top: 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.38);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .contextHeader {
   display: flex;
   align-items: center;
@@ -916,6 +1002,16 @@
   border-color: rgba(199, 221, 207, 0.24);
   background: rgba(199, 221, 207, 0.1);
   box-shadow: 0 0 0 1px rgba(199, 221, 207, 0.06);
+}
+
+.workoutOptionRecovery {
+  border-color: rgba(199, 221, 207, 0.18);
+  background: rgba(199, 221, 207, 0.07);
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.workoutOptionDim {
+  opacity: 0.46;
 }
 
 .workoutLabel {

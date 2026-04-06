@@ -32,7 +32,7 @@ function isFresh(cache) {
   return Boolean(cache && Date.now() - cache.fetchedAt < CACHE_TTL_MS);
 }
 
-export default function MotivationTip({ profile = {} }) {
+export default function MotivationTip({ profile = {}, lowEnergyMode = false, recoveryTone = null }) {
   const { loggedToday } = useStreak();
   const tone = useGoalTone(profile);
   const goal = tone.goal || 'fat_loss';
@@ -91,8 +91,8 @@ export default function MotivationTip({ profile = {} }) {
     return () => controller.abort();
   }, [goal, fallbackQuote]);
 
-  const statusText = loggedToday ? 'Klar' : tone.quote.status;
-  const quoteLead = mode === 'ground' ? 'Behåll rytmen.' : tone.quote.lead;
+  const statusText = loggedToday ? 'Klar' : lowEnergyMode && recoveryTone ? recoveryTone.quoteStatus : tone.quote.status;
+  const quoteLead = lowEnergyMode && recoveryTone ? recoveryTone.quoteLead : mode === 'ground' ? 'Behåll rytmen.' : tone.quote.lead;
 
   return (
     <section className={styles.card} aria-label="Dagens citat">

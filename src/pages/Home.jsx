@@ -15,6 +15,7 @@ const DAILY_CHECKIN_KEY = 'djur_juni_daily_checkin';
 const CALORIES_KEY = 'djur_juni_cal';
 const BURNED_KEY = 'djur_juni_burned';
 const DAILY_SAVED_AT_KEY = 'djur_juni_daily_saved_at';
+const SLEEP_KEY = 'djur_juni_sleep_hours';
 const TODAY_STATS_KEYS = [
   'djur-i-juni:today-stats',
   'djur-i-juni:daily-summary',
@@ -96,14 +97,29 @@ function formatSavedTime(value) {
   });
 }
 
-function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, setLocked, tone }) {
+function readTodaySleepHours() {
+  try {
+    const checkin = JSON.parse(localStorage.getItem(DAILY_CHECKIN_KEY) || 'null');
+    if (isSameDayAsToday(checkin?.date) && Number(checkin?.sleepHours) > 0) {
+      return Number(checkin.sleepHours);
+    }
+  } catch {
+    // ignore
+  }
+
+  const stored = Number(localStorage.getItem(SLEEP_KEY));
+  if (Number.isFinite(stored) && stored > 0) return stored;
+  return 8;
+}
+
+function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, locked, setLocked, tone, sleepHoursToday, setSleepHoursToday, lowEnergyMode }) {
   const weight = Number(latestWeight) || 100;
   const [isCompleting, setIsCompleting] = useState(false);
   const [showSavedState, setShowSavedState] = useState(false);
   const [showActionPicker, setShowActionPicker] = useState(false);
   const [isEditingToday, setIsEditingToday] = useState(false);
   const [caloriesInput, setCaloriesInput] = useState('');
-  const [sleepHours, setSleepHours] = useState('8');
+  const [sleepHours, setSleepHours] = useState(String(sleepHoursToday || 8));
   const [activeWorkoutKey, setActiveWorkoutKey] = useState(null);
   const [duration, setDuration] = useState(30);
   const [savedAt, setSavedAt] = useState(() => formatSavedTime(localStorage.getItem(DAILY_SAVED_AT_KEY)));
@@ -156,7 +172,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
   function handleCheckIn() {
     setIsEditingToday(false);
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
-    setSleepHours(String(todayCheckin?.sleepHours ?? 8));
+    setSleepHours(String(todayCheckin?.sleepHours ?? sleepHoursToday ?? 8));
     setActiveWorkoutKey(todayCheckin?.workoutKey ?? null);
     setDuration(Number(todayCheckin?.duration) || 30);
     setShowActionPicker(true);
@@ -185,12 +201,14 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     setIsCompleting(true);
     setEaten(parsedCalories);
     setBurned(nextBurnedTotal);
+    setSleepHoursToday(parsedSleep);
     saveTodayCalories(parsedCalories);
     saveBurnedCalories(nextBurnedTotal);
     localStorage.setItem(DAILY_CHECKIN_KEY, JSON.stringify(nextCheckin));
     localStorage.setItem(LAST_LOGGED_DATE_KEY, todayString);
     localStorage.setItem(STREAK_KEY, String(nextStreak));
     localStorage.setItem(DAILY_SAVED_AT_KEY, new Date().toISOString());
+    localStorage.setItem(SLEEP_KEY, String(parsedSleep));
     setSavedAt(formatSavedTime(new Date().toISOString()));
     setShowSavedState(true);
 
@@ -237,7 +255,7 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
     setLocked(false);
     localStorage.removeItem(LAST_LOGGED_DATE_KEY);
     setCaloriesInput(String(todayCheckin?.calories ?? eaten ?? 0));
-    setSleepHours(String(todayCheckin?.sleepHours ?? 8));
+    setSleepHours(String(todayCheckin?.sleepHours ?? sleepHoursToday ?? 8));
     setActiveWorkoutKey(todayCheckin?.workoutKey ?? null);
     setDuration(Number(todayCheckin?.duration) || 30);
     setShowActionPicker(true);
@@ -297,8 +315,8 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
             <div className={styles.focusMain}>
               <p className={styles.sectionEyebrow}>Idag</p>
               <h2 id="today-title" className={styles.focusTitle}>Logga dagen</h2>
-              <p className={styles.focusBody}>{tone.daily.body}</p>
-              <p className={styles.focusMeta}>{tone.daily.meta}</p>
+              <p className={styles.focusBody}>{lowEnergyMode ? tone.recovery.dailyBody : tone.daily.body}</p>
+              <p className={styles.focusMeta}>{lowEnergyMode ? tone.recovery.dailyMeta : tone.daily.meta}</p>
             </div>
           </div>
 
@@ -376,21 +394,33 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
                 <span className={styles.focusFieldLabel}>{tone.daily.workoutLabel}</span>
                 {activeWorkout ? <span className={styles.focusFieldHint}>+{estimatedCalories} kcal</span> : null}
               </div>
-              {!activeWorkout ? <p className={styles.focusFieldCopy}>{tone.daily.workoutHint}</p> : null}
+              {!activeWorkout ? (
+                <p className={styles.focusFieldCopy}>
+                  {lowEnergyMode ? tone.recovery.dailyBody : tone.daily.workoutHint}
+                </p>
+              ) : null}
               <div className={styles.workoutGrid}>
                 {Object.entries(WORKOUTS).map(([key, workout]) => {
                   const active = activeWorkoutKey === key;
+                  const isRecoveryPick = key === 'yoga' || key === 'run';
+                  const isDimmedInRecovery = lowEnergyMode && key === 'gym';
+                  const workoutLabel = lowEnergyMode && key === 'run' ? 'Promenad' : workout.name;
                   return (
                     <button
                       key={key}
                       type="button"
-                      className={[styles.workoutOption, active ? styles.workoutOptionActive : ''].join(' ')}
+                      className={[
+                        styles.workoutOption,
+                        active ? styles.workoutOptionActive : '',
+                        lowEnergyMode && isRecoveryPick ? styles.workoutOptionRecovery : '',
+                        isDimmedInRecovery ? styles.workoutOptionDim : '',
+                      ].join(' ')}
                       onClick={() => setActiveWorkoutKey(active ? null : key)}
                       aria-pressed={active}
-                      aria-label={workout.name}
+                      aria-label={workoutLabel}
                     >
                       <workout.Icon size={24} strokeWidth={1.5} />
-                      <span className={styles.workoutLabel}>{workout.name}</span>
+                      <span className={styles.workoutLabel}>{workoutLabel}</span>
                     </button>
                   );
                 })}
@@ -453,6 +483,47 @@ function DailyFocusCard({ latestWeight, eaten, setEaten, burned, setBurned, lock
         </section>
       )}
     </>
+  );
+}
+
+function SleepRecoveryCard({ sleepHoursToday, setSleepHoursToday, lowEnergyMode, tone }) {
+  return (
+    <section className={styles.noteCard} aria-label={tone.recovery.sleepTitle}>
+      <div className={styles.contextHeader}>
+        <p className={styles.sectionEyebrow}>{tone.recovery.sleepTitle}</p>
+        <span className={styles.contextStatus}>{lowEnergyMode ? tone.recovery.quoteStatus : 'Återhämtning'}</span>
+      </div>
+      <div className={styles.sleepTopRow}>
+        <div className={styles.sleepValueWrap}>
+          <span className={styles.sleepValue}>
+            <AnimatedNumber value={sleepHoursToday} duration={500} decimals={1} />
+          </span>
+          <span className={styles.sleepUnit}>timmar</span>
+        </div>
+        <span className={[styles.sleepBadge, lowEnergyMode ? styles.sleepBadgeWarning : ''].join(' ')}>
+          {lowEnergyMode ? 'Låg energi' : 'Stabil'}
+        </span>
+      </div>
+      <input
+        className={styles.sleepSlider}
+        type="range"
+        min="3"
+        max="10"
+        step="0.5"
+        value={sleepHoursToday}
+        onChange={(event) => {
+          const next = Number(event.target.value);
+          setSleepHoursToday(next);
+          localStorage.setItem(SLEEP_KEY, String(next));
+        }}
+        aria-label="Sömn i timmar"
+      />
+      <div className={styles.sleepScale}>
+        <span>3 h</span>
+        <span>10 h</span>
+      </div>
+      <p className={styles.contextBody}>{tone.recovery.sleepBody}</p>
+    </section>
   );
 }
 
@@ -551,12 +622,15 @@ export default function Home({ profile }) {
   const [eaten, setEaten] = useState(() => parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
   const [burned, setBurned] = useState(() => parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0);
   const [isDayLocked, setIsDayLocked] = useState(() => readIsDayLocked());
+  const [sleepHoursToday, setSleepHoursToday] = useState(() => readTodaySleepHours());
+  const lowEnergyMode = sleepHoursToday < 6;
 
   useEffect(() => {
     function syncCalories() {
       setEaten(parseInt(localStorage.getItem(CALORIES_KEY) || '0', 10) || 0);
       setBurned(parseInt(localStorage.getItem(BURNED_KEY) || '0', 10) || 0);
       setIsDayLocked(readIsDayLocked());
+      setSleepHoursToday(readTodaySleepHours());
     }
 
     window.addEventListener('storage', syncCalories);
@@ -585,6 +659,15 @@ export default function Home({ profile }) {
           locked={isDayLocked}
           setLocked={setIsDayLocked}
           tone={tone}
+          sleepHoursToday={sleepHoursToday}
+          setSleepHoursToday={setSleepHoursToday}
+          lowEnergyMode={lowEnergyMode}
+        />
+        <SleepRecoveryCard
+          sleepHoursToday={sleepHoursToday}
+          setSleepHoursToday={setSleepHoursToday}
+          lowEnergyMode={lowEnergyMode}
+          tone={tone}
         />
         <div className={styles.logSection}>
         <div className={styles.logSectionHeader}>
@@ -602,8 +685,8 @@ export default function Home({ profile }) {
           locked={isDayLocked}
         />
         </div>
-        <CoachTipCard tone={tone} />
-        <MotivationTip profile={profile} />
+        <CoachTipCard tone={lowEnergyMode ? { ...tone, coach: { ...tone.coach, title: tone.recovery.coachTitle, body: () => tone.recovery.coachBody }, quote: { ...tone.quote, status: tone.recovery.quoteStatus } } : tone} />
+        <MotivationTip profile={profile} lowEnergyMode={lowEnergyMode} recoveryTone={tone.recovery} />
       </div>
 
       {modal === 'weight' && <WeightModal onClose={() => setModal(null)} />}

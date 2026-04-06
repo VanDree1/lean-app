@@ -166,6 +166,16 @@ export function getGoalTone(profile = {}) {
     kcalGoal,
     proteinGoal: profile.proteinGoal ?? proteinGoal,
     stepGoal,
+    recovery: {
+      dailyBody: 'Kroppen behöver vila. Fokusera på lätt rörelse och bra mat idag.',
+      dailyMeta: 'Låt återhämtningen styra dagen.',
+      coachTitle: 'Återhämtning först',
+      coachBody: 'Du sov för lite. Sänk kraven idag, prioritera mat och välj lätt rörelse i stället för att pressa fram ett hårt pass.',
+      quoteStatus: 'Low Energy Mode',
+      quoteLead: 'Vila först.',
+      sleepTitle: 'Sömn',
+      sleepBody: 'När sömnen sjunker under sex timmar ska resten av dagen bli enklare, inte hårdare.',
+    },
     ...tone,
   };
 }
